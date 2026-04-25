@@ -33,12 +33,20 @@ import matplotlib.pyplot as plt
 from pymol import cmd
 
 
+# HMMER accepts the 20 standard AAs plus a few ambiguity codes; PyMOL emits '?'
+# for residues it can't map to a single-letter code (MSE, modified residues,
+# UNK, etc.). Anything outside this set gets rewritten to 'X' ("any residue")
+# so hmmscan doesn't reject the input with "illegal character".
+_HMMER_OK_AA = set("ACDEFGHIKLMNPQRSTVWYBZJUOX")
+
+
 def extract_fasta_record(pdb_file, name):
     """Load a PDB in PyMOL and return a single-record FASTA string (or '')."""
     cmd.delete("all")
     cmd.load(pdb_file, "prot")
     fasta = cmd.get_fastastr("prot and polymer.protein")
     seq = "".join(ln for ln in fasta.splitlines() if not ln.startswith(">"))
+    seq = "".join(c if c.upper() in _HMMER_OK_AA else "X" for c in seq)
     cmd.delete("all")
     return f">{name}\n{seq}\n" if seq else ""
 

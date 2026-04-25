@@ -34,15 +34,11 @@ All scripts live at the top level. `monomers/` is data-only.
 | `generate_monomer_confs.py` | For a single PDB ID: read the protein chain from `monomers/<PDB>_chains/`, extract its FASTA sequence via PyMOL, run BioEmu sampling, then dock the crystal DNA onto each conformation. |
 | `run_conf.sh` | SLURM batch wrapper that runs `generate_monomer_confs.py` for one PDB ID on one GPU. |
 | `submit_all.sh` | Submit one `run_conf.sh` job per `monomers/<PDB>_chains/` directory. |
-| `compute_rmsds.py` | Align each sampled conformation to the crystal structure (Cα, no outlier rejection) and write per-monomer RMSD histograms plus two summary plots (box-per-monomer, pooled histogram) to `rmsd/`. |
-| `classify_pfam.py` | Run HMMER `hmmscan` against Pfam-A for every chain PDB under `monomers/`, write per-chain classifications to `rmsd/pfam_classifications.csv`, and plot the RMSD distribution grouped by Pfam family. |
 
 ### Requirements
 
 - `bioemu` Python package (with its CUDA/JAX dependencies)
-- `pymol` Python module (used for sequence extraction, chain splitting, DNA superposition, and RMSD alignment)
-- `matplotlib`, `numpy` for `compute_rmsds.py` and `classify_pfam.py`
-- For `classify_pfam.py`: HMMER 3 (`hmmscan` on PATH) and a pressed `Pfam-A.hmm` (`hmmpress Pfam-A.hmm` once). Set `$PFAM_DB` to the HMM path.
+- `pymol` Python module (used for sequence extraction, chain splitting, DNA superposition)
 - SLURM cluster with a GPU partition if you want to use `run_conf.sh` /
   `submit_all.sh` as-is. The scripts currently request:
   `-p rohs --account=rohs_102 --gres=gpu:rtx5000:1 --time=24:00:00 -n 8 -N 1`.
@@ -86,37 +82,7 @@ sbatch --job-name="<PDB_ID>_<N>" run_conf.sh <PDB_ID> <N>
 Each job writes into its own `monomers/<PDB>_chains/` directory, so the jobs
 don't contend for output paths.
 
-### 3. Compute RMSD vs. crystal structure
-
-After some/all monomers have finished sampling:
-
-```bash
-python compute_rmsds.py                 # all complete monomers
-python compute_rmsds.py 1CIT 6PAX       # restrict to specific PDB IDs
-```
-
-Outputs (all under `rmsd/`):
-- `rmsds.csv` — one row per `(pdb_id, state, rmsd_angstrom)`
-- `structures/<PDB>.png` — ray-traced PyMOL cartoon of the crystal protein (+ DNA if present); cached across reruns
-- `plots/<PDB>.png` — per-monomer plot: structure image on the left, RMSD histogram on the right
-- `summary_per_monomer.png` — box plot of RMSD distribution across monomers, sorted by median
-- `summary_aggregated.png` — histogram of RMSDs pooled across all monomers
-
-### 4. Classify by Pfam family
-
-```bash
-# Download Pfam-A.hmm (once), press it, then:
-export PFAM_DB=/path/to/Pfam-A.hmm
-python classify_pfam.py                      # classify every chain, plot by family
-python classify_pfam.py --skip-plot          # classify only
-python classify_pfam.py --min-monomers 3     # hide families with fewer monomers
-```
-
-Outputs (also under `rmsd/`):
-- `pfam_classifications.csv` — one row per protein chain: `pdb_id, chain, pfam_name, pfam_acc, pfam_description, full_evalue, bit_score`. Chains with no hit above Pfam's gathering threshold are marked `Unclassified`.
-- `summary_by_family.png` — box plot of Cα RMSDs grouped by the primary (first) chain's Pfam family, sorted by median.
-
-### 5. Re-running partial / failed jobs
+### 3. Re-running partial / failed jobs
 
 BioEmu resumes from the `batch_*.npz` checkpoints already in the output
 directory, so re-submitting the same `run_conf.sh` for a PDB ID will pick up
