@@ -1,13 +1,0 @@
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Sampling batches...:   0%|          | 0/10 [00:00<?, ?it/s]Sampling batches...:  10%|█         | 1/10 [00:08<01:20,  8.91s/it]Sampling batches...:  20%|██        | 2/10 [00:17<01:07,  8.46s/it]Sampling batches...:  30%|███       | 3/10 [00:25<00:58,  8.32s/it]Sampling batches...:  40%|████      | 4/10 [00:33<00:49,  8.27s/it]Sampling batches...:  50%|█████     | 5/10 [00:41<00:41,  8.24s/it]Sampling batches...:  60%|██████    | 6/10 [00:49<00:32,  8.23s/it]Sampling batches...:  70%|███████   | 7/10 [00:58<00:24,  8.23s/it]Sampling batches...:  80%|████████  | 8/10 [01:06<00:16,  8.22s/it]Sampling batches...:  90%|█████████ | 9/10 [01:14<00:08,  8.23s/it]Sampling batches...: 100%|██████████| 10/10 [01:22<00:00,  8.23s/it]Sampling batches...: 100%|██████████| 10/10 [01:22<00:00,  8.27s/it]
-Traceback (most recent call last):
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 493, in <module>
-    _run_chains_mode(args)
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 457, in _run_chains_mode
-    topo_path, xtc_path = reconstruct_sidechains(
-                          ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 119, in reconstruct_sidechains
-    from bioemu.sidechain_relax import main as sidechain_relax
-  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 11, in <module>
-    import openmm as mm
-ModuleNotFoundError: No module named 'openmm'

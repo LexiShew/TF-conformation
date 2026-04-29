@@ -1,12 +1,0 @@
-Sampling batches...:   0%|          | 0/6 [00:00<?, ?it/s]Sampling batches...:  17%|█▋        | 1/6 [00:09<00:46,  9.36s/it]Sampling batches...:  33%|███▎      | 2/6 [00:17<00:35,  8.91s/it]Sampling batches...:  50%|█████     | 3/6 [00:26<00:26,  8.77s/it]Sampling batches...:  67%|██████▋   | 4/6 [00:35<00:17,  8.71s/it]Sampling batches...:  83%|████████▎ | 5/6 [00:43<00:08,  8.69s/it]Sampling batches...: 100%|██████████| 6/6 [00:51<00:00,  8.35s/it]Sampling batches...: 100%|██████████| 6/6 [00:51<00:00,  8.59s/it]
-Traceback (most recent call last):
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 493, in <module>
-    _run_chains_mode(args)
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 457, in _run_chains_mode
-    topo_path, xtc_path = reconstruct_sidechains(
-                          ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 119, in reconstruct_sidechains
-    from bioemu.sidechain_relax import main as sidechain_relax
-  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 11, in <module>
-    import openmm as mm
-ModuleNotFoundError: No module named 'openmm'
