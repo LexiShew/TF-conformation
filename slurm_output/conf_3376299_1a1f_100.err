@@ -1,0 +1,12 @@
+Sampling batches...:   0%|          | 0/2 [00:00<?, ?it/s]Sampling batches...:  50%|█████     | 1/2 [00:09<00:09,  9.14s/it]Sampling batches...: 100%|██████████| 2/2 [00:11<00:00,  4.86s/it]Sampling batches...: 100%|██████████| 2/2 [00:11<00:00,  5.50s/it]
+Traceback (most recent call last):
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 493, in <module>
+    _run_chains_mode(args)
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 457, in _run_chains_mode
+    topo_path, xtc_path = reconstruct_sidechains(
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 119, in reconstruct_sidechains
+    from bioemu.sidechain_relax import main as sidechain_relax
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 11, in <module>
+    import openmm as mm
+ModuleNotFoundError: No module named 'openmm'
