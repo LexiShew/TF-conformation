@@ -1,0 +1,53 @@
+
+  Scientific / methodological
+
+  1. DNA is carried over rigidly from the reference crystal. stage2_redock.py:181 applies the protein's Kabsch
+  transform to ref_dna_xyz and stage3_minimize.py:130-133 then restrains the DNA backbone (P, C1') in place. So
+  you're varying the protein conformation but pairing each frame with the same crystal-pose DNA. The protein-DNA
+   interface — which is what shapes the PWM — is not actually being augmented; it's being perturbed and then
+  partially relaxed against a frozen DNA backbone. Bases and sidechains can move; the backbone helix can't.
+  Whether this counts as augmentation depends on what you wanted to learn — it's much closer to "protein
+  ensemble around a fixed binding pose" than "ensemble of binding modes."
+  2. removeHeterogens(keepWater=False) at stage3_minimize.py:40 silently strips ions and cofactors. For
+  zinc-finger / GATA / BCL-11A / homeodomain-Zn and similar DBDs (and a lot of the families on your earlier list
+   — zf-C2H2, GATA, CCHC_BCL-11A), the Zn²⁺ is structural. Without it, the side-chain coordination collapses and
+   you minimize an unphysical apo-Zn fold. There's no warning emitted. Same risk for Mg²⁺-coordinated systems.
+  3. Implicit solvent (GBSA gbn2) for a charged protein-DNA interface (stage3_minimize.py:44). GBSA tends to
+  over-stabilize close ion pairs vs. explicit solvent + Na⁺/Mg²⁺, so the "relaxed" interface can be artificially
+   compact. Method choice, not a bug, but it shapes the resulting ensemble.
+  4. All augmented frames share one PWM target. build_augmented_fold.py appends N npzs all labeled with the same
+   --pwm-filter PWM. If BioEmu samples are mostly close to the crystal, this is effectively up-weighting the
+  original training entry by N — the model just sees "TF X → PWM X" repeated, not genuine diversity. If BioEmu
+  samples are diverse but most aren't binding-competent (BioEmu samples apo-like ensembles), you're training the
+   model to be conformation-invariant for states that don't actually bind, which can degrade specificity.
+
+  Statistical
+
+  5. No fixed random seed in the generated configs. build_training_configs.py:22-43 doesn't set no_random, so
+  driver.py:145 skips the seeding block. Baseline vs augmented therefore differ in (a) the augmentation, (b)
+  parameter init, (c) shuffle order. With only a couple of seeds per condition in evaluate_id_benchmark.py, you
+  can't separate augmentation effect from init/shuffle noise, and there's no significance test or bootstrap CI
+  in the report.
+  6. Best-state checkpoint is selected on the wrong distribution. Configs use best_state_metric: mae on
+  validation — but the validation set is valid0.txt (general TFs), and TF X lives in id.txt. So the checkpoint
+  that minimizes MAE on unrelated TFs is the one you're then judging on TF X. Done identically for baseline and
+  augmented, so the comparison is fair — but the absolute numbers are not "the best the augmented model can do
+  for TF X."
+  7. Per-condition denominators can differ silently. evaluate_id_benchmark.py:116-139 computes aggregate
+  independently per condition; if one entry's npz fails to load or returns NaN for one condition only, that
+  condition's mean is over a smaller n and the Δ in the effect-size summary compares means over different
+  subsets. Worth checking that the n= in each block matches across conditions before trusting the Δ.
+  8. Effect-size pairing is by regex. evaluate_id_benchmark.py:230-234 matches ^(baseline|augmented)_(.+)$.
+  Conditions named anything else (pilot1, bigaug, etc.) silently get dropped from the Effect-size summary — no
+  warning, no row, just absent.
+
+  Bookkeeping / fragility
+  be.
+  10. Cα count check is loose. stage2_redock.py:163 only verifies len(traj_prot_ca_idx) == len(ref_prot_idx). If
+   the reference and trajectory have the same number of Cα atoms but different residue numbering (different
+  domain boundaries, missing residues filled differently, alt chain picked by "longest"), the Kabsch
+  superposition silently aligns mismatched residues. Auto-picking the longest chain (stage2_redock.py:116)
+  compounds this for multi-chain references.
+  11. Phase 0 freezes heavy atoms by zeroing mass (stage3_minimize.py:79-82). That works for L-BFGS minimization
+   (mass doesn't enter), but if anyone later swaps in a dynamics step (Langevin propagation), zero-mass
+  particles blow up. Brittle if extended.

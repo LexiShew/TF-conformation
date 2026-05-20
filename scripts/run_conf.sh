@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # SLURM batch script for generating monomer conformations with BioEmu.
 #
@@ -22,6 +22,11 @@
 CHAINS_DIR=$1
 NUM_CONFORMATIONS=${2:-100}
 
+# Activate conda in the SLURM environment
+source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
+conda activate bioemu
+export CONDA_ROOT=/home1/shewchuk/.conda
+
 if [ -z "$CHAINS_DIR" ]; then
   echo "Usage: $0 <CHAINS_DIR> [NUM_CONFORMATIONS]"
   exit 1
@@ -29,5 +34,5 @@ fi
 
 python "${SLURM_SUBMIT_DIR}/scripts/generate_monomer_confs.py" \
   --chains-dir "$CHAINS_DIR" \
-  -n "$NUM_CONFORMATIONS" \
-  --reconstruct-sidechains
+  -n "$NUM_CONFORMATIONS" 
+  # --reconstruct-sidechains

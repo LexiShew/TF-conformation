@@ -1,0 +1,31 @@
+from pymol import cmd
+
+def gradient_protein_states(obj="topology", n=97,
+                             colors=("0x0000FF", "0x800080", "0xFF66B2")):
+    n = int(n)
+    # Split into per-state objects
+    cmd.split_states(obj)
+    cmd.disable(obj)
+
+    # Convert hex anchors to RGB tuples for interpolation
+    def hex_to_rgb(h):
+        h = h.lstrip("0x").lstrip("#")
+        return tuple(int(h[i:i+2], 16)/255 for i in (0, 2, 4))
+    anchors = [hex_to_rgb(c) for c in colors]
+
+    def interp(t):
+        # piecewise linear across anchors
+        seg = t * (len(anchors) - 1)
+        i = min(int(seg), len(anchors) - 2)
+        f = seg - i
+        a, b = anchors[i], anchors[i+1]
+        return [a[k] + (b[k]-a[k])*f for k in range(3)]
+
+    for s in range(1, n + 1):
+        rgb = interp((s-1)/(n-1))
+        cname = f"grad_{s}"
+        cmd.set_color(cname, rgb)
+        # Color only the protein in this state's split object
+        cmd.color(cname, f"{obj}_{s:04d} and polymer.protein")
+
+cmd.extend("gradient_protein_states", gradient_protein_states)

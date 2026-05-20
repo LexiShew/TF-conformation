@@ -1,0 +1,26 @@
+Sampling batches...:   0%|          | 0/8 [00:00<?, ?it/s]Sampling batches...:  12%|█▎        | 1/8 [00:09<01:05,  9.31s/it]Sampling batches...:  25%|██▌       | 2/8 [00:17<00:52,  8.82s/it]Sampling batches...:  38%|███▊      | 3/8 [00:26<00:43,  8.67s/it]Sampling batches...:  50%|█████     | 4/8 [00:34<00:34,  8.60s/it]Sampling batches...:  62%|██████▎   | 5/8 [00:43<00:25,  8.57s/it]Sampling batches...:  75%|███████▌  | 6/8 [00:51<00:17,  8.55s/it]Sampling batches...:  88%|████████▊ | 7/8 [01:00<00:08,  8.55s/it]Sampling batches...: 100%|██████████| 8/8 [01:02<00:00,  6.42s/it]Sampling batches...: 100%|██████████| 8/8 [01:02<00:00,  7.78s/it]
+reconstructing side-chains:   0%|          | 0/98 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/run_hpacker.py", line 37, in <module>
+    _hpacker(args.protein_pdb_in, args.protein_pdb_out)
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/run_hpacker.py", line 21, in _hpacker
+    raise ImportError(
+ImportError: hpacker not found by python executable at /home1/shewchuk/.conda/envs/hpacker/bin/python. Please install hpacker first.  If you have already installed hpacker, try setting HPACKER_PYTHONBIN environment variable to the path of the python executable where hpacker is installed.
+                                                                  Traceback (most recent call last):
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 493, in <module>
+    _run_chains_mode(args)
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 457, in _run_chains_mode
+    topo_path, xtc_path = reconstruct_sidechains(
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/project2/rohs_102/shewchuk/TF-conformation/scripts/generate_monomer_confs.py", line 127, in reconstruct_sidechains
+    sidechain_relax(
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 289, in main
+    samples_all_heavy = reconstruct_sidechains(samples)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 95, in reconstruct_sidechains
+    _run_hpacker(protein_pdb_in, protein_pdb_out)
+  File "/home1/shewchuk/.conda/envs/bioemu/lib/python3.11/site-packages/bioemu/sidechain_relax.py", line 68, in _run_hpacker
+    raise RuntimeError(f"Error running hpacker: {result.stderr.decode()}")
+                                                 ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'decode'
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
