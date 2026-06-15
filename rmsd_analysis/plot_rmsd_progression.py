@@ -56,36 +56,74 @@ VARIANT_COLORS = {
 }
 
 
+FLOAT_COLS = ("rmsd_backbone_A", "rmsd_sidechain_A", "rmsd_total_A",
+              "rmsd_interface_A")
+INT_COLS   = ("state", "stage", "n_backbone_atoms", "n_sidechain_atoms",
+              "n_total_atoms", "n_interface_atoms")
+
+
 def load_rmsds(csv_path):
     """Load the per-state-RMSD CSV into a list of dicts with numeric values.
     Backward-compat: if the file lacks a 'variant' column, every row is
-    treated as variant='shared'."""
+    treated as variant='shared'. Missing rmsd_interface_A / n_interface_atoms
+    columns (older CSVs) are filled with NaN / 0."""
     rows = []
     with open(csv_path) as f:
         reader = csv.DictReader(f)
-        has_variant = "variant" in (reader.fieldnames or [])
+        fields = reader.fieldnames or []
+        has_variant = "variant" in fields
         for r in reader:
-            for k in ("rmsd_backbone_A", "rmsd_sidechain_A", "rmsd_total_A"):
-                v = r[k]
-                r[k] = float(v) if v not in ("", "nan") else float("nan")
-            for k in ("state", "stage", "n_backbone_atoms",
-                      "n_sidechain_atoms", "n_total_atoms"):
-                r[k] = int(r[k])
+            for k in FLOAT_COLS:
+                if k in r and r[k] not in ("", "nan", None):
+                    r[k] = float(r[k])
+                else:
+                    r[k] = float("nan")
+            for k in INT_COLS:
+                if k in r and r[k] not in ("", None):
+                    r[k] = int(r[k])
+                else:
+                    r[k] = 0
             if not has_variant:
                 r["variant"] = "shared"
             rows.append(r)
     return rows
 
 
-def state_lookup(rows, *, tf, stage, variant, comparison, atom_key="rmsd_backbone_A"):
-    """Return {state_id: value} for the filtered rows."""
+ATOM_KEY_CHOICES = ("backbone", "sidechain", "total", "interface")
+ATOM_KEY_LABELS = {
+    "backbone":  "Backbone",
+    "sidechain": "Sidechain",
+    "total":     "Total heavy-atom",
+    "interface": "Interface heavy-atom",
+}
+
+# Set by main() from --atom-key. The single-metric plot functions read this
+# (via _col()) rather than threading it through every signature; mixed plots
+# (minimization_motion, sidechain_vs_backbone, stage_delta_violins) ignore it.
+ATOM_KEY = "backbone"
+
+
+def _col(atom_key=None):
+    return f"rmsd_{atom_key or ATOM_KEY}_A"
+
+
+def _atom_label():
+    return ATOM_KEY_LABELS[ATOM_KEY]
+
+
+def state_lookup(rows, *, tf, stage, variant, comparison, atom_key=None):
+    """Return {state_id: value} for the filtered rows. If atom_key is None,
+    defaults to the current global ATOM_KEY's column (use _col() for the
+    full 'rmsd_<key>_A' name, or pass that string directly)."""
+    if atom_key is None:
+        atom_key = _col()
     out = {}
     for r in rows:
         if r["tf"] != tf: continue
         if r["stage"] != stage: continue
         if r["variant"] != variant: continue
         if r["comparison"] != comparison: continue
-        v = r[atom_key]
+        v = r.get(atom_key, float("nan"))
         if not (isinstance(v, float) and math.isnan(v)):
             out[r["state"]] = v
     return out
@@ -138,7 +176,7 @@ def plot_sampling_quality(rows, out_path):
     bins = np.linspace(0, 22, 45)
     for ax, tf in zip(axes, TF_ORDER):
         vals = get(rows, tf=tf, stage=0, comparison="vs_reference",
-                   variant="shared", atom_key="rmsd_backbone_A")
+                   variant="shared", atom_key=_col())
         if not vals:
             ax.text(0.5, 0.5, "no data", transform=ax.transAxes, ha="center")
             ax.set_title(TF_LABELS[tf])
@@ -149,10 +187,10 @@ def plot_sampling_quality(rows, out_path):
                    linewidth=1)
         _annotate_stats(ax, vals)
         ax.set_title(TF_LABELS[tf], fontsize=11)
-        ax.set_xlabel("Backbone RMSD vs reference crystal (Å)")
+        ax.set_xlabel(f"{_atom_label()} RMSD vs reference crystal (Å)")
         ax.grid(axis="y", alpha=0.3)
     axes[0].set_ylabel("Number of BioEmu samples")
-    fig.suptitle("BioEmu sampling quality: Stage 0 backbone RMSD vs reference",
+    fig.suptitle(f"BioEmu sampling quality: Stage 0 {_atom_label()} RMSD vs reference",
                  fontsize=12, y=1.01)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
@@ -222,7 +260,7 @@ def plot_bioemu_vs_min(rows, out_path):
         bioemu_by_state = {}
         for r in get(rows, tf=tf, stage=0, comparison="vs_reference",
                      variant="shared"):
-            v = r["rmsd_backbone_A"]
+            v = r.get(_col(), float("nan"))
             if not (isinstance(v, float) and math.isnan(v)):
                 bioemu_by_state[r["state"]] = v
 
@@ -231,7 +269,7 @@ def plot_bioemu_vs_min(rows, out_path):
             min_by_state = {}
             for r in get(rows, tf=tf, stage=3,
                          comparison="delta_stage2_to_stage3", variant=vname):
-                v = r["rmsd_backbone_A"]
+                v = r.get(_col(), float("nan"))
                 if not (isinstance(v, float) and math.isnan(v)):
                     min_by_state[r["state"]] = v
             common = sorted(set(bioemu_by_state) & set(min_by_state))
@@ -293,7 +331,7 @@ def plot_stagewise_progression(rows, out_path):
         median_by_x = {}
         for s in (0, 1, 2):
             vals = get(rows, tf=tf, stage=s, comparison="vs_reference",
-                       variant="shared", atom_key="rmsd_backbone_A")
+                       variant="shared", atom_key=_col())
             data = vals if vals else [0]
             pos = stage_positions[s][0]
             bp = ax.boxplot([data], positions=[pos], widths=width,
@@ -314,7 +352,7 @@ def plot_stagewise_progression(rows, out_path):
         per_variant_medians = {}
         for v_i, vname in enumerate(variants_present):
             vals = get(rows, tf=tf, stage=3, comparison="vs_reference",
-                       variant=vname, atom_key="rmsd_backbone_A")
+                       variant=vname, atom_key=_col())
             data = vals if vals else [0]
             pos = stage_positions[3][v_i]
             bp = ax.boxplot([data], positions=[pos], widths=width,
@@ -346,11 +384,11 @@ def plot_stagewise_progression(rows, out_path):
         ax.set_xticks(all_positions)
         ax.set_xticklabels(all_labels, fontsize=8)
         ax.set_xlabel("Pipeline stage")
-        ax.set_ylabel("Backbone RMSD vs reference (Å)")
+        ax.set_ylabel(f"{_atom_label()} RMSD vs reference (Å)")
         ax.set_title(TF_LABELS[tf], fontsize=11)
         ax.grid(axis="y", alpha=0.3)
         ax.legend(loc="best", fontsize=7, framealpha=0.85)
-    fig.suptitle("Per-stage backbone RMSD vs reference crystal — "
+    fig.suptitle(f"Per-stage {_atom_label()} RMSD vs reference crystal — "
                  "stage 3 split by augmentation variant",
                  fontsize=12, y=1.01)
     fig.tight_layout()
@@ -464,11 +502,11 @@ def plot_state_trajectories(rows, out_path):
         ax.set_xticklabels(["0\nBioEmu", "1\nHPACKER", "2\nDocked", "3\nMinimized"],
                            fontsize=8)
         ax.set_xlabel("Pipeline stage")
-        ax.set_ylabel("Backbone RMSD vs reference (Å)")
+        ax.set_ylabel(f"{_atom_label()} RMSD vs reference (Å)")
         ax.set_title(TF_LABELS[tf], fontsize=11)
         ax.grid(axis="y", alpha=0.3)
         ax.legend(handles=med_legend, loc="best", fontsize=8, framealpha=0.85)
-    fig.suptitle("Per-state RMSD trajectories — every state, both variants",
+    fig.suptitle(f"Per-state {_atom_label()} RMSD trajectories — every state, both variants",
                  fontsize=12, y=1.01)
     fig.tight_layout()
     fig.savefig(out_path, dpi=150, bbox_inches="tight")
@@ -482,7 +520,7 @@ def plot_variant_agreement(rows, out_path):
     vs_reference (top row) and delta_stage2_to_stage3 (bottom row)."""
     quantities = [
         ("vs_reference",            "Stage 3 vs reference (Å)"),
-        ("delta_stage2_to_stage3",  "Stage 2→3 backbone Δ (Å)"),
+        ("delta_stage2_to_stage3",  f"Stage 2→3 {_atom_label()} Δ (Å)"),
     ]
     fig, axes = plt.subplots(len(quantities), 3, figsize=(14, 8.5))
     for row_i, (comp, ylabel) in enumerate(quantities):
@@ -667,7 +705,7 @@ def plot_stage_ecdf(rows, out_path):
             y = np.arange(1, len(vals) + 1) / len(vals)
             ax.plot(vals, y, color=VARIANT_COLORS[v], linewidth=2.2,
                     label=f"Stage 3 — {VARIANT_LABELS[v]}  (n={len(vals)})")
-        ax.set_xlabel("Backbone RMSD vs reference (Å)")
+        ax.set_xlabel(f"{_atom_label()} RMSD vs reference (Å)")
         ax.set_ylabel("Empirical CDF")
         ax.set_title(TF_LABELS[tf], fontsize=11)
         ax.grid(alpha=0.3)
@@ -834,13 +872,22 @@ def plot_state_survival(rows, out_path):
 
 # ---------------------------------------------------------------------------
 def main():
+    global ATOM_KEY
     parser = argparse.ArgumentParser(description=__doc__,
                                       formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--csv", required=True,
                         help="Path to per_state_rmsds.csv (output of compute_rmsds.py)")
     parser.add_argument("--output-dir", required=True,
                         help="Where to write PNG plots")
+    parser.add_argument("--atom-key", choices=ATOM_KEY_CHOICES,
+                        default="backbone",
+                        help="Which RMSD column drives the single-metric "
+                             "plots (default: backbone). 'interface' requires "
+                             "the CSV to include rmsd_interface_A (run "
+                             "compute_rmsds.py with --interface-dir). The "
+                             "backbone-vs-sidechain mixed plots ignore this.")
     args = parser.parse_args()
+    ATOM_KEY = args.atom_key
 
     import_matplotlib()
     out_dir = Path(args.output_dir)
@@ -851,23 +898,39 @@ def main():
     print(f"  loaded {len(rows)} rows")
     variants = sorted({r["variant"] for r in rows})
     print(f"  variants present: {variants}")
+    print(f"  atom_key:         {ATOM_KEY} (column {_col()})")
+
+    # Sanity check for interface mode
+    if ATOM_KEY == "interface":
+        has_if = any(not (isinstance(r.get("rmsd_interface_A"), float)
+                          and math.isnan(r["rmsd_interface_A"]))
+                     for r in rows)
+        if not has_if:
+            raise SystemExit(
+                "atom_key=interface requested but rmsd_interface_A is empty/"
+                "missing in the CSV. Re-run compute_rmsds.py with "
+                "--interface-dir pointing at the JSONs from "
+                "identify_interface_residues.py.")
+
+    # Non-default atom_key gets suffixed filenames so multiple runs don't overwrite.
+    sfx = "" if ATOM_KEY == "backbone" else f"_{ATOM_KEY}"
 
     print("\nGenerating plots:")
     # Original five
-    plot_sampling_quality(rows, out_dir / "sampling_quality.png")
-    plot_minimization_motion(rows, out_dir / "minimization_motion.png")
-    plot_bioemu_vs_min(rows, out_dir / "bioemu_vs_min.png")
-    plot_stagewise_progression(rows, out_dir / "stagewise_progression.png")
-    plot_sidechain_vs_backbone(rows, out_dir / "sidechain_vs_backbone.png")
+    plot_sampling_quality(rows, out_dir / f"sampling_quality{sfx}.png")
+    plot_minimization_motion(rows, out_dir / "minimization_motion.png")   # bb-vs-sc, ignores atom_key
+    plot_bioemu_vs_min(rows, out_dir / f"bioemu_vs_min{sfx}.png")
+    plot_stagewise_progression(rows, out_dir / f"stagewise_progression{sfx}.png")
+    plot_sidechain_vs_backbone(rows, out_dir / "sidechain_vs_backbone.png")   # bb-vs-sc
     # Additions (A–H)
-    plot_state_trajectories(rows, out_dir / "state_trajectories.png")
-    plot_variant_agreement(rows, out_dir / "variant_agreement.png")
-    plot_variant_delta_signed(rows, out_dir / "variant_delta_signed.png")
-    plot_state_heatmap(rows, out_dir / "state_heatmap.png")
-    plot_stage_ecdf(rows, out_dir / "stage_ecdf.png")
-    plot_stage_delta_violins(rows, out_dir / "stage_delta_violins.png")
-    plot_rank_stability(rows, out_dir / "rank_stability.png")
-    plot_state_survival(rows, out_dir / "state_survival.png")
+    plot_state_trajectories(rows, out_dir / f"state_trajectories{sfx}.png")
+    plot_variant_agreement(rows, out_dir / f"variant_agreement{sfx}.png")
+    plot_variant_delta_signed(rows, out_dir / f"variant_delta_signed{sfx}.png")
+    plot_state_heatmap(rows, out_dir / f"state_heatmap{sfx}.png")
+    plot_stage_ecdf(rows, out_dir / f"stage_ecdf{sfx}.png")
+    plot_stage_delta_violins(rows, out_dir / "stage_delta_violins.png")   # bb-vs-sc
+    plot_rank_stability(rows, out_dir / f"rank_stability{sfx}.png")
+    plot_state_survival(rows, out_dir / "state_survival.png")   # counts only
     print("\nDone.")
 
 

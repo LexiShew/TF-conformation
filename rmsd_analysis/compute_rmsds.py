@@ -15,11 +15,14 @@ HPacker → redock), so those rows are emitted once with variant="shared". Stage
 3 (minimization) diverges per variant — "metal_cage" reads stage3_min/,
 "legacy" reads stage3_min_legacy/ — and produces variant-keyed rows.
 
-Three atom subsets per pair:
+Atom subsets per pair:
 
   - backbone:  N, CA, C, O atoms
   - sidechain: heavy atoms NOT in {N, CA, C, O} (residue-name filter excludes DNA)
   - total:     all protein heavy atoms
+  - interface: heavy atoms of residues listed in the per-pilot interface JSON
+               (built by identify_interface_residues.py). Only populated when
+               --interface-dir is provided and a matching {tf}.json is found.
 
 Stage 0 (BioEmu raw) is backbone-only, so sidechain/total RMSDs for stage 0
 are reported as NaN. Stage 2 carries reference DNA across by Kabsch transform
@@ -220,10 +223,10 @@ def common_atom_indices(traj_a, traj_b, chain_a=None, chain_b=None):
     the 0-based ordinal among protein residues — NOT resSeq, which differs
     between BioEmu (0-N) and crystal (real PDB numbering).
 
-    Returns (idx_a, idx_b) such that traj_a.xyz[:, idx_a] aligns atom-for-atom
-    with traj_b.xyz[:, idx_b]. Skips atoms where the residue type differs
-    between the two structures at the same position (e.g. modeled vs crystal
-    His variants).
+    Returns (idx_a, idx_b, info) such that traj_a.xyz[:, idx_a] aligns
+    atom-for-atom with traj_b.xyz[:, idx_b]; `info` is the per-atom
+    (residue_position, resname, atom_name) tuples for the surviving pairs,
+    used by callers that want to filter to e.g. interface residues.
     """
     idx_a_full, info_a = protein_heavy_atom_order(traj_a, protein_chain=chain_a)
     idx_b_full, info_b = protein_heavy_atom_order(traj_b, protein_chain=chain_b)
@@ -233,12 +236,15 @@ def common_atom_indices(traj_a, traj_b, chain_a=None, chain_b=None):
         if key not in map_b:
             map_b[key] = i
 
-    idx_a_out, idx_b_out = [], []
+    idx_a_out, idx_b_out, info_out = [], [], []
     for i, key in enumerate(info_a):
         if key in map_b:
             idx_a_out.append(idx_a_full[i])
             idx_b_out.append(idx_b_full[map_b[key]])
-    return np.array(idx_a_out, dtype=int), np.array(idx_b_out, dtype=int)
+            info_out.append(key)
+    return (np.array(idx_a_out, dtype=int),
+            np.array(idx_b_out, dtype=int),
+            info_out)
 
 
 def subset_indices(traj, indices, atom_set):
@@ -278,18 +284,29 @@ def kabsch_rmsd(coords_a, coords_b):
     return rmsd_nm * 10.0  # nm → Å
 
 
-def compute_rmsd_triple(traj_a, frame_a, traj_b, frame_b, chain_a=None, chain_b=None):
-    """For one frame pair, return (backbone, sidechain, total) RMSDs in Å.
-    Uses common-atom intersection by (residue_position, resname, atom_name)
-    after restricting each trajectory to its protein chain (if specified)."""
-    if traj_a is None or traj_b is None:
-        return float("nan"), float("nan"), float("nan"), 0, 0, 0
-    if frame_a >= traj_a.n_frames or frame_b >= traj_b.n_frames:
-        return float("nan"), float("nan"), float("nan"), 0, 0, 0
+_NAN_RESULT = (float("nan"), float("nan"), float("nan"), float("nan"),
+               0, 0, 0, 0)
 
-    idx_a, idx_b = common_atom_indices(traj_a, traj_b, chain_a=chain_a, chain_b=chain_b)
+
+def compute_rmsd_triple(traj_a, frame_a, traj_b, frame_b, chain_a=None,
+                        chain_b=None, interface_positions=None):
+    """For one frame pair, return (backbone, sidechain, total, interface)
+    RMSDs in Å, plus their atom counts. `interface_positions` (set of int
+    res-positions) selects which residues count toward the interface RMSD;
+    NaN/0 if not provided or empty.
+
+    Uses common-atom intersection by (residue_position, resname, atom_name)
+    after restricting each trajectory to its protein chain (if specified).
+    """
+    if traj_a is None or traj_b is None:
+        return _NAN_RESULT
+    if frame_a >= traj_a.n_frames or frame_b >= traj_b.n_frames:
+        return _NAN_RESULT
+
+    idx_a, idx_b, info = common_atom_indices(traj_a, traj_b,
+                                              chain_a=chain_a, chain_b=chain_b)
     if len(idx_a) == 0:
-        return float("nan"), float("nan"), float("nan"), 0, 0, 0
+        return _NAN_RESULT
 
     coords_a_full = traj_a.xyz[frame_a, idx_a, :]
     coords_b_full = traj_b.xyz[frame_b, idx_b, :]
@@ -317,13 +334,41 @@ def compute_rmsd_triple(traj_a, frame_a, traj_b, frame_b, chain_a=None, chain_b=
     # Total
     rmsd_total = kabsch_rmsd(coords_a_full, coords_b_full)
 
-    return rmsd_bb, rmsd_sc, rmsd_total, n_bb, n_sc, len(idx_a)
+    # Interface subset (residue-position membership)
+    if interface_positions:
+        if_mask = np.array([k[0] in interface_positions for k in info])
+        if if_mask.any():
+            rmsd_if = kabsch_rmsd(coords_a_full[if_mask],
+                                  coords_b_full[if_mask])
+            n_if = int(if_mask.sum())
+        else:
+            rmsd_if = float("nan")
+            n_if = 0
+    else:
+        rmsd_if = float("nan")
+        n_if = 0
+
+    return rmsd_bb, rmsd_sc, rmsd_total, rmsd_if, n_bb, n_sc, len(idx_a), n_if
 
 
 # ---------------------------------------------------------------------------
 # Main per-TF analysis
 # ---------------------------------------------------------------------------
-def analyze_tf(tf_name, output_rows, variants):
+def load_interface_positions(tf_name, interface_dir):
+    """Try to load <interface_dir>/<tf>.json. Returns (set_of_positions, json_path)
+    or (None, None) if not present."""
+    if not interface_dir:
+        return None, None
+    path = os.path.join(interface_dir, f"{tf_name}.json")
+    if not os.path.isfile(path):
+        return None, path
+    import json
+    with open(path) as f:
+        data = json.load(f)
+    return set(data.get("interface_residue_positions", [])), path
+
+
+def analyze_tf(tf_name, output_rows, variants, interface_dir=None):
     print(f"\n=== {tf_name} ===")
     cfg = load_pilot_config(tf_name)
     pdb_id = cfg["PDB_ID"]
@@ -363,6 +408,31 @@ def analyze_tf(tf_name, output_rows, variants):
         print(f"  Stage 3 ({vname:10s}): {n3} states present (from {sdir}/)")
         variant_stage3_lists[vname] = s3
 
+    # Interface residues (optional).
+    interface_positions, if_path = load_interface_positions(tf_name, interface_dir)
+    if interface_positions is not None:
+        print(f"  Interface:             {len(interface_positions)} residues "
+              f"(from {if_path})")
+    elif if_path is not None:
+        print(f"  Interface:             [skipped — {if_path} not found]")
+
+    def _row(stage_n, variant_name, comparison, *, traj_a, frame_a, traj_b,
+             frame_b, chain_a=None, chain_b=None):
+        bb, sc, tot, ifr, nbb, nsc, ntot, nif = compute_rmsd_triple(
+            traj_a, frame_a, traj_b, frame_b,
+            chain_a=chain_a, chain_b=chain_b,
+            interface_positions=interface_positions,
+        )
+        return {
+            "tf": tf_name, "pdb_id": pdb_id, "state": state_i,
+            "stage": stage_n, "variant": variant_name,
+            "comparison": comparison,
+            "rmsd_backbone_A": bb, "rmsd_sidechain_A": sc,
+            "rmsd_total_A": tot, "rmsd_interface_A": ifr,
+            "n_backbone_atoms": nbb, "n_sidechain_atoms": nsc,
+            "n_total_atoms": ntot, "n_interface_atoms": nif,
+        }
+
     # Iterate over states
     for state_i in range(1, n_frames + 1):
         # Shared stages present for this state
@@ -382,29 +452,19 @@ def analyze_tf(tf_name, output_rows, variants):
 
         # vs_reference for shared stages 0–2 (variant="shared")
         for stage_n, (traj, frame_i) in sorted(shared_stages.items()):
-            bb, sc, tot, nbb, nsc, ntot = compute_rmsd_triple(
-                traj, frame_i, ref, 0, chain_a=None, chain_b=protein_chain,
-            )
-            output_rows.append({
-                "tf": tf_name, "pdb_id": pdb_id, "state": state_i,
-                "stage": stage_n, "variant": "shared",
-                "comparison": "vs_reference",
-                "rmsd_backbone_A": bb, "rmsd_sidechain_A": sc, "rmsd_total_A": tot,
-                "n_backbone_atoms": nbb, "n_sidechain_atoms": nsc, "n_total_atoms": ntot,
-            })
+            output_rows.append(_row(
+                stage_n, "shared", "vs_reference",
+                traj_a=traj, frame_a=frame_i,
+                traj_b=ref, frame_b=0, chain_b=protein_chain,
+            ))
 
         # vs_reference for variant stage 3 (variant=<vname>)
         for vname, (traj, frame_i) in variant_stage3.items():
-            bb, sc, tot, nbb, nsc, ntot = compute_rmsd_triple(
-                traj, frame_i, ref, 0, chain_a=None, chain_b=protein_chain,
-            )
-            output_rows.append({
-                "tf": tf_name, "pdb_id": pdb_id, "state": state_i,
-                "stage": 3, "variant": vname,
-                "comparison": "vs_reference",
-                "rmsd_backbone_A": bb, "rmsd_sidechain_A": sc, "rmsd_total_A": tot,
-                "n_backbone_atoms": nbb, "n_sidechain_atoms": nsc, "n_total_atoms": ntot,
-            })
+            output_rows.append(_row(
+                3, vname, "vs_reference",
+                traj_a=traj, frame_a=frame_i,
+                traj_b=ref, frame_b=0, chain_b=protein_chain,
+            ))
 
         # delta_prev within shared stages (0→1, 1→2): variant="shared"
         shared_keys = sorted(shared_stages.keys())
@@ -413,31 +473,21 @@ def analyze_tf(tf_name, output_rows, variants):
             curr_s = shared_keys[i]
             traj_p, frame_p = shared_stages[prev_s]
             traj_c, frame_c = shared_stages[curr_s]
-            bb, sc, tot, nbb, nsc, ntot = compute_rmsd_triple(
-                traj_c, frame_c, traj_p, frame_p,
-            )
-            output_rows.append({
-                "tf": tf_name, "pdb_id": pdb_id, "state": state_i,
-                "stage": curr_s, "variant": "shared",
-                "comparison": f"delta_stage{prev_s}_to_stage{curr_s}",
-                "rmsd_backbone_A": bb, "rmsd_sidechain_A": sc, "rmsd_total_A": tot,
-                "n_backbone_atoms": nbb, "n_sidechain_atoms": nsc, "n_total_atoms": ntot,
-            })
+            output_rows.append(_row(
+                curr_s, "shared", f"delta_stage{prev_s}_to_stage{curr_s}",
+                traj_a=traj_c, frame_a=frame_c,
+                traj_b=traj_p, frame_b=frame_p,
+            ))
 
         # delta stage 2 → stage 3 per variant: variant=<vname>
         if 2 in shared_stages:
             traj_p, frame_p = shared_stages[2]
             for vname, (traj_c, frame_c) in variant_stage3.items():
-                bb, sc, tot, nbb, nsc, ntot = compute_rmsd_triple(
-                    traj_c, frame_c, traj_p, frame_p,
-                )
-                output_rows.append({
-                    "tf": tf_name, "pdb_id": pdb_id, "state": state_i,
-                    "stage": 3, "variant": vname,
-                    "comparison": "delta_stage2_to_stage3",
-                    "rmsd_backbone_A": bb, "rmsd_sidechain_A": sc, "rmsd_total_A": tot,
-                    "n_backbone_atoms": nbb, "n_sidechain_atoms": nsc, "n_total_atoms": ntot,
-                })
+                output_rows.append(_row(
+                    3, vname, "delta_stage2_to_stage3",
+                    traj_a=traj_c, frame_a=frame_c,
+                    traj_b=traj_p, frame_b=frame_p,
+                ))
 
 
 # ---------------------------------------------------------------------------
@@ -449,8 +499,8 @@ def compute_summary(rows):
     from collections import defaultdict
     groups = defaultdict(list)
     for r in rows:
-        for subset in ("backbone", "sidechain", "total"):
-            val = r[f"rmsd_{subset}_A"]
+        for subset in ("backbone", "sidechain", "total", "interface"):
+            val = r.get(f"rmsd_{subset}_A", float("nan"))
             if not (isinstance(val, float) and np.isnan(val)):
                 key = (r["tf"], r["stage"], r["variant"], r["comparison"], subset)
                 groups[key].append(val)
@@ -506,6 +556,12 @@ def main():
     parser.add_argument("--pilots-dir", default=PILOTS_DIR,
                         help=f"Dir holding <tf>.sh pilot configs "
                              f"(default: {PILOTS_DIR}; env: DEEPPBS_PILOTS_DIR).")
+    parser.add_argument("--interface-dir", default=None,
+                        help="Optional dir holding per-pilot interface JSONs "
+                             "(<tf>.json) produced by "
+                             "identify_interface_residues.py. When set, every "
+                             "row also carries rmsd_interface_A / "
+                             "n_interface_atoms restricted to those residues.")
     args = parser.parse_args()
 
     # Apply CLI overrides to module-level path globals.
@@ -520,10 +576,13 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Variants: {args.variants}")
+    if args.interface_dir:
+        print(f"Interface dir: {args.interface_dir}")
     all_rows = []
     for tf in args.tfs:
         try:
-            analyze_tf(tf, all_rows, args.variants)
+            analyze_tf(tf, all_rows, args.variants,
+                       interface_dir=args.interface_dir)
         except Exception as e:
             print(f"  ERROR analyzing {tf}: {e}", file=sys.stderr)
             import traceback; traceback.print_exc()
@@ -535,7 +594,9 @@ def main():
         all_rows, per_state_csv,
         columns=["tf", "pdb_id", "state", "stage", "variant", "comparison",
                  "rmsd_backbone_A", "rmsd_sidechain_A", "rmsd_total_A",
-                 "n_backbone_atoms", "n_sidechain_atoms", "n_total_atoms"],
+                 "rmsd_interface_A",
+                 "n_backbone_atoms", "n_sidechain_atoms", "n_total_atoms",
+                 "n_interface_atoms"],
     )
     print(f"  Wrote {per_state_csv}")
 
