@@ -6,8 +6,8 @@
 #   1 -> augmented (uses train${FOLD}_aug_${TF_NAME}.txt + combined_assembly_${TF_NAME}/)
 #
 # Optional env var SEED: if set, run/config names get a "_s${SEED}" suffix so
-# this same lib drives both the single-seed default pair (run_pilot.sh) and
-# the multi-seed paired comparison (run_multiseed_pilot.sh).
+# this same lib drives both the single-seed default pair (scripts/pipeline/run_pilot.sh) and
+# the multi-seed paired comparison (scripts/pipeline/run_multiseed_pilot.sh).
 
 require_var TF_NAME
 require_var FOLD

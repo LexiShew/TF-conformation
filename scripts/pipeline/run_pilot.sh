@@ -2,15 +2,15 @@
 # run_pilot.sh — submit a complete TF pilot end-to-end with SLURM dependencies.
 #
 # Usage:
-#   ./run_pilot.sh <tf_name> [stage_start] [stage_end]
+#   ./scripts/pipeline/run_pilot.sh <tf_name> [stage_start] [stage_end]
 #   stages: 1=hpacker, 2=redock, 3=minimize, 3r=recover, 4=preprocess,
 #           5=build_aug, 6=train, 7=eval
 #   Defaults: stage_start=1, stage_end=7
 #
 # Examples:
-#   ./run_pilot.sh dux4              # full pipeline
-#   ./run_pilot.sh dux4 4 7          # skip Stages 1-3 (already done)
-#   ./run_pilot.sh dux4 6 7          # just retrain + reeval
+#   ./scripts/pipeline/run_pilot.sh dux4              # full pipeline
+#   ./scripts/pipeline/run_pilot.sh dux4 4 7          # skip Stages 1-3 (already done)
+#   ./scripts/pipeline/run_pilot.sh dux4 6 7          # just retrain + reeval
 #
 # Dependency policy:
 #   afterany — Stage 3 array → 3r, 3r → 4. Partial failure on
@@ -22,7 +22,7 @@ set -eo pipefail
 # TF-conformation repo root (this launcher's own dir); export so the wrappers
 # and stage scripts resolve it. Submit from here so log paths land in this
 # repo's slurm_output/.
-export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${TFCONF_DIR}"
 # shellcheck source=lib/common.sh
 source "${TFCONF_DIR}/lib/common.sh"

@@ -11,7 +11,7 @@
 # the pre-patch behavior where metals weren't in Stage 2 outputs at all.
 #
 # Usage:
-#   ./run_legacy_ab.sh <tf_name> [start_stage]
+#   ./scripts/pipeline/run_legacy_ab.sh <tf_name> [start_stage]
 #
 # Stages:
 #   3  Stage 3 with --ignore-metals  (writes to stage3_min_legacy/)
@@ -26,7 +26,7 @@
 set -eo pipefail
 # TF-conformation repo root (this orchestrator's own dir); export so wrappers
 # and stage scripts resolve it. TF-conformation is the authoritative pipeline.
-export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${TFCONF_DIR}"
 source "${TFCONF_DIR}/lib/common.sh"
 

@@ -27,7 +27,7 @@ This gate scores every docked state and drops the bad ones before they propagate
 
 ## Where it runs
 
-`run_pilot.sh` submits it as step **2g**, after Stage 2 and before Stage 3
+`scripts/pipeline/run_pilot.sh` submits it as step **2g**, after Stage 2 and before Stage 3
 (only when the run continues past Stage 3). The scorer (`interface_rmsd.py`)
 is vendored here so the pipeline doesn't depend on the separate
 `TF_conf_init_outputs/` analysis tree; that tree keeps its own copy for

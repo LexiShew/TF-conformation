@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/slurm_output/min_%A_%a.out
 #SBATCH --error=/project2/rohs_102/shewchuk/TF-conformation/slurm_output/min_%A_%a.err
-# NOTE: --array=1-${N_FRAMES}%8 is set by the submitter (run_pilot.sh).
+# NOTE: --array=1-${N_FRAMES}%8 is set by the submitter (scripts/pipeline/run_pilot.sh).
 
 set -eo pipefail
 # TF-conformation is the authoritative pipeline root. Prefer an inherited

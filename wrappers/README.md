@@ -25,6 +25,6 @@ are still read/written; see `lib/common.sh`).
 | `eval_benchmark.sh` | `stage7_eval/eval_benchmark.sh` | |
 | `eval_legacy_ab.sh` | `stage7_eval/eval_legacy_ab.sh` | |
 
-Driven by `run_pilot.sh` (full DAG), `run_multiseed_pilot.sh`, and
-`run_legacy_ab.sh` at the repo root. Don't submit these by hand unless you set
-`--export=ALL,TF_NAME=<tf>` yourself.
+Driven by the launchers in `scripts/pipeline/` (`run_pilot.sh` for the full DAG,
+`run_multiseed_pilot.sh`, and `run_legacy_ab.sh`). Do not submit these wrappers
+by hand unless you set `--export=ALL,TF_NAME=<tf>` yourself.

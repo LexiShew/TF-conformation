@@ -10,16 +10,16 @@
 # paired statistics (bootstrap CIs and t-test p-values).
 #
 # Usage:
-#   ./run_multiseed_pilot.sh <tf_name> [n_seeds]
+#   ./scripts/pipeline/run_multiseed_pilot.sh <tf_name> [n_seeds]
 #
 # Examples:
-#   ./run_multiseed_pilot.sh egr1 5      # 5 paired seeds for EGR1
-#   ./run_multiseed_pilot.sh tbp 5       # 5 paired seeds for TBP
+#   ./scripts/pipeline/run_multiseed_pilot.sh egr1 5      # 5 paired seeds for EGR1
+#   ./scripts/pipeline/run_multiseed_pilot.sh tbp 5       # 5 paired seeds for TBP
 
 set -eo pipefail
 # TF-conformation repo root (this orchestrator's own dir); export so wrappers
 # and stage scripts resolve it. TF-conformation is the authoritative pipeline.
-export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${TFCONF_DIR}"
 # shellcheck source=lib/common.sh
 source "${TFCONF_DIR}/lib/common.sh"
@@ -35,7 +35,7 @@ require_var COMBINED_ASSEMBLY_DIR
 # Sanity check: data prep should already be done
 if [ ! -d "${COMBINED_ASSEMBLY_DIR}" ]; then
     echo "ERROR: combined assembly dir not found: ${COMBINED_ASSEMBLY_DIR}" >&2
-    echo "Run stages 1-5 first via ./run_pilot.sh ${TF_NAME} 1 5" >&2
+    echo "Run stages 1-5 first via ./scripts/pipeline/run_pilot.sh ${TF_NAME} 1 5" >&2
     exit 1
 fi
 AUG_TRAIN="${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt"
