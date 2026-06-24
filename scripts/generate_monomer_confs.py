@@ -46,6 +46,7 @@
 import argparse
 import glob
 import os
+import re
 import sys
 import tempfile
 
@@ -404,10 +405,24 @@ def _parse_args():
         help="Skip sampling; re-run only the DNA docking step using existing "
              "topology.pdb and samples.xtc in the output dir. Mode 1 only.",
     )
+    parser.add_argument(
+        "--all-chains", action="store_true",
+        help="Chains-dir mode: run BioEmu (+ HPacker with --reconstruct-"
+             "sidechains) on EVERY *_chain*_protein.pdb in the dir, not just "
+             "the first. Each chain writes its own <PDB>_chain<X>_"
+             "conformations/. DNA docking is skipped (that's a later, "
+             "per-complex stage). Chains whose output already exists are "
+             "skipped, so the job is resumable. Used by stage1_bioemu.",
+    )
     args = parser.parse_args()
 
     if args.redock_only and args.pdb_file:
         sys.exit("--redock-only requires --chains-dir (no DNA in --pdb-file mode).")
+
+    if args.all_chains and not args.chains_dir:
+        sys.exit("--all-chains requires --chains-dir.")
+    if args.all_chains and args.redock_only:
+        sys.exit("--all-chains does not dock DNA, so --redock-only is moot.")
 
     # --md-equil implies --reconstruct-sidechains
     if args.md_equil:
@@ -469,6 +484,59 @@ def _run_chains_mode(args):
         print(f"No DNA file found in {chains_dir}, skipping docking.")
 
 
+def _run_all_chains_mode(args):
+    """Run BioEmu (+ optional HPacker) on EVERY protein chain in a <PDB>_chains/
+    dir, each to its own <PDB>_chain<X>_conformations/ dir.
+
+    This is the "all chains, not just monomers" path used by stage1_bioemu:
+    the default --chains-dir mode only processes protein_files[0] (fine for
+    single-chain monomers), whereas multi-chain crystal structures need every
+    chain sampled. DNA docking is intentionally skipped here — stage1 produces
+    the per-chain conformation library; docking onto DNA is a later stage.
+
+    Chains whose expected output already exists are skipped, so a partially
+    completed batch (e.g. a pre-empted SLURM array task) resumes cleanly.
+    """
+    chains_dir = os.path.abspath(args.chains_dir.rstrip("/"))
+    if not os.path.isdir(chains_dir):
+        sys.exit(f"Not a directory: {chains_dir}")
+
+    pdb_id = os.path.basename(chains_dir).split("_")[0]
+    protein_files = sorted(
+        glob.glob(os.path.join(chains_dir, "*_chain*_protein.pdb"))
+    )
+    if not protein_files:
+        sys.exit(f"No *_chain*_protein.pdb file found in {chains_dir}")
+
+    output_root = args.output_dir or chains_dir
+    # The file written last in each chain's pipeline; its presence means done.
+    done_marker = (
+        "samples_md_equil.xtc" if args.md_equil
+        else "samples_sidechain_rec.xtc" if args.reconstruct_sidechains
+        else "samples.xtc"
+    )
+
+    print(f"[all-chains] {pdb_id}: {len(protein_files)} protein chain(s)")
+    for protein_pdb in protein_files:
+        base = os.path.basename(protein_pdb)
+        # <PDB>_chain<X>_protein.pdb -> chain tag "chain<X>"
+        m = re.search(r"_(chain[A-Za-z0-9]+)_protein\.pdb$", base)
+        chain_tag = m.group(1) if m else os.path.splitext(base)[0]
+        out_dir = os.path.join(output_root, f"{pdb_id}_{chain_tag}_conformations")
+
+        if os.path.exists(os.path.join(out_dir, done_marker)):
+            print(f"[all-chains] SKIP {pdb_id} {chain_tag}: {done_marker} exists")
+            continue
+
+        print(f"[all-chains] {pdb_id} {chain_tag} -> {out_dir}")
+        generate_conformations(
+            protein_pdb, args.num_conformations, out_dir,
+            args.cache_dir, args.keep_intermediates,
+        )
+        if args.reconstruct_sidechains:
+            reconstruct_sidechains(out_dir, md_equil=args.md_equil)
+
+
 def _run_pdb_file_mode(args):
     pdb_path = os.path.abspath(args.pdb_file)
     if not os.path.isfile(pdb_path):
@@ -489,7 +557,9 @@ def _run_pdb_file_mode(args):
 
 if __name__ == "__main__":
     args = _parse_args()
-    if args.chains_dir:
+    if args.all_chains:
+        _run_all_chains_mode(args)
+    elif args.chains_dir:
         _run_chains_mode(args)
     else:
         _run_pdb_file_mode(args)

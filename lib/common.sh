@@ -24,7 +24,10 @@ export OUTPUTS_DIR="${PROJECT_ROOT}/DeepPBS_outputs"
 export CONFORMATIONS_DIR="${REPO_DIR}/data/conformations"
 export FOLDS_AUG_DIR="${REPO_DIR}/run/folds_aug"
 
-export BIOEMU_RAW_ROOT="${PROJECT_ROOT}/TF-conformation/deeppbs_pdbs/monomer_chains"
+# Source-chain library: all protein chains for every DeepPBS structure.
+# (Was deeppbs_pdbs/monomer_chains — monomers only — before the source_chains
+# refactor; stage1_bioemu now samples every chain here.)
+export BIOEMU_RAW_ROOT="${PROJECT_ROOT}/TF-conformation/structures/source_chains"
 
 mkdir -p "${LOGS_DIR}" "${CONFORMATIONS_DIR}" "${FOLDS_AUG_DIR}"
 
