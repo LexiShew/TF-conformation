@@ -221,6 +221,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-structures/deeppbs_pdbs/pdb_chains.tar
 # Regenerable SLURM logs
 slurm_output/
+
+# All structural data (PDB/CIF/conformations, source chains, provenance) is
+# kept on disk but out of git — it's large and regenerable from the JASPAR
+# seed dataset. Archived copy lives in ../backups/. Supersedes the old
+# structures/deeppbs_pdbs/pdb_chains.tar rule.
+structures/

@@ -1,22 +1,29 @@
 """
-Stage 2: Cα-align each Stage 1 frame onto a reference structure, carry the
+Stage 2: align each Stage 1 frame onto a reference structure, carry the
 reference DNA and any structural metal ions across, write per-state PDBs.
 
+ALIGNMENT MODE (new):
+  --align-mode interface (default) : Kabsch-fit on the DNA-contacting protein
+      Cα only. Global all-Cα fitting minimizes whole-chain RMSD, which spreads
+      placement error onto the interface and systematically loses native
+      protein-DNA contacts (observed: fnat capped ~0.47 even for sub-Å folds).
+      Fitting on interface Cα places the recognition residues on their cognate
+      DNA contacts instead of averaging error across the whole chain.
+  --align-mode all : original behaviour (all-Cα fit), kept for A/B comparison.
+
+The BioEmu protein conformation is left rigid in both modes; only the
+superposition target changes. (For multidomain folds like C2H2 arrays, a
+per-domain dock would go further, but that perturbs inter-domain geometry and
+is a separate change.)
+
 Carrying metals: BioEmu doesn't sample metals and HPACKER doesn't restore
-them. To preserve metal coordination geometry in Stage 3, we extract metal
-positions from the reference crystal and apply the same Kabsch transform
-that we apply to the reference DNA. The metals are written as HETATM
-records in each docked PDB so Stage 3 sees them.
+them. We extract metal positions from the reference crystal and apply the same
+Kabsch transform used for the reference DNA, writing them as HETATM so Stage 3
+sees them.
 
-This version also validates that BioEmu's protein and the reference crystal's
-protein are the same residue sequence — not just the same count of Cα atoms.
-A mere count-match misses cases where the crystal has a disordered gap that
-BioEmu modeled across, producing positional misalignment (this caused the
-DUX4 5z6z pilot to dock DNA against the wrong protein region).
-
-Auto-detects protein vs DNA chains in the reference unless --protein-chain
-and --dna-chains are explicitly provided. Use --inspect-only to see the
-detected layout without writing any output.
+Validates that BioEmu's protein and the reference crystal's protein are the
+same residue sequence (not just the same Cα count); a mere count-match misses
+crystal gaps BioEmu modeled across (the DUX4 5z6z case).
 """
 import argparse
 import os
@@ -34,8 +41,6 @@ DNA_RESNAMES = {
     "DA5","DG5","DC5","DT5","DA3","DG3","DC3","DT3",
 }
 HISTIDINE_VARIANTS = {"HIS", "HID", "HIE", "HIP", "HSD", "HSE", "HSP"}
-# Structural metal ions worth carrying across to docked frames so Stage 3
-# can set up coordination-cage restraints.
 STRUCTURAL_METAL_RESNAMES = {"ZN", "MG", "MN", "FE", "CA", "CO", "NI", "CU"}
 
 
@@ -56,13 +61,17 @@ def parse_args():
                    help="Verify residue sequences match between traj and ref (default: True)")
     p.add_argument("--mismatch-action", choices=["fail", "warn", "trim"], default="fail",
                    help="What to do if residue sequences differ: "
-                        "fail = exit (default), "
-                        "warn = continue with misalignment risk, "
+                        "fail = exit (default), warn = continue, "
                         "trim = slice both to the longest common-sequence run")
     p.add_argument("--max-mismatches", type=int, default=0,
-                   help="Maximum allowed sequence mismatches before action triggers. "
-                        "Set higher to tolerate occasional discrepancies "
-                        "(e.g. HIS protonation variant labels).")
+                   help="Maximum allowed sequence mismatches before action triggers.")
+    # --- new alignment controls ---
+    p.add_argument("--align-mode", choices=["interface", "all"], default="interface",
+                   help="Kabsch fit on DNA-contacting Cα ('interface', default) "
+                        "or all Cα ('all', original behaviour).")
+    p.add_argument("--iface-cutoff", type=float, default=5.0,
+                   help="Interface defn for --align-mode interface: protein residue "
+                        "within this many Å of any DNA heavy atom (default 5.0).")
     return p.parse_args()
 
 
@@ -84,39 +93,22 @@ def detect_chains(ref):
 
 
 def normalize_resname(name):
-    """Map His-protonation variants to one canonical name."""
     if name in HISTIDINE_VARIANTS: return "HIS"
     return name
 
 
 def check_sequence_match(traj, ref, protein_chain, max_mismatches):
-    """Compare residue sequences between traj (all chains protein) and ref protein chain.
-
-    Returns (n_mismatches, mismatch_positions, traj_seq, ref_seq).
-    """
     traj_residues = [normalize_resname(r.name) for r in traj.topology.residues]
     ref_chain = list(ref.topology.chains)[protein_chain]
     ref_residues = [normalize_resname(r.name) for r in ref_chain.residues]
-
     if len(traj_residues) != len(ref_residues):
-        return None, None, traj_residues, ref_residues  # length mismatch, handled separately
-
-    mismatches = []
-    for i, (t, r) in enumerate(zip(traj_residues, ref_residues)):
-        if t != r:
-            mismatches.append((i, t, r))
+        return None, None, traj_residues, ref_residues
+    mismatches = [(i, t, r) for i, (t, r) in enumerate(zip(traj_residues, ref_residues)) if t != r]
     return len(mismatches), mismatches, traj_residues, ref_residues
 
 
 def find_reference_metals(ref):
-    """Find structural metal ions in the reference structure.
-
-    Returns:
-        ref_metal_atom_idx (np.ndarray): atom indices of every metal atom
-        metal_info (list): list of (resname, atom_index) tuples for logging
-    """
-    ref_metal_atom_idx = []
-    metal_info = []
+    ref_metal_atom_idx, metal_info = [], []
     for chain in ref.topology.chains:
         for res in chain.residues:
             if res.name.strip().upper() in STRUCTURAL_METAL_RESNAMES:
@@ -144,7 +136,6 @@ def kabsch(P, Q):
 
 
 def find_common_subsequence(seq_a, seq_b):
-    """Return (start_a, start_b, length) of the longest contiguous match."""
     n, m = len(seq_a), len(seq_b)
     best = (0, 0, 0)
     for i in range(n):
@@ -155,6 +146,32 @@ def find_common_subsequence(seq_a, seq_b):
             if k > best[2]:
                 best = (i, j, k)
     return best
+
+
+def interface_positions(ref, protein_chain, ref_prot_idx, ref_dna_idx, cutoff_ang):
+    """Positions within ref_prot_idx whose residue is within cutoff of DNA.
+
+    ref_prot_idx is the (possibly trimmed) array of protein Cα atom indices, in
+    residue order. Returns a list of positions k into that array. mdtraj xyz is
+    in nanometres, so the Å cutoff is converted here.
+    """
+    cutoff_nm = cutoff_ang / 10.0
+    xyz = ref.xyz[0]
+    dna_xyz = xyz[ref_dna_idx]
+    # residues that contact DNA (by residue topology index)
+    iface_resids = set()
+    for res in list(ref.topology.chains)[protein_chain].residues:
+        heavy = [a.index for a in res.atoms if a.element.symbol != "H"]
+        if not heavy:
+            continue
+        p = xyz[heavy]
+        dmin = np.sqrt(((p[:, None, :] - dna_xyz[None, :, :]) ** 2).sum(-1)).min()
+        if dmin <= cutoff_nm:
+            iface_resids.add(res.index)
+    # map back to positions within the aligned Cα array
+    pos = [k for k in range(len(ref_prot_idx))
+           if ref.topology.atom(int(ref_prot_idx[k])).residue.index in iface_resids]
+    return pos
 
 
 def main():
@@ -187,8 +204,6 @@ def main():
         dna_chain_ids = [c[0] for c in detection["dna"]]
         print(f"Auto-selected DNA chains: {dna_chain_ids}")
 
-    # Identify structural metals (carried across to docked frames during the
-    # main per-frame loop). Reported early so --inspect-only users can verify.
     ref_metal_atom_idx, metal_info = find_reference_metals(ref)
     report_reference_metals(ref_metal_atom_idx, metal_info)
 
@@ -217,68 +232,31 @@ def main():
     print(f"Trajectory Cα atoms: {len(traj_prot_ca_idx)}")
 
     if len(traj_prot_ca_idx) != len(ref_prot_idx):
-        print(
-            f"ERROR: Cα count mismatch — traj has {len(traj_prot_ca_idx)}, ref has {len(ref_prot_idx)}.",
-            file=sys.stderr,
-        )
+        print(f"ERROR: Cα count mismatch — traj has {len(traj_prot_ca_idx)}, ref has {len(ref_prot_idx)}.",
+              file=sys.stderr)
         sys.exit(1)
 
-    # =========================================================================
-    # CRITICAL: sequence-identity check
-    # =========================================================================
-    # A matching Cα count is not sufficient. If the crystal has a disordered
-    # loop that BioEmu modeled across, the residue *positions* will line up
-    # but the residue *identities* won't. This is exactly what bit us in DUX4
-    # (5z6z had a 9-residue crystal gap that BioEmu filled in).
+    # --- sequence-identity check (unchanged) ---
     if args.require_sequence_match:
         result = check_sequence_match(traj, ref, protein_chain, args.max_mismatches)
         n_mis, mismatches, traj_seq, ref_seq = result
-
         if n_mis is None:
-            print(f"\nERROR: residue count mismatch", file=sys.stderr)
-            sys.exit(1)
-
+            print(f"\nERROR: residue count mismatch", file=sys.stderr); sys.exit(1)
         if n_mis > args.max_mismatches:
-            print(f"\n⚠ Sequence mismatch detected: {n_mis} residues differ between "
-                  f"BioEmu trajectory and reference (max allowed: {args.max_mismatches})")
-            print(f"First 5 mismatches (idx, traj, ref):")
+            print(f"\n⚠ Sequence mismatch: {n_mis} residues differ (max allowed: {args.max_mismatches})")
             for i, t, r in mismatches[:5]:
                 print(f"  position {i}: traj={t}, ref={r}")
-
-            # Check if it's a contiguous gap-style mismatch (suggests crystal gap)
-            if mismatches and mismatches[0][0] > 0:
-                # Look at where mismatches cluster
-                positions = [m[0] for m in mismatches]
-                clusters = []
-                cluster_start = positions[0]
-                cluster_end = positions[0]
-                for p in positions[1:]:
-                    if p == cluster_end + 1:
-                        cluster_end = p
-                    else:
-                        clusters.append((cluster_start, cluster_end))
-                        cluster_start = cluster_end = p
-                clusters.append((cluster_start, cluster_end))
-                print(f"\nMismatch clusters: {clusters}")
-                if len(clusters) <= 3 and any(c[1]-c[0] >= 3 for c in clusters):
-                    print("  Pattern suggests crystal-gap modeling by BioEmu.")
-                    print("  Consider using --mismatch-action trim to drop the gap-modeled region.")
-
             if args.mismatch_action == "fail":
                 print("\nExiting (use --mismatch-action warn or trim to override)", file=sys.stderr)
                 sys.exit(1)
             elif args.mismatch_action == "warn":
-                print("\n⚠ Continuing despite mismatch (--mismatch-action warn). "
-                      "Output may be biologically meaningless in mismatch regions.")
+                print("\n⚠ Continuing despite mismatch (--mismatch-action warn).")
             elif args.mismatch_action == "trim":
                 start_a, start_b, length = find_common_subsequence(traj_seq, ref_seq)
-                print(f"\nTrimming to longest common run: "
-                      f"traj[{start_a}:{start_a+length}], ref[{start_b}:{start_b+length}], "
-                      f"length={length}")
+                print(f"\nTrimming to longest common run: traj[{start_a}:{start_a+length}], "
+                      f"ref[{start_b}:{start_b+length}], length={length}")
                 if length < 0.5 * len(traj_seq):
-                    print(f"WARNING: trimmed region is less than half the full sequence; "
-                          f"likely lots is being dropped.", file=sys.stderr)
-                # Restrict the Cα indices we use for alignment
+                    print("WARNING: trimmed region < half the sequence.", file=sys.stderr)
                 traj_prot_ca_idx = traj_prot_ca_idx[start_a:start_a+length]
                 ref_prot_idx = ref_prot_idx[start_b:start_b+length]
                 print(f"After trim: traj Cα={len(traj_prot_ca_idx)}, ref Cα={len(ref_prot_idx)}")
@@ -288,9 +266,6 @@ def main():
     if len(ref_prot_idx) == 0 or len(ref_dna_idx) == 0:
         print("ERROR: zero atoms selected for protein or DNA after filtering", file=sys.stderr)
         sys.exit(1)
-
-    # Metal detection already done above (before --inspect-only exit). We
-    # already have ref_metal_atom_idx and metal_info in scope.
 
     ref_dna_traj = ref.atom_slice(ref_dna_idx)
     ref_prot_xyz = ref.xyz[0, ref_prot_idx, :]
@@ -302,17 +277,36 @@ def main():
         ref_metal_traj = None
         ref_metal_xyz  = None
 
+    # =========================================================================
+    # Choose alignment atom subset: interface Cα (default) or all Cα.
+    # =========================================================================
+    if args.align_mode == "interface":
+        align_pos = interface_positions(ref, protein_chain, ref_prot_idx,
+                                        ref_dna_idx, args.iface_cutoff)
+        if len(align_pos) < 3:
+            print(f"⚠ Only {len(align_pos)} interface Cα found at {args.iface_cutoff} Å; "
+                  f"falling back to all-Cα alignment.", file=sys.stderr)
+            align_pos = list(range(len(ref_prot_idx)))
+            mode_used = "all (fallback)"
+        else:
+            mode_used = "interface"
+    else:
+        align_pos = list(range(len(ref_prot_idx)))
+        mode_used = "all"
+    align_pos = np.asarray(align_pos, dtype=int)
+    ref_align_xyz = ref_prot_xyz[align_pos]
+    print(f"\nAlignment mode: {mode_used} — fitting on {len(align_pos)}/{len(ref_prot_idx)} Cα")
+
     n_written, n_failed = 0, 0
     for i in range(traj.n_frames):
         try:
             frame_ca_xyz = traj.xyz[i, traj_prot_ca_idx, :]
-            R, t = kabsch(ref_prot_xyz, frame_ca_xyz)
+            # Kabsch on the chosen subset only; transform applies to everything.
+            R, t = kabsch(ref_align_xyz, frame_ca_xyz[align_pos])
 
-            # Apply the same Kabsch transform to DNA and metals
             dna_xyz_aligned = (R @ ref_dna_xyz.T).T + t
             ref_dna_aligned = ref_dna_traj[0]
             ref_dna_aligned.xyz = dna_xyz_aligned[np.newaxis, :, :]
-
             combined = traj[i].stack(ref_dna_aligned)
 
             if ref_metal_traj is not None:
@@ -321,10 +315,6 @@ def main():
                 ref_metal_aligned.xyz = metal_xyz_aligned[np.newaxis, :, :]
                 combined = combined.stack(ref_metal_aligned)
 
-            # If we trimmed, we want to keep the full BioEmu protein but only use
-            # the trimmed Cα subset for alignment. Write the full protein frame +
-            # aligned DNA. (Stage 3 will handle any residues we kept that aren't
-            # in the reference.)
             out_path = os.path.join(args.out_dir, f"{args.pdb_id}_state_{i+1:03d}.pdb")
             combined.save_pdb(out_path)
             n_written += 1
