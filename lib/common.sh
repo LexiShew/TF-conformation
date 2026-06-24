@@ -23,6 +23,12 @@ export LOGS_DIR="${TFCONF_DIR}/slurm_output"
 # refactor; stage1_bioemu now samples every chain here.)
 export BIOEMU_RAW_ROOT="${TFCONF_DIR}/structures/source_chains"
 
+# Stage 1 (BioEmu + HPacker) conformation library. stage1_bioemu writes one dir
+# per (PDB, source-chain) here as <PDB>_chain<X>_conformations/, each holding
+# topology.pdb, samples.xtc, samples_sidechain_rec.{pdb,xtc}. This is the single
+# canonical Stage 1 output location that Stage 2 reads from (see STAGE1_DIR).
+export STAGE1_OUT_ROOT="${TFCONF_DIR}/structures/stage1_bioemu_output"
+
 # --- Data / outputs / training trees: still live in the DeepPBS data trees on
 # the cluster (large; not part of this repo). These are inputs/outputs, not code.
 export REPO_DIR="${PROJECT_ROOT}/DeepPBS"
@@ -66,6 +72,17 @@ load_pilot_config() {
     # shellcheck disable=SC1090
     source "${cfg}"
 
+    # Guard the required pilot vars up front so a malformed config fails with a
+    # clear message instead of a confusing downstream path error (S2). Note:
+    # BINDING_CHAIN is the source-chain filename letter (the Stage 1 dir tag,
+    # e.g. "A"), distinct from PROTEIN_CHAIN which is the 0-based mdtraj chainid
+    # into the .cif — see B2 / the Stage 2 sequence-match guard that asserts the
+    # two indexings actually point at the same protein.
+    require_var PDB_ID
+    require_var FOLD
+    require_var PWM_LABEL
+    require_var BINDING_CHAIN
+
     # Set derived paths once config has been read.
     # LEGACY=1 toggles to a parallel pipeline that uses --ignore-metals in
     # Stage 3 and writes everything to *_legacy/ paths. Used for A/B-testing
@@ -81,12 +98,21 @@ load_pilot_config() {
 
     export WORK_DIR="${CONFORMATIONS_DIR}/${TF_NAME}"
     export STAGE0_DIR="${WORK_DIR}/stage0_raw"
-    export STAGE1_DIR="${WORK_DIR}/stage1_relax"
+
+    # Stage 1 output = the binding chain's conformation dir in the new per-chain
+    # library (B1). stage1_bioemu writes samples_sidechain_rec.{pdb,xtc} here;
+    # Stage 2 reads them. BIOEMU_DIR is the same dir (raw BioEmu output lives
+    # alongside the HPacker reconstruction).
+    export BIOEMU_DIR="${STAGE1_OUT_ROOT}/${PDB_ID}_chain${BINDING_CHAIN}_conformations"
+    export STAGE1_DIR="${BIOEMU_DIR}"
+    export STAGE1_RELAX_PREFIX="samples_sidechain_rec"
+
+    # STAGE2_DIR intentionally has NO legacy suffix: docking is metal-independent,
+    # so the legacy A/B (Stage 3 --ignore-metals) reuses the same docked frames (S5).
     export STAGE2_DIR="${WORK_DIR}/stage2_docked"
     # Stages 3+ diverge in legacy mode
     export STAGE3_DIR="${WORK_DIR}/stage3_min${suffix}"
     export STAGE4_DIR="${WORK_DIR}/stage4_npz${suffix}"
-    export BIOEMU_DIR="${BIOEMU_RAW_ROOT}/${PDB_ID}_chains/${PDB_ID}_conformations"
     export REF_CIF="${BIOEMU_RAW_ROOT}/${PDB_ID}_chains/${PDB_ID}.cif"
     export COMBINED_ASSEMBLY_DIR="${DATA_DIR}/combined_assembly${suffix}_${TF_NAME}"
     # Augmented fold also gets a legacy suffix
@@ -94,7 +120,17 @@ load_pilot_config() {
     # And the conditioning suffix used by training-config output dirs
     export CONDITION_NAME_SUFFIX="${suffix}"
 
-    mkdir -p "${WORK_DIR}" "${STAGE1_DIR}" "${STAGE2_DIR}" "${STAGE3_DIR}" "${STAGE4_DIR}/output"
+    # Verify the reference .cif exists (the source_chains refactor should have
+    # copied each <PDB>.cif into its <PDB>_chains/ dir) — S3.
+    if [ ! -f "${REF_CIF}" ]; then
+        echo "ERROR: reference CIF not found: ${REF_CIF}" >&2
+        echo "Expected the source_chains refactor to place ${PDB_ID}.cif in its chains dir." >&2
+        exit 1
+    fi
+
+    # NB: STAGE1_DIR is Stage 1's OUTPUT — do not pre-create it here, so a
+    # missing Stage 1 run surfaces as a clear "samples_* not found" in Stage 2.
+    mkdir -p "${WORK_DIR}" "${STAGE2_DIR}" "${STAGE3_DIR}" "${STAGE4_DIR}/output"
 
     echo "[common] Loaded pilot config: ${TF_NAME} (PDB ${PDB_ID}, PWM ${PWM_LABEL})${suffix:+ [LEGACY]}"
 }

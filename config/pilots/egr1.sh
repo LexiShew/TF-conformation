@@ -15,6 +15,12 @@ export PWM_LABEL="EGR1_MOUSE.H11MO.0.A"
 export TEST_PWM_FILTER="EGR1|MA0162"
 export TEST_FILTER_NAME="EGR1"
 
+# Stage 1 ensemble selector (B2): the source-chain FILENAME letter
+# (structures/source_chains/1aay_chains/1aay_chainA_protein.pdb -> "A"), which
+# selects 1aay_chainA_conformations/. This is NOT the same indexing as
+# PROTEIN_CHAIN below; Stage 2's sequence-match guard asserts they agree.
+export BINDING_CHAIN="A"
+
 # Stage 2 chain layout — for reference structure (cif).
 # 1aay: chain A=DNA, B=DNA, C=protein, D-F=ZN, G-I=waters
 # 0-based chainids; we want the protein chain and the two DNA strands.

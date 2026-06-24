@@ -11,6 +11,11 @@ export PWM_LABEL="MA0343.1.jaspar"
 export TEST_PWM_FILTER="MA0343"
 export TEST_FILTER_NAME="TBP"
  
+# Stage 1 ensemble selector (B2): source-chain filename letter
+# (1tgh_chainA_protein.pdb -> "A") -> selects 1tgh_chainA_conformations/.
+# Distinct from PROTEIN_CHAIN (the 0-based cif chainid).
+export BINDING_CHAIN="A"
+
 # Stage 2 chain layout for 1tgh.cif (verified via stage2_redock.py --inspect-only)
 # 1tgh: protein on chain 2 (180 residues), DNA on chains 0,1 (12bp each strand)
 export PROTEIN_CHAIN=2

@@ -12,11 +12,16 @@ export PWM_LABEL="DUX4_HUMAN.H11MO.0.A"
 export TEST_PWM_FILTER="DUX4|MA0468"
 export TEST_FILTER_NAME="DUX4"
 
+# Stage 1 ensemble selector (B2): source-chain filename letter
+# (5z6z_chainA_protein.pdb -> "A") -> selects 5z6z_chainA_conformations/.
+# Distinct from PROTEIN_CHAIN (the 0-based cif chainid).
+export BINDING_CHAIN="A"
+
 # Stage 2 chain layout for 5z6z reference cif.
 # IMPORTANT: this is a guess — verify with auto-detection (see below) before
 # launching, or pass --auto-detect-chains to stage2_redock.py.
 # For typical homeodomain-on-DNA: protein and two DNA strands.
-export PROTEIN_CHAIN=0     # ⚠ verify with: python scripts/inspect_chains.py --ref <ref.cif>
+export PROTEIN_CHAIN=0     # ⚠ verify with: stage2_redock.py --inspect-only
 export DNA_CHAINS="1,2"
 
 # Stage 2 mismatch handling:
