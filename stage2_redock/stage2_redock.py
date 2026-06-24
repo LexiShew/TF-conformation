@@ -10,11 +10,19 @@ ALIGNMENT MODE (new):
       Fitting on interface Cα places the recognition residues on their cognate
       DNA contacts instead of averaging error across the whole chain.
   --align-mode all : original behaviour (all-Cα fit), kept for A/B comparison.
+  --align-mode per_domain : DIAGNOSTIC ONLY. Segments the interface Cα into
+      domains by residue-number gap, fits each domain independently, and anchors
+      the carried DNA to the largest interface domain. Valid only for multidomain
+      folds whose subdomains contact independent DNA subsites (e.g. C2H2 arrays);
+      for cooperative/tandem binders it discards inter-domain geometry and
+      launders a real failure into deceptively high fnat. Never the batch default.
 
-The BioEmu protein conformation is left rigid in both modes; only the
-superposition target changes. (For multidomain folds like C2H2 arrays, a
-per-domain dock would go further, but that perturbs inter-domain geometry and
-is a separate change.)
+The BioEmu protein conformation is left rigid in all modes; only the
+superposition target changes.
+
+Monomer scope: by default Stage 2 refuses any assembly where more than one
+protein chain contacts the DNA (pass --allow-multimer to override), so it never
+silently docks one chain's ensemble against a multi-protein complex site.
 
 Carrying metals: BioEmu doesn't sample metals and HPACKER doesn't restore
 them. We extract metal positions from the reference crystal and apply the same
@@ -65,13 +73,25 @@ def parse_args():
                         "trim = slice both to the longest common-sequence run")
     p.add_argument("--max-mismatches", type=int, default=0,
                    help="Maximum allowed sequence mismatches before action triggers.")
-    # --- new alignment controls ---
-    p.add_argument("--align-mode", choices=["interface", "all"], default="interface",
-                   help="Kabsch fit on DNA-contacting Cα ('interface', default) "
-                        "or all Cα ('all', original behaviour).")
+    # --- alignment controls ---
+    p.add_argument("--align-mode", choices=["interface", "all", "per_domain"], default="interface",
+                   help="Kabsch fit on DNA-contacting Cα ('interface', default), "
+                        "all Cα ('all', original behaviour), or 'per_domain' "
+                        "(DIAGNOSTIC ONLY — fit each interface domain independently, "
+                        "anchor DNA to the largest; valid only for multidomain folds "
+                        "whose subdomains contact independent DNA subsites, e.g. C2H2 "
+                        "arrays — see module docstring).")
     p.add_argument("--iface-cutoff", type=float, default=5.0,
-                   help="Interface defn for --align-mode interface: protein residue "
-                        "within this many Å of any DNA heavy atom (default 5.0).")
+                   help="Interface defn for --align-mode interface/per_domain: protein "
+                        "residue within this many Å of any DNA heavy atom (default 5.0).")
+    p.add_argument("--domain-gap", type=int, default=10,
+                   help="--align-mode per_domain: split interface Cα into domains "
+                        "wherever consecutive interface residues' resSeq differ by more "
+                        "than this (default 10).")
+    p.add_argument("--allow-multimer", action="store_true",
+                   help="Skip the monomer guard (B3). By default Stage 2 refuses an "
+                        "assembly with >1 protein chain contacting the DNA, to avoid "
+                        "silently docking one chain's ensemble against a complex site.")
     return p.parse_args()
 
 
@@ -146,6 +166,54 @@ def find_common_subsequence(seq_a, seq_b):
             if k > best[2]:
                 best = (i, j, k)
     return best
+
+
+def kabsch_rmsd(P, Q):
+    """RMSD between P and Q after the optimal Kabsch superposition of P onto Q."""
+    R, t = kabsch(P, Q)
+    Pa = (R @ P.T).T + t
+    return float(np.sqrt(((Pa - Q) ** 2).sum(axis=1).mean()))
+
+
+def dna_contacting_protein_chains(ref, ref_dna_idx, cutoff_ang):
+    """0-based chain indices of protein chains with any heavy atom within cutoff
+    of the reference DNA. Used by the monomer guard (B3)."""
+    cutoff_nm = cutoff_ang / 10.0
+    xyz = ref.xyz[0]
+    dna_xyz = xyz[ref_dna_idx]
+    contacting = []
+    for chain in ref.topology.chains:
+        n_prot = sum(1 for r in chain.residues if r.name in PROTEIN_RESNAMES)
+        if n_prot < 10:
+            continue
+        heavy = ref.topology.select(f"chainid {chain.index} and not element H")
+        if len(heavy) == 0:
+            continue
+        p = xyz[heavy]
+        dmin = np.sqrt(((p[:, None, :] - dna_xyz[None, :, :]) ** 2).sum(-1)).min()
+        if dmin <= cutoff_nm:
+            contacting.append(chain.index)
+    return contacting
+
+
+def segment_into_domains(ref, ref_prot_idx, iface_pos, gap):
+    """Split interface positions into domains wherever consecutive interface
+    residues' resSeq jump by more than `gap`. Returns a list of position-lists
+    (positions index into ref_prot_idx), ordered by resSeq."""
+    items = sorted(
+        ((ref.topology.atom(int(ref_prot_idx[k])).residue.resSeq, k) for k in iface_pos),
+        key=lambda x: x[0],
+    )
+    domains, cur, prev = [], [], None
+    for resseq, k in items:
+        if prev is not None and resseq - prev > gap:
+            domains.append(cur)
+            cur = []
+        cur.append(k)
+        prev = resseq
+    if cur:
+        domains.append(cur)
+    return domains
 
 
 def interface_positions(ref, protein_chain, ref_prot_idx, ref_dna_idx, cutoff_ang):
@@ -225,6 +293,18 @@ def main():
     print(f"\nReference Cα atoms (chainid {protein_chain}): {len(ref_prot_idx)}")
     print(f"Reference DNA heavy atoms (chainids {dna_chain_ids}): {len(ref_dna_idx)}")
 
+    # --- Monomer guard (B3) ---
+    contacting = dna_contacting_protein_chains(ref, ref_dna_idx, args.iface_cutoff)
+    print(f"Protein chains contacting DNA (within {args.iface_cutoff} Å): {contacting}")
+    if len(contacting) > 1 and not args.allow_multimer:
+        print(f"\nERROR: not a functional monomer — {len(contacting)} protein chains "
+              f"contact the DNA site (chainids {contacting}).", file=sys.stderr)
+        print("This pipeline targets monomeric TF–DNA complexes; docking a single "
+              "chain's ensemble against a multi-protein site would mislabel the data.",
+              file=sys.stderr)
+        print("Pass --allow-multimer to override (diagnostic only).", file=sys.stderr)
+        sys.exit(1)
+
     traj = md.load(args.traj, top=args.top)
     print(f"Loaded trajectory: {traj.n_frames} frames, {traj.n_atoms} atoms")
 
@@ -280,6 +360,7 @@ def main():
     # =========================================================================
     # Choose alignment atom subset: interface Cα (default) or all Cα.
     # =========================================================================
+    domains = None  # set only in per_domain mode, for per-frame diagnostics
     if args.align_mode == "interface":
         align_pos = interface_positions(ref, protein_chain, ref_prot_idx,
                                         ref_dna_idx, args.iface_cutoff)
@@ -290,12 +371,32 @@ def main():
             mode_used = "all (fallback)"
         else:
             mode_used = "interface"
+    elif args.align_mode == "per_domain":
+        iface = interface_positions(ref, protein_chain, ref_prot_idx,
+                                    ref_dna_idx, args.iface_cutoff)
+        if len(iface) < 3:
+            print(f"⚠ Only {len(iface)} interface Cα; per_domain falling back to all-Cα.",
+                  file=sys.stderr)
+            align_pos = list(range(len(ref_prot_idx)))
+            mode_used = "all (fallback)"
+        else:
+            domains = segment_into_domains(ref, ref_prot_idx, iface, args.domain_gap)
+            print(f"\nper_domain: {len(domains)} interface domain(s) "
+                  f"(split where consecutive interface resSeq gap > {args.domain_gap}):")
+            for di, dom in enumerate(domains):
+                rs = [ref.topology.atom(int(ref_prot_idx[k])).residue.resSeq for k in dom]
+                print(f"  domain {di}: {len(dom)} Cα, resSeq {min(rs)}-{max(rs)}")
+            largest = max(domains, key=len)
+            align_pos = largest
+            mode_used = (f"per_domain (DNA anchored to largest of {len(domains)} "
+                         f"domains, {len(largest)} Cα)")
     else:
         align_pos = list(range(len(ref_prot_idx)))
         mode_used = "all"
     align_pos = np.asarray(align_pos, dtype=int)
     ref_align_xyz = ref_prot_xyz[align_pos]
     print(f"\nAlignment mode: {mode_used} — fitting on {len(align_pos)}/{len(ref_prot_idx)} Cα")
+    per_domain_rmsd = ([[] for _ in domains] if domains is not None else None)
 
     n_written, n_failed = 0, 0
     for i in range(traj.n_frames):
@@ -303,6 +404,13 @@ def main():
             frame_ca_xyz = traj.xyz[i, traj_prot_ca_idx, :]
             # Kabsch on the chosen subset only; transform applies to everything.
             R, t = kabsch(ref_align_xyz, frame_ca_xyz[align_pos])
+
+            # per_domain diagnostic: how well each interface domain fits on its own.
+            if per_domain_rmsd is not None:
+                for di, dom in enumerate(domains):
+                    dpos = np.asarray(dom, dtype=int)
+                    per_domain_rmsd[di].append(
+                        kabsch_rmsd(ref_prot_xyz[dpos], frame_ca_xyz[dpos]) * 10.0)
 
             dna_xyz_aligned = (R @ ref_dna_xyz.T).T + t
             ref_dna_aligned = ref_dna_traj[0]
@@ -321,6 +429,13 @@ def main():
         except Exception as e:
             print(f"Frame {i}: FAILED — {e}")
             n_failed += 1
+
+    if per_domain_rmsd is not None:
+        print("\nper_domain independent-fit Cα RMSD (Å), mean over frames:")
+        for di, vals in enumerate(per_domain_rmsd):
+            if vals:
+                print(f"  domain {di}: {np.mean(vals):.2f} (min {np.min(vals):.2f}, "
+                      f"max {np.max(vals):.2f})")
 
     print(f"\nDone. Written: {n_written}, Failed: {n_failed}")
     print(f"Output: {args.out_dir}/{args.pdb_id}_state_*.pdb")

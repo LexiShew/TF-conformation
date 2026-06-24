@@ -59,10 +59,22 @@ from bioemu.sample import main as sample
 # ---------------------------------------------------------------------------
 
 def get_protein_sequence(pdb_file):
-    """Extract the single-letter amino acid sequence from a PDB file."""
+    """Extract the single-letter amino acid sequence from a single-chain PDB.
+
+    The all-chains pipeline writes one protein chain per *_chain*_protein.pdb
+    file. Assert that here (S4): get_fastastr emits one '>' header per chain, and
+    a multi-chain input would otherwise be silently concatenated into one fused
+    sequence, corrupting the BioEmu sample.
+    """
     cmd.delete("all")
     cmd.load(pdb_file, "protein")
     fasta = cmd.get_fastastr("protein and polymer.protein")
+    n_chains = sum(1 for line in fasta.splitlines() if line.startswith(">"))
+    if n_chains > 1:
+        cmd.delete("all")
+        sys.exit(f"ERROR: {pdb_file} contains {n_chains} protein chains; expected "
+                 f"exactly one. The per-chain pipeline must pass single-chain "
+                 f"*_chain*_protein.pdb files (S4).")
     sequence = "".join(
         line for line in fasta.splitlines() if not line.startswith(">")
     )
@@ -414,6 +426,13 @@ def _parse_args():
              "per-complex stage). Chains whose output already exists are "
              "skipped, so the job is resumable. Used by stage1_bioemu.",
     )
+    parser.add_argument(
+        "--legacy-pymol-dock", action="store_true",
+        help="DEPRECATED, off by default. Run the in-engine PyMOL DNA docker "
+             "(global cmd.align superposition, fnat ~0.47). Production docking "
+             "is Stage 2 (stage2_redock.py, interface-aligned). This flag only "
+             "exists for legacy reproduction; do not use it in the pipeline.",
+    )
     args = parser.parse_args()
 
     if args.redock_only and args.pdb_file:
@@ -423,6 +442,11 @@ def _parse_args():
         sys.exit("--all-chains requires --chains-dir.")
     if args.all_chains and args.redock_only:
         sys.exit("--all-chains does not dock DNA, so --redock-only is moot.")
+    if args.all_chains and args.legacy_pymol_dock:
+        sys.exit("--all-chains never docks; --legacy-pymol-dock does not apply.")
+    if args.redock_only and not args.legacy_pymol_dock:
+        sys.exit("--redock-only re-runs only the legacy PyMOL docker; pass "
+                 "--legacy-pymol-dock to confirm (production docking is Stage 2).")
 
     # --md-equil implies --reconstruct-sidechains
     if args.md_equil:
@@ -473,8 +497,17 @@ def _run_chains_mode(args):
                 out_dir, md_equil=args.md_equil
             )
 
+    # DNA docking. Production docking is Stage 2 (interface-aligned). The
+    # in-engine PyMOL docker below is global-superposition only (fnat ~0.47) and
+    # is gated off by default so no production path produces <PDB>_docked.pdb (B4).
+    if not args.legacy_pymol_dock:
+        print("Skipping DNA docking — handled by Stage 2 (stage2_redock.py). "
+              "Pass --legacy-pymol-dock to force the deprecated in-engine docker.")
+        return
+
     dna_files = glob.glob(os.path.join(chains_dir, "*_dna.pdb"))
     if dna_files:
+        print("⚠ Running DEPRECATED PyMOL global docker (--legacy-pymol-dock).")
         dock_dna(
             out_dir, protein_pdb, dna_files[0], pdb_id,
             topo_path=topo_path, xtc_path=xtc_path,
