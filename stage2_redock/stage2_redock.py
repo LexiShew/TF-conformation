@@ -54,7 +54,8 @@ STRUCTURAL_METAL_RESNAMES = {"ZN", "MG", "MN", "FE", "CA", "CO", "NI", "CU"}
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--pdb-id", required=True, help="Used in output filenames, e.g. '1aay'")
+    p.add_argument("--pdb-id", help="Used in output filenames, e.g. '1aay'. "
+                                    "Required unless --inspect-only.")
     p.add_argument("--ref", required=True, help="Reference structure (cif or pdb)")
     p.add_argument("--traj", help="Trajectory of relaxed protein frames (xtc)")
     p.add_argument("--top", help="Topology for --traj (pdb)")
@@ -279,7 +280,7 @@ def main():
         print("\n--inspect-only: stopping here.")
         return
 
-    for required in ("traj", "top", "out_dir"):
+    for required in ("pdb_id", "traj", "top", "out_dir"):
         if getattr(args, required) is None:
             print(f"ERROR: --{required.replace('_', '-')} is required unless --inspect-only", file=sys.stderr)
             sys.exit(1)
