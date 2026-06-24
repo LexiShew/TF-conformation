@@ -7,27 +7,32 @@ set -eo pipefail
 
 # -------------------- Paths --------------------
 export PROJECT_ROOT="/project2/rohs_102/shewchuk"
-export REPO_DIR="${PROJECT_ROOT}/DeepPBS"
-export RUN_DIR="${REPO_DIR}/run"
-export JOBS_DIR="${RUN_DIR}/jobs"
-export LIB_DIR="${JOBS_DIR}/lib"
-export SCRIPTS_DIR="${JOBS_DIR}/scripts"
-export CONFIG_DIR="${JOBS_DIR}/config"
+
+# --- Code / config / logs: rooted in THIS repo (TF-conformation is now the
+# authoritative pipeline; nothing is sourced from DeepPBS/run/jobs anymore).
+# Self-locating: this file lives at <repo>/lib/common.sh.
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export LIB_DIR="${TFCONF_DIR}/lib"
+export CONFIG_DIR="${TFCONF_DIR}/config"
 export PILOTS_DIR="${CONFIG_DIR}/pilots"
-export LOGS_DIR="${JOBS_DIR}/logs"
-
-export DATA_DIR="${PROJECT_ROOT}/DeepPBS_data"
-export ORIG_ASSEMBLY_DIR="${DATA_DIR}/deeppbsmar24/data/assembly2024"
-export ORIG_FOLDS_DIR="${REPO_DIR}/run/folds"
-
-export OUTPUTS_DIR="${PROJECT_ROOT}/DeepPBS_outputs"
-export CONFORMATIONS_DIR="${REPO_DIR}/data/conformations"
-export FOLDS_AUG_DIR="${REPO_DIR}/run/folds_aug"
+export WRAPPERS_DIR="${TFCONF_DIR}/wrappers"
+export LOGS_DIR="${TFCONF_DIR}/slurm_output"
 
 # Source-chain library: all protein chains for every DeepPBS structure.
 # (Was deeppbs_pdbs/monomer_chains — monomers only — before the source_chains
 # refactor; stage1_bioemu now samples every chain here.)
-export BIOEMU_RAW_ROOT="${PROJECT_ROOT}/TF-conformation/structures/source_chains"
+export BIOEMU_RAW_ROOT="${TFCONF_DIR}/structures/source_chains"
+
+# --- Data / outputs / training trees: still live in the DeepPBS data trees on
+# the cluster (large; not part of this repo). These are inputs/outputs, not code.
+export REPO_DIR="${PROJECT_ROOT}/DeepPBS"
+export RUN_DIR="${REPO_DIR}/run"
+export DATA_DIR="${PROJECT_ROOT}/DeepPBS_data"
+export ORIG_ASSEMBLY_DIR="${DATA_DIR}/deeppbsmar24/data/assembly2024"
+export ORIG_FOLDS_DIR="${REPO_DIR}/run/folds"
+export OUTPUTS_DIR="${PROJECT_ROOT}/DeepPBS_outputs"
+export CONFORMATIONS_DIR="${REPO_DIR}/data/conformations"
+export FOLDS_AUG_DIR="${REPO_DIR}/run/folds_aug"
 
 mkdir -p "${LOGS_DIR}" "${CONFORMATIONS_DIR}" "${FOLDS_AUG_DIR}"
 

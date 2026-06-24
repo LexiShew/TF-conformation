@@ -19,9 +19,13 @@
 #   afterok  — everywhere else; partial failure is fatal.
 
 set -eo pipefail
-JOBS_DIR="/project2/rohs_102/shewchuk/DeepPBS/run/jobs"
+# TF-conformation repo root (this launcher's own dir); export so the wrappers
+# and stage scripts resolve it. Submit from here so log paths land in this
+# repo's slurm_output/.
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${TFCONF_DIR}"
 # shellcheck source=lib/common.sh
-source "${JOBS_DIR}/lib/common.sh"
+source "${TFCONF_DIR}/lib/common.sh"
 
 TF_NAME="${1:?Usage: $0 <tf_name> [stage_start] [stage_end]}"
 STAGE_START="${2:-1}"
@@ -63,47 +67,47 @@ stage_in_range() {
     [ "${s}" -ge "${STAGE_START}" ] && [ "${s}" -le "${STAGE_END}" ]
 }
 
-# Stage 1: HPACKER
+# Stage 1: BioEmu + HPacker conformation generation
 if stage_in_range 1; then
-    submit_stage 1 "${JOBS_DIR}/wrappers/stage1_hpacker.sh" ok
+    submit_stage 1 "${WRAPPERS_DIR}/stage1_bioemu.sh" ok
 fi
 
 # Stage 2: redock
 if stage_in_range 2; then
-    submit_stage 2 "${JOBS_DIR}/wrappers/stage2_redock.sh" ok
+    submit_stage 2 "${WRAPPERS_DIR}/stage2_redock.sh" ok
 fi
 
 # Stage 3: array of N_FRAMES tasks
 if stage_in_range 3; then
-    submit_stage 3 "${JOBS_DIR}/wrappers/stage3_array.sh" ok \
+    submit_stage 3 "${WRAPPERS_DIR}/stage3_array.sh" ok \
         --array="1-${N_FRAMES}%8"
 fi
 
 # Stage 3 recovery — uses afterany since the array is expected to have some
 # failures (those are exactly what recovery is for).
 if stage_in_range 3 && [ "${STAGE_END}" -ge 3 ]; then
-    submit_stage "3r" "${JOBS_DIR}/wrappers/stage3_recover.sh" any
+    submit_stage "3r" "${WRAPPERS_DIR}/stage3_recover.sh" any
 fi
 
 # Stage 4: preprocess — uses afterany so a partial recovery still runs.
 # Inside Stage 4, the script counts npz outputs and warns if anything is off.
 if stage_in_range 4; then
-    submit_stage 4 "${JOBS_DIR}/wrappers/stage4_preprocess.sh" any
+    submit_stage 4 "${WRAPPERS_DIR}/stage4_preprocess.sh" any
 fi
 
 # Stage 5: build augmented fold (must succeed before training)
 if stage_in_range 5; then
-    submit_stage 5 "${JOBS_DIR}/wrappers/stage5_build_aug.sh" ok
+    submit_stage 5 "${WRAPPERS_DIR}/stage5_build_aug.sh" ok
 fi
 
 # Stage 6: training (array of 2)
 if stage_in_range 6; then
-    submit_stage 6 "${JOBS_DIR}/wrappers/train_compare.sh" ok
+    submit_stage 6 "${WRAPPERS_DIR}/train_compare.sh" ok
 fi
 
 # Stage 7: eval
 if stage_in_range 7; then
-    submit_stage 7 "${JOBS_DIR}/wrappers/eval_benchmark.sh" ok
+    submit_stage 7 "${WRAPPERS_DIR}/eval_benchmark.sh" ok
 fi
 
 echo ""

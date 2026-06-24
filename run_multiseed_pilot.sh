@@ -17,9 +17,12 @@
 #   ./run_multiseed_pilot.sh tbp 5       # 5 paired seeds for TBP
 
 set -eo pipefail
-JOBS_DIR="/project2/rohs_102/shewchuk/DeepPBS/run/jobs"
+# TF-conformation repo root (this orchestrator's own dir); export so wrappers
+# and stage scripts resolve it. TF-conformation is the authoritative pipeline.
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${TFCONF_DIR}"
 # shellcheck source=lib/common.sh
-source "${JOBS_DIR}/lib/common.sh"
+source "${TFCONF_DIR}/lib/common.sh"
 
 TF_NAME="${1:?Usage: $0 <tf_name> [n_seeds]}"
 N_SEEDS="${2:-5}"
@@ -50,7 +53,7 @@ echo "  n_seeds:       ${N_SEEDS}"
 conda activate deeppbs
 echo "[multiseed/${TF_NAME}] Building ${N_SEEDS} paired-seed configs"
 for s in $(seq 1 "${N_SEEDS}"); do
-    python "${SCRIPTS_DIR}/build_training_configs.py" \
+    python "${TFCONF_DIR}/stage5_build_aug/build_training_configs.py" \
         --tf-name "${TF_NAME}" \
         --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
         --fold "${FOLD}" \
@@ -70,7 +73,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --output="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.out" \
         --error="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.err" \
         --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}" \
-        "${JOBS_DIR}/wrappers/train_compare.sh")
+        "${WRAPPERS_DIR}/train_compare.sh")
     TRAIN_JOB_IDS+=( "${JOB_ID}" )
     echo "  seed ${s}: train job ${JOB_ID}"
 done
@@ -80,7 +83,7 @@ DEPEND_STR=$(IFS=':'; echo "${TRAIN_JOB_IDS[*]}")
 EVAL_JOB=$(sbatch --parsable \
     --dependency="afterok:${DEPEND_STR}" \
     --export=ALL,TF_NAME="${TF_NAME}" \
-    "${JOBS_DIR}/wrappers/eval_benchmark.sh")
+    "${WRAPPERS_DIR}/eval_benchmark.sh")
 echo "[multiseed/${TF_NAME}] eval job ${EVAL_JOB} depends on training jobs"
 
 echo ""

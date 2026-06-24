@@ -24,8 +24,11 @@
 # Default: start_stage=3 (full A/B run).
 
 set -eo pipefail
-JOBS_DIR="/project2/rohs_102/shewchuk/DeepPBS/run/jobs"
-source "${JOBS_DIR}/lib/common.sh"
+# TF-conformation repo root (this orchestrator's own dir); export so wrappers
+# and stage scripts resolve it. TF-conformation is the authoritative pipeline.
+export TFCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${TFCONF_DIR}"
+source "${TFCONF_DIR}/lib/common.sh"
 
 TF_NAME="${1:?Usage: $0 <tf_name> [start_stage]}"
 START_STAGE="${2:-3}"
@@ -65,25 +68,25 @@ stage_in_range() { [ "${1}" -ge "${START_STAGE}" ]; }
 
 # --- Stage 3: array of N_FRAMES tasks ---
 if stage_in_range 3; then
-    submit_stage 3 "${JOBS_DIR}/wrappers/stage3_array.sh" ok \
+    submit_stage 3 "${WRAPPERS_DIR}/stage3_array.sh" ok \
         --array="1-${N_FRAMES}%8"
 fi
 
 # --- Stage 3r: recovery ---
 if stage_in_range 3; then
-    submit_stage "3r" "${JOBS_DIR}/wrappers/stage3_recover.sh" any
+    submit_stage "3r" "${WRAPPERS_DIR}/stage3_recover.sh" any
 fi
 
 # --- Stage 4: preprocess ---
 if stage_in_range 4; then
-    submit_stage 4 "${JOBS_DIR}/wrappers/stage4_preprocess.sh" any
+    submit_stage 4 "${WRAPPERS_DIR}/stage4_preprocess.sh" any
 fi
 
 # --- Stage 5: build legacy aug + combined assembly ---
 # We use stage5_build_aug.sh which honors AUG_TRAIN_FOLD env var (set by
 # common.sh when LEGACY=1).
 if stage_in_range 5; then
-    submit_stage 5 "${JOBS_DIR}/wrappers/stage5_build_aug.sh" ok
+    submit_stage 5 "${WRAPPERS_DIR}/stage5_build_aug.sh" ok
 fi
 
 # --- Stage 5.5: build legacy training configs (this runs on the build_aug
@@ -98,7 +101,7 @@ if stage_in_range 5; then
         --account=rohs_102 --partition=rohs \
         --output="${LOGS_DIR}/build_cfgs_legacy_%j.out" \
         --error="${LOGS_DIR}/build_cfgs_legacy_%j.err" \
-        --wrap="set -eo pipefail; source ${JOBS_DIR}/lib/common.sh; load_pilot_config ${TF_NAME}; conda activate deeppbs; python ${SCRIPTS_DIR}/build_legacy_training_configs.py --tf-name ${TF_NAME} --combined-dir ${COMBINED_ASSEMBLY_DIR} --fold ${FOLD} --seeds 1 2 3 4 5 --output-dir ${RUN_DIR}")
+        --wrap="set -eo pipefail; source ${TFCONF_DIR}/lib/common.sh; load_pilot_config ${TF_NAME}; conda activate deeppbs; python ${TFCONF_DIR}/stage5_build_aug/build_legacy_training_configs.py --tf-name ${TF_NAME} --combined-dir ${COMBINED_ASSEMBLY_DIR} --fold ${FOLD} --seeds 1 2 3 4 5 --output-dir ${RUN_DIR}")
     echo "[legacy-ab] build_cfgs jobid=${BUILD_CFG_JOB} depend=afterok:${PREV_JOB}"
     PREV_JOB="${BUILD_CFG_JOB}"
 fi
@@ -113,7 +116,7 @@ if stage_in_range 6; then
             --export=ALL,TF_NAME="${TF_NAME}",LEGACY=1,SEED="${SEED}" \
             --dependency="afterok:${PREV_JOB}" \
             --job-name="trleg_${TF_NAME}_s${SEED}" \
-            "${JOBS_DIR}/wrappers/train_legacy_aug.sh")
+            "${WRAPPERS_DIR}/train_legacy_aug.sh")
         echo "[legacy-ab] train_legacy ${TF_NAME} seed=${SEED} jobid=${TRAIN_JOB}"
         TRAIN_JOBS+=( "${TRAIN_JOB}" )
     done
@@ -127,12 +130,12 @@ if stage_in_range 7; then
         EVAL_JOB=$(sbatch --parsable \
             --export=ALL,TF_NAME="${TF_NAME}" \
             --dependency="afterok:${DEP_LIST}" \
-            "${JOBS_DIR}/wrappers/eval_legacy_ab.sh")
+            "${WRAPPERS_DIR}/eval_legacy_ab.sh")
     else
         # No training submitted in this invocation — just run eval now
         EVAL_JOB=$(sbatch --parsable \
             --export=ALL,TF_NAME="${TF_NAME}" \
-            "${JOBS_DIR}/wrappers/eval_legacy_ab.sh")
+            "${WRAPPERS_DIR}/eval_legacy_ab.sh")
     fi
     echo "[legacy-ab] eval jobid=${EVAL_JOB}"
 fi
