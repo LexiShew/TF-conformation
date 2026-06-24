@@ -1,112 +1,91 @@
-# BioEmu DNA-Binding Protein Pipeline
+# TF-conformation
 
-Generate conformational ensembles for DNA-binding protein monomers using
-[BioEmu](https://github.com/microsoft/bioemu), then dock the crystal-structure
-DNA onto each sampled conformation by template-based superposition on the
-reference protein.
+Augment [DeepPBS](https://github.com/timkartar/DeepPBS) (structure → binding-
+specificity PWM) with **conformational ensembles** of monomeric transcription-
+factor–DNA complexes. For each TF we sample a backbone ensemble with
+[BioEmu](https://github.com/microsoft/bioemu), rebuild side chains with HPacker,
+dock each conformation onto the crystal DNA, filter by interface fidelity, and
+feed the survivors into DeepPBS training.
 
-## Pipeline overview
+TF-conformation is the **authoritative pipeline repo**: it vendors the DeepPBS
+package and the 3DNA toolchain under `lib/`, so nothing is sourced from a
+separate deployment. Only the large training data/outputs still live in the
+shared `DeepPBS_data/` and `DeepPBS_outputs/` trees on the cluster.
+
+## Pipeline (per TF)
+
+A pilot is one `config/pilots/<tf>.sh`. `scripts/pipeline/run_pilot.sh` submits
+the whole SLURM DAG with dependencies:
+
+| Stage | Dir | Does |
+| --- | --- | --- |
+| 1 | `stage1_bioemu/` | BioEmu sampling + HPacker side-chain reconstruction, for **every** protein chain of the structure → `structures/stage1_bioemu_output/<PDB>_chain<X>_conformations/` |
+| 2 | `stage2_redock/` | Interface-aligned Kabsch dock of each frame onto the crystal DNA (carries DNA + structural metals across); monomer guard |
+| 2g | `fnat_gate/` | Score each docked state's `fnat` and drop sub-floor states before they become training data (`FNAT_FLOOR`, default 0.5) |
+| 3 | `stage3_minimize/` | OpenMM minimization with a metal-coordination cage |
+| 4 | `stage4_preprocess/` | DeepPBS `process_co_crystal.py` → per-state `.npz` features (3DNA via vendored `lib/`) |
+| 5 | `stage5_build_aug/` | Build the augmented training fold + combined assembly + train configs |
+| 6 | `stage6_train/` | Train baseline vs augmented DeepPBS models (paired) |
+| 7 | `stage7_eval/` | Benchmark eval; paired bootstrap/t-test stats |
+
+Each stage dir is self-contained: its `.sh` runs the co-located `.py`. The
+`wrappers/` dir holds the SBATCH wrapper per stage (resource header + `source
+lib/common.sh` + `source` the stage logic). `lib/common.sh` resolves all paths
+(self-locates `TFCONF_DIR`) and loads the pilot config.
+
+## Repository layout
 
 ```
-          RCSB PDB
-              │
-              │  get_monomers.py
-              ▼
-   monomers/<PDB>_chains/
-     <PDB>_chain<X>_protein.pdb   ← reference crystal chain
-     <PDB>_dna.pdb                ← crystal DNA (if present)
-              │
-              │  generate_monomer_confs.py  (submitted via run_conf.sh / submit_all.sh)
-              ▼
-   monomers/<PDB>_chains/
-     topology.pdb, samples.xtc    ← BioEmu conformations
-     batch_*.npz                  ← BioEmu intermediate batches
-     docked/docked_0001.pdb, ...  ← conformation + DNA, aligned on reference
+config/pilots/<tf>.sh          per-TF config (PDB_ID, BINDING_CHAIN,
+                               PROTEIN_CHAIN, DNA_CHAINS, PWM_LABEL, FOLD, ...)
+lib/                           common.sh + vendored deeppbs pkg + 3DNA toolchain
+wrappers/                      one SBATCH wrapper per stage
+stage1_bioemu/ ... stage7_eval/ per-stage logic + engine scripts
+fnat_gate/                     interface-fidelity gate (vendored interface_rmsd.py)
+scripts/pipeline/              run_pilot.sh, run_multiseed_pilot.sh, run_legacy_ab.sh
+scripts/{analysis,pymol,classification,pdb_prep,maintenance,deprecated}/
+                               standalone utilities (not part of the DAG)
+structures/                    on-disk, gitignored: source_chains/ (per-chain
+                               inputs) + stage1_bioemu_output/ (ensembles)
 ```
 
-## Scripts
-
-All scripts live at the top level. `monomers/` is data-only.
-
-| Script | Purpose |
-| --- | --- |
-| `get_monomers.py` | Fetch PDB structures from RCSB and split each into one `<PDB>_dna.pdb` plus one `<PDB>_chain<X>_protein.pdb` per protein chain, under `monomers/<PDB>_chains/`. |
-| `generate_monomer_confs.py` | For a single PDB ID: read the protein chain from `monomers/<PDB>_chains/`, extract its FASTA sequence via PyMOL, run BioEmu sampling, then dock the crystal DNA onto each conformation. |
-| `run_conf.sh` | SLURM batch wrapper that runs `generate_monomer_confs.py` for one PDB ID on one GPU. |
-| `submit_all.sh` | Submit one `run_conf.sh` job per `monomers/<PDB>_chains/` directory. |
-
-### Requirements
-
-- `bioemu` Python package (with its CUDA/JAX dependencies)
-- `pymol` Python module (used for sequence extraction, chain splitting, DNA superposition)
-- SLURM cluster with a GPU partition if you want to use `run_conf.sh` /
-  `submit_all.sh` as-is. The scripts currently request:
-  `-p rohs --account=rohs_102 --gres=gpu:rtx5000:1 --time=24:00:00 -n 8 -N 1`.
-  Edit the `#SBATCH` lines in `run_conf.sh` for other clusters.
-
-## How to run
-
-### 1. Fetch and split structures
+## Running
 
 ```bash
-# Use the built-in default list of ~157 DNA-binding proteins:
-python get_monomers.py
+# Full pipeline for a pilot (stages 1–7):
+./scripts/pipeline/run_pilot.sh <tf_name>
 
-# ...or pass PDB IDs directly:
-python get_monomers.py 1CIT 6PAX 1TC3
+# A subrange (e.g. skip Stages 1–3, already done):
+./scripts/pipeline/run_pilot.sh <tf_name> 4 7
 
-# ...or read PDB IDs from a file (one per line, # comments allowed):
-python get_monomers.py my_targets.txt
+# Multi-seed paired comparison (after stages 1–5):
+./scripts/pipeline/run_multiseed_pilot.sh <tf_name> 5
 ```
 
-Creates `monomers/<PDB>_chains/` for each ID, populated with the reference
-protein and DNA PDB files.
+### Adding a new TF
 
-### 2. Generate conformations + dock DNA
+1. Make sure `structures/source_chains/<PDB>_chains/` exists (`<PDB>.cif`,
+   `<PDB>_chain<X>_protein.pdb`, `<PDB>_dna.pdb`).
+2. Inspect the reference chain layout:
+   ```bash
+   python stage2_redock/stage2_redock.py --ref structures/source_chains/<PDB>_chains/<PDB>.cif --inspect-only
+   ```
+3. Write `config/pilots/<tf>.sh` (copy an existing one). Set `BINDING_CHAIN`
+   (the source-chain filename letter, picks the Stage 1 ensemble) and
+   `PROTEIN_CHAIN`/`DNA_CHAINS` (0-based cif chainids). Stage 2's sequence-match
+   guard fails loudly if `BINDING_CHAIN` and `PROTEIN_CHAIN` disagree.
+4. `./scripts/pipeline/run_pilot.sh <tf_name>`.
 
-**One protein:**
-```bash
-python generate_monomer_confs.py <PDB_ID> [NUM_CONFORMATIONS]   # default: 100
-```
+See `config/pilots/engrailed.sh` for a worked new-pilot template (1hdd).
 
-**One protein on SLURM:**
-```bash
-sbatch --job-name="<PDB_ID>_<N>" run_conf.sh <PDB_ID> <N>
-```
+## Requirements
 
-**All proteins in `monomers/` on SLURM:**
-```bash
-./submit_all.sh [NUM_CONFORMATIONS]   # default: 100
-```
+- Conda envs: `bioemu` (Stages 1–3), `deeppbs` (Stages 4–7 + the fnat gate,
+  needs `biopython>=1.79`), `hpacker` (side-chain reconstruction).
+- A SLURM cluster with a GPU partition. The wrappers request the `rohs`
+  partition / `rohs_102` account — edit the `#SBATCH` headers in `wrappers/` and
+  the cluster paths in `lib/common.sh` for other clusters.
+- The `deeppbs` Python package (vendored at `lib/deeppbs/`, installed into the
+  conda env) and the 3DNA toolchain (vendored at `lib/`).
 
-Each job writes into its own `monomers/<PDB>_chains/` directory, so the jobs
-don't contend for output paths.
-
-### 3. Re-running partial / failed jobs
-
-BioEmu resumes from the `batch_*.npz` checkpoints already in the output
-directory, so re-submitting the same `run_conf.sh` for a PDB ID will pick up
-where it left off. If you want to re-run from scratch, delete the `batch_*.npz`
-files (and `topology.pdb`, `samples.xtc`, `docked/`) first.
-
-## What's currently in `monomers/`
-
-- **65** `<PDB>_chains/` directories
-- **55** complete (have `topology.pdb`, `samples.xtc`, and a populated
-  `docked/`)
-- **10** incomplete — only the reference protein/DNA files and partial
-  `batch_*.npz` checkpoints, no `topology.pdb`/`samples.xtc` yet. Re-submit
-  `run_conf.sh` for these to finish them. They are:
-  `1A1F, 1A66, 1AN2, 1BC7, 1BF5, 1BG1, 1CDW, 1CIT, 1DP7, 1E3O`.
-
-## Other artifacts at the top level
-
-These are older standalone outputs kept for reference — the canonical pipeline
-output now lives inside `monomers/<PDB>_chains/`.
-
-| Path | What it is |
-| --- | --- |
-| `1cit_output/`, `1tc3_output/`, `1skh_output/`, `6pax_output/` | Early BioEmu runs (pre-refactor) with `topology.pdb`, `samples.xtc`, and batch NPZ files. `6pax_output/` additionally contains a `docked/` directory with 96 docked complexes. |
-| `combined_docked.pse` | PyMOL session with multiple docked complexes loaded together (visualization only). |
-| `1cit.cif`, `1tc3.cif`, `6pax.cif`, `pdb1cit.ent` | Raw crystal structures fetched earlier; equivalents now live in `monomers/<PDB>_chains/` when the corresponding PDB ID has been processed. |
-| `topology.pdb`, `samples.xtc` | Stray BioEmu outputs from an early test run (kept for reproducibility; not referenced by the current pipeline). |
+See `PIPELINE_FIXES.md` for the current fix spec and design invariants.
