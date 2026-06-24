@@ -77,6 +77,13 @@ if stage_in_range 2; then
     submit_stage 2 "${WRAPPERS_DIR}/stage2_redock.sh" ok
 fi
 
+# Stage 2 gate (B7): fnat-filter docked states before they reach training data.
+# Runs whenever Stage 2 ran and the pipeline continues into downstream stages,
+# so Stage 3 only minimizes states that passed the fnat floor.
+if stage_in_range 2 && [ "${STAGE_END}" -ge 3 ]; then
+    submit_stage "2g" "${WRAPPERS_DIR}/fnat_gate.sh" ok
+fi
+
 # Stage 3: array of N_FRAMES tasks
 if stage_in_range 3; then
     submit_stage 3 "${WRAPPERS_DIR}/stage3_array.sh" ok \
