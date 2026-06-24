@@ -10,6 +10,10 @@ require_var PWM_LABEL
 
 conda activate deeppbs
 
+# Self-contained: run this stage's co-located scripts (process_co_crystal.py,
+# proc_source.sh) and the vendored 3DNA toolchain in ../lib, not DeepPBS/run.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Build input.txt and process_config.json
 mkdir -p "${STAGE4_DIR}/pdb_input" "${STAGE4_DIR}/output"
 cd "${STAGE4_DIR}/pdb_input"
@@ -37,19 +41,22 @@ cat > process_config.json << EOF
 }
 EOF
 
-# CRITICAL: 3DNA looks for parameter files via paths relative to the cwd.
-# Running from anywhere other than run/process/ causes silent SIGFPE crashes
-# in Curves. Always cd to run/process/ before running, even if input/output
-# paths are absolute. (Discovered the hard way during EGR1 pilot.)
-cd "${RUN_DIR}/process"
+# 3DNA writes scratch files into the cwd, so run from a dedicated writable work
+# dir. proc_source.sh sets X3DNA to an absolute path, so 3DNA finds its
+# parameter files regardless of cwd — which is what previously forced running
+# from run/process/ and caused silent SIGFPE crashes in Curves when run
+# elsewhere (discovered the hard way during the EGR1 pilot).
+WORK3DNA="${STAGE4_DIR}/3dna_work"
+mkdir -p "${WORK3DNA}"
+cd "${WORK3DNA}"
 # shellcheck disable=SC1091
-source ./proc_source.sh
+source "${STAGE_DIR}/proc_source.sh"
 
 # Clean any leftover 3DNA temp files from a previous run
 rm -f *.pdb *.par *.pqr *.r3d *.dat *.log dna-dssr.json hstacking.pdb stacking.pdb 2>/dev/null
 
 echo "[stage4/${TF_NAME}] Running process_co_crystal.py (this takes ~25-40 min serial)"
-python ../process_co_crystal.py \
+python "${STAGE_DIR}/process_co_crystal.py" \
     "${STAGE4_DIR}/input.txt" \
     "${STAGE4_DIR}/process_config.json" \
     2>&1 | tee "${STAGE4_DIR}/process.log"

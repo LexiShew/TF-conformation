@@ -18,6 +18,9 @@ if [ "${LEGACY:-0}" != "1" ]; then
 fi
 
 conda activate deeppbs
+
+# Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${RUN_DIR}"
 
 SEED="${SEED:?SEED env var must be set (1..5)}"
@@ -48,7 +51,7 @@ echo "  config:      ${CONFIG}"
 echo "  train:       ${TRAIN_FILE} ($(wc -l < "${TRAIN_FILE}") lines)"
 echo "  valid:       ${VALID_FILE} ($(wc -l < "${VALID_FILE}") lines)"
 
-python -W ignore driver.py \
+python -W ignore "${STAGE_DIR}/driver.py" \
     "${TRAIN_FILE}" "${VALID_FILE}" \
     -c "${CONFIG}" \
     --balance unmasked \

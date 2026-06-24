@@ -56,10 +56,10 @@ export BIOEMU_CACHE_DIR="${BIOEMU_CACHE_DIR:-/scratch1/shewchuk/.bioemu_embeds_c
 export HF_HOME="${HF_HOME:-/scratch1/shewchuk/.cache/huggingface}"
 mkdir -p "${BIOEMU_CACHE_DIR}" "${HF_HOME}"
 
-# When submitted with sbatch, SLURM_SUBMIT_DIR is the repo root (submit from
-# there). When run directly, fall back to this script's parent dir.
-REPO_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
-GEN_SCRIPT="${REPO_DIR}/scripts/generate_monomer_confs.py"
+# Repo root: prefer TFCONF_DIR (set by common.sh / the stage1 wrapper), else
+# SLURM_SUBMIT_DIR (submit from repo root), else this script's parent dir.
+REPO_DIR="${TFCONF_DIR:-${SLURM_SUBMIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}}"
+GEN_SCRIPT="${REPO_DIR}/stage1_bioemu/generate_monomer_confs.py"
 
 # All chains from all structures land flat in one output dir; each chain's
 # <PDB>_chain<X>_conformations/ name is globally unique, so there are no

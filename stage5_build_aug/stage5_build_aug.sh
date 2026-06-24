@@ -16,22 +16,25 @@ require_var COMBINED_ASSEMBLY_DIR
 
 conda activate deeppbs
 
+# Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # 5a: build augmented train fold
-python "${SCRIPTS_DIR}/build_augmented_fold.py" \
+python "${STAGE_DIR}/build_augmented_fold.py" \
     --orig-train "${ORIG_FOLDS_DIR}/train${FOLD}.txt" \
     --stage4-dir "${STAGE4_DIR}/output" \
     --pwm-filter "${PWM_LABEL}" \
     --out-train  "${AUG_TRAIN_FOLD:-${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt}"
 
 # 5b: build combined assembly directory
-python "${SCRIPTS_DIR}/build_combined_assembly.py" \
+python "${STAGE_DIR}/build_combined_assembly.py" \
     --orig-dir "${ORIG_ASSEMBLY_DIR}" \
     --stage4-dir "${STAGE4_DIR}/output" \
     --pwm-filter "${PWM_LABEL}" \
     --out-dir "${COMBINED_ASSEMBLY_DIR}"
 
 # 5c: build default-seed training configs (multiseed runs generate their own)
-python "${SCRIPTS_DIR}/build_training_configs.py" \
+python "${STAGE_DIR}/build_training_configs.py" \
     --tf-name "${TF_NAME}" \
     --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
     --fold "${FOLD}" \

@@ -12,6 +12,9 @@ require_var N_FRAMES
 
 conda activate bioemu
 
+# Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 n_recovered=0
 n_attempted=0
 n_still_failed=0
@@ -34,7 +37,7 @@ for i in $(seq 1 "${N_FRAMES}"); do
     if [ "${STAGE3_IGNORE_METALS:-0}" = "1" ]; then
         extra_args+=( --ignore-metals )
     fi
-    if python "${SCRIPTS_DIR}/stage3_minimize.py" \
+    if python "${STAGE_DIR}/stage3_minimize.py" \
         --input-pdb "${INPUT}" \
         --output-pdb "${OUTPUT}" \
         --ramp-stages "${RECOVERY_RAMP_STAGES}" \

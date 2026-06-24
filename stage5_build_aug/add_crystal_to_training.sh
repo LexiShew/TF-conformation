@@ -26,9 +26,15 @@ RUN_DIR="${REPO_DIR}/run"
 ASSEMBLY_DIR="${PROJECT_ROOT}/DeepPBS_data/deeppbsmar24/data/assembly2024"
 FOLDS_DIR="${RUN_DIR}/folds"
 
-CRYSTAL_DIR="${PROJECT_ROOT}/TF-conformation/deeppbs_pdbs/monomer_chains/${PDB_ID}_chains"
+# Self-locate co-located scripts: this stage's dir and stage4's (for
+# process_co_crystal.py + proc_source.sh / 3DNA toolchain).
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TFCONF_DIR="$(dirname "${STAGE_DIR}")"
+STAGE4_DIR="${TFCONF_DIR}/stage4_preprocess"
+
+CRYSTAL_DIR="${TFCONF_DIR}/structures/source_chains/${PDB_ID}_chains"
 if [ ! -d "${CRYSTAL_DIR}" ]; then
-    echo "ERROR: monomer_chains directory not found: ${CRYSTAL_DIR}" >&2
+    echo "ERROR: source_chains directory not found: ${CRYSTAL_DIR}" >&2
     exit 1
 fi
 
@@ -78,14 +84,17 @@ cat > "${TMP_DIR}/process_config.json" << EOF
 }
 EOF
 
-# Run process_co_crystal — must be from run/process/ for 3DNA paths
-cd "${RUN_DIR}/process"
+# Run process_co_crystal from a dedicated writable work dir. proc_source.sh
+# sets X3DNA absolutely, so 3DNA finds its params regardless of cwd.
+WORK3DNA="${TMP_DIR}/3dna_work"
+mkdir -p "${WORK3DNA}"
+cd "${WORK3DNA}"
 # shellcheck source=/dev/null
-source ./proc_source.sh
+source "${STAGE4_DIR}/proc_source.sh"
 rm -f *.pdb *.par *.pqr *.r3d *.dat *.log dna-dssr.json hstacking.pdb stacking.pdb 2>/dev/null
 
 echo "[add_crystal] Running process_co_crystal.py"
-python ../process_co_crystal.py \
+python "${STAGE4_DIR}/process_co_crystal.py" \
     "${TMP_DIR}/input.txt" \
     "${TMP_DIR}/process_config.json" \
     2>&1 | tee "${TMP_DIR}/process.log"

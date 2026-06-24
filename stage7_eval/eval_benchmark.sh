@@ -12,6 +12,9 @@ require_var TEST_FILTER_NAME
 require_var COMBINED_ASSEMBLY_DIR
 
 conda activate deeppbs
+
+# Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${RUN_DIR}"
 
 # Build --condition args from whatever subdirs exist
@@ -54,7 +57,7 @@ echo "[eval/${TF_NAME}] Total conditions found: $(( ${#COND_ARGS[@]} / 2 ))"
 OUTPUT_JSON="${OUTPUTS_DIR}/id_benchmark_${TF_NAME}.json"
 
 echo "[eval/${TF_NAME}] Running evaluator"
-python "${SCRIPTS_DIR}/evaluate_id_benchmark.py" \
+python "${STAGE_DIR}/evaluate_id_benchmark.py" \
     "${COND_ARGS[@]}" \
     --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
     --filter "${TEST_PWM_FILTER}" \

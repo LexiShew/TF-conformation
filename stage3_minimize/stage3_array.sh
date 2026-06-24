@@ -11,6 +11,9 @@ require_var STEPS_PER_STAGE
 
 conda activate bioemu
 
+# Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Use SLURM_ARRAY_TASK_ID directly, or first positional arg if testing locally.
 TASK_ID="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 if [ -z "${TASK_ID}" ]; then
@@ -39,7 +42,7 @@ extra_args=()
 if [ "${STAGE3_IGNORE_METALS:-0}" = "1" ]; then
     extra_args+=( --ignore-metals )
 fi
-python "${SCRIPTS_DIR}/stage3_minimize.py" \
+python "${STAGE_DIR}/stage3_minimize.py" \
     --input-pdb "${INPUT}" \
     --output-pdb "${OUTPUT}" \
     --ramp-stages "${RAMP_STAGES}" \

@@ -21,6 +21,10 @@ require_var DNA_CHAINS
 
 conda activate bioemu
 
+# Resolve this stage's own directory so we run the co-located stage2_redock.py
+# (self-contained — no dependency on a shared SCRIPTS_DIR).
+STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ ! -f "${REF_CIF}" ]; then
     echo "ERROR: Reference CIF not found: ${REF_CIF}" >&2
     echo "Expected at ${BIOEMU_RAW_ROOT}/${PDB_ID}_chains/${PDB_ID}.cif" >&2
@@ -29,7 +33,7 @@ fi
 
 # Optionally inspect chains first if STAGE2_INSPECT=1 is set
 if [ "${STAGE2_INSPECT:-0}" = "1" ]; then
-    python "${SCRIPTS_DIR}/stage2_redock.py" \
+    python "${STAGE_DIR}/stage2_redock.py" \
         --pdb-id "${PDB_ID}" \
         --ref "${REF_CIF}" \
         --inspect-only
@@ -50,7 +54,7 @@ if [ -n "${MISMATCH_ACTION:-}" ]; then
     echo "[stage2/${TF_NAME}] Mismatch policy: action=${MISMATCH_ACTION} max=${MAX_MISMATCHES:-0}"
 fi
 
-python "${SCRIPTS_DIR}/stage2_redock.py" \
+python "${STAGE_DIR}/stage2_redock.py" \
     --pdb-id "${PDB_ID}" \
     --ref "${REF_CIF}" \
     --traj "${STAGE1_DIR}/${PDB_ID}_sidechain_rec.xtc" \
