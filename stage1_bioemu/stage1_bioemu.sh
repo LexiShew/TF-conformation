@@ -45,10 +45,11 @@ if [ ! -d "${CHAINS_DIR}" ]; then
     exit 1
 fi
 
-# Activate conda in the (non-interactive) SLURM environment.
-source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
+# Activate conda in the (non-interactive) SLURM environment. Paths inherit from
+# common.sh when run via the wrapper; inline defaults keep standalone runs working.
+source "${CONDA_PREFIX_PATH:-/apps/conda/miniforge3/24.11.3}/etc/profile.d/conda.sh"
 conda activate "${BIOEMU_ENV:-bioemu}"
-export CONDA_ROOT=/home1/shewchuk/.conda
+export CONDA_ROOT="${CONDA_ROOT:-/home1/${USER}/.conda}"
 
 # BioEmu / HuggingFace caches on scratch (large, regenerable). Override by
 # exporting these before submitting.

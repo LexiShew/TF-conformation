@@ -60,8 +60,10 @@ mkdir -p "${LOGS_DIR}" "${OUTPUT_ROOT}" "${OUTPUTS_DIR}" "${EVAL_OUT_DIR}" \
 
 # -------------------- Conda init --------------------
 # In non-interactive SLURM shells, conda init isn't sourced automatically.
-# Source it explicitly so `conda activate <env>` works.
-CONDA_PREFIX_PATH="/apps/conda/miniforge3/24.11.3"
+# Source it explicitly so `conda activate <env>` works. Both the conda
+# installation prefix and the per-user envs root are overridable via env, so the
+# pipeline ports to another machine without editing scripts.
+export CONDA_PREFIX_PATH="${CONDA_PREFIX_PATH:-/apps/conda/miniforge3/24.11.3}"
 if [ -f "${CONDA_PREFIX_PATH}/etc/profile.d/conda.sh" ]; then
     # shellcheck disable=SC1091
     source "${CONDA_PREFIX_PATH}/etc/profile.d/conda.sh"
@@ -79,7 +81,7 @@ export DEEPPBS_ENV="${DEEPPBS_ENV:-deeppbs}"
 export HPACKER_ENV="${HPACKER_ENV:-hpacker}"
 
 # Some BioEmu internals look for these even when conda is properly active
-export CONDA_ROOT="/home1/${USER}/.conda"
+export CONDA_ROOT="${CONDA_ROOT:-/home1/${USER}/.conda}"
 export HPACKER_PYTHONBIN="${CONDA_ROOT}/envs/${HPACKER_ENV}/bin/python"
 export HPACKER_REPO_DIR="${CONDA_ROOT}/envs/${HPACKER_ENV}"
 
