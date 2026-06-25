@@ -15,7 +15,10 @@ import argparse
 import json
 import os
 
-OUTPUTS_ROOT = "/project2/rohs_102/shewchuk/DeepPBS_outputs"
+# See build_training_configs.py: take the run-dir root from $OUTPUTS_DIR
+# (TF-conformation/output/stage6_train) so it matches what eval scans.
+OUTPUTS_ROOT = os.environ.get(
+    "OUTPUTS_DIR", "/project2/rohs_102/shewchuk/DeepPBS_outputs")
 
 
 def base_config(data_dir, output_path, random_seed):

@@ -143,4 +143,4 @@ fi
 echo ""
 echo "[legacy-ab] Pipeline submitted for ${TF_NAME}."
 echo "  Monitor: squeue -u \$USER"
-echo "  Final results: ${OUTPUTS_DIR}/id_benchmark_${TF_NAME}_legacy_ab.json"
+echo "  Final results: ${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}_legacy_ab.json"

@@ -54,7 +54,7 @@ fi
 
 echo "[eval/${TF_NAME}] Total conditions found: $(( ${#COND_ARGS[@]} / 2 ))"
 
-OUTPUT_JSON="${OUTPUTS_DIR}/id_benchmark_${TF_NAME}.json"
+OUTPUT_JSON="${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}.json"
 
 echo "[eval/${TF_NAME}] Running evaluator"
 python "${STAGE_DIR}/evaluate_id_benchmark.py" \

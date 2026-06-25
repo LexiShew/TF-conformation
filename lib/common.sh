@@ -36,11 +36,21 @@ export RUN_DIR="${REPO_DIR}/run"
 export DATA_DIR="${PROJECT_ROOT}/DeepPBS_data"
 export ORIG_ASSEMBLY_DIR="${DATA_DIR}/deeppbsmar24/data/assembly2024"
 export ORIG_FOLDS_DIR="${REPO_DIR}/run/folds"
-export OUTPUTS_DIR="${PROJECT_ROOT}/DeepPBS_outputs"
 export CONFORMATIONS_DIR="${REPO_DIR}/data/conformations"
 export FOLDS_AUG_DIR="${REPO_DIR}/run/folds_aug"
 
-mkdir -p "${LOGS_DIR}" "${CONFORMATIONS_DIR}" "${FOLDS_AUG_DIR}"
+# Pipeline outputs now land in this repo's output/ tree (was DeepPBS_outputs).
+#   stage6_train/  — training run dirs (Model.best.tar, etc.); built into the
+#                    training configs by stage5's build_training_configs.py and
+#                    scanned by stage7's eval. OUTPUTS_DIR keeps that name so the
+#                    write side (training) and read side (eval) stay in sync.
+#   stage7_eval/   — benchmark JSON + per-entry prediction npz.
+export OUTPUT_ROOT="${TFCONF_DIR}/output"
+export OUTPUTS_DIR="${OUTPUT_ROOT}/stage6_train"
+export EVAL_OUT_DIR="${OUTPUT_ROOT}/stage7_eval"
+
+mkdir -p "${LOGS_DIR}" "${CONFORMATIONS_DIR}" "${FOLDS_AUG_DIR}" \
+         "${OUTPUTS_DIR}" "${EVAL_OUT_DIR}"
 
 # -------------------- Conda init --------------------
 # In non-interactive SLURM shells, conda init isn't sourced automatically.

@@ -25,7 +25,11 @@ import os
 
 
 BASELINE_DATA_DIR = "/project2/rohs_102/shewchuk/DeepPBS_data/deeppbsmar24/data/assembly2024"
-OUTPUTS_ROOT      = "/project2/rohs_102/shewchuk/DeepPBS_outputs"
+# Training run dirs are baked into the generated config's output_path. Take this
+# from $OUTPUTS_DIR (set by lib/common.sh -> TF-conformation/output/stage6_train)
+# so it matches what stage7's eval scans. Falls back to the old location.
+OUTPUTS_ROOT = os.environ.get(
+    "OUTPUTS_DIR", "/project2/rohs_102/shewchuk/DeepPBS_outputs")
 
 
 def base_config(data_dir, output_path, random_seed):

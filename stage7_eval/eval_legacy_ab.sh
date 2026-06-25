@@ -59,7 +59,7 @@ echo "[eval-ab/${TF_NAME}] Total conditions found: $(( ${#COND_ARGS[@]} / 2 ))"
 # we use _legacy or non-legacy version — the id.txt entries are identical
 # in both.)
 COMBINED_FOR_EVAL="${DATA_DIR}/combined_assembly_${TF_NAME}"
-OUTPUT_JSON="${OUTPUTS_DIR}/id_benchmark_${TF_NAME}_legacy_ab.json"
+OUTPUT_JSON="${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}_legacy_ab.json"
 
 echo "[eval-ab/${TF_NAME}] Running evaluator"
 python "${STAGE_DIR}/evaluate_id_benchmark.py" \
