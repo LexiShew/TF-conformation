@@ -19,18 +19,15 @@ CHAIN="${2:?Usage: $0 <pdb_id> <chain> <pwm_label> [fold]}"
 PWM_LABEL="${3:?Usage: $0 <pdb_id> <chain> <pwm_label> [fold]}"
 FOLD="${4:-0}"
 
-# Paths
-PROJECT_ROOT="/project2/rohs_102/shewchuk"
-REPO_DIR="${PROJECT_ROOT}/DeepPBS"
-RUN_DIR="${REPO_DIR}/run"
-ASSEMBLY_DIR="${PROJECT_ROOT}/DeepPBS_data/deeppbsmar24/data/assembly2024"
-FOLDS_DIR="${RUN_DIR}/folds"
-
 # Self-locate co-located scripts: this stage's dir and stage4's (for
 # process_co_crystal.py + proc_source.sh / 3DNA toolchain).
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TFCONF_DIR="$(dirname "${STAGE_DIR}")"
 STAGE4_DIR="${TFCONF_DIR}/stage4_preprocess"
+
+# Paths — inject the crystal into the repo's vendored base training data.
+ASSEMBLY_DIR="${TFCONF_DIR}/data/assembly2024"
+FOLDS_DIR="${TFCONF_DIR}/data/folds"
 
 CRYSTAL_DIR="${TFCONF_DIR}/structures/source_chains/${PDB_ID}_chains"
 if [ ! -d "${CRYSTAL_DIR}" ]; then

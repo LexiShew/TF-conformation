@@ -18,7 +18,7 @@ conda activate deeppbs
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "${RUN_DIR}"
+cd "${OUTPUT_ROOT}"
 
 TASK_ID="${SLURM_ARRAY_TASK_ID:?SLURM_ARRAY_TASK_ID must be set}"
 
@@ -31,8 +31,8 @@ if [ "${TASK_ID}" -eq 0 ]; then
     RUN_NAME="baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
     CONFIG="${OUTPUTS_DIR}/config_baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
     # Baseline train/valid are read-only INPUTS (cwd is RUN_DIR -> DeepPBS/run/folds).
-    TRAIN_FILE="./folds/train${FOLD}.txt"
-    VALID_FILE="./folds/valid${FOLD}.txt"
+    TRAIN_FILE="${ORIG_FOLDS_DIR}/train${FOLD}.txt"
+    VALID_FILE="${ORIG_FOLDS_DIR}/valid${FOLD}.txt"
 elif [ "${TASK_ID}" -eq 1 ]; then
     RUN_NAME="augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
     CONFIG="${OUTPUTS_DIR}/config_augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
@@ -42,7 +42,7 @@ elif [ "${TASK_ID}" -eq 1 ]; then
     if [ ! -f "${VALID_FILE}" ]; then
         # Symlink the original valid file rather than duplicating it
         mkdir -p "${FOLDS_AUG_DIR}"
-        ln -sf "$(readlink -f ./folds/valid${FOLD}.txt)" "${VALID_FILE}"
+        ln -sf "$(readlink -f ${ORIG_FOLDS_DIR}/valid${FOLD}.txt)" "${VALID_FILE}"
     fi
 else
     echo "ERROR: unknown SLURM_ARRAY_TASK_ID=${TASK_ID} (expected 0 or 1)" >&2

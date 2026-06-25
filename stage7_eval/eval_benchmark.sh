@@ -15,7 +15,7 @@ conda activate deeppbs
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "${RUN_DIR}"
+cd "${OUTPUT_ROOT}"
 
 # Build --condition args from whatever subdirs exist
 declare -a COND_ARGS

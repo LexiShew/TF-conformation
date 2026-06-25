@@ -24,7 +24,12 @@ import json
 import os
 
 
-BASELINE_DATA_DIR = "/project2/rohs_102/shewchuk/DeepPBS_data/deeppbsmar24/data/assembly2024"
+# Baked into each baseline training config's data_dir. Take it from
+# $ORIG_ASSEMBLY_DIR (set by lib/common.sh -> the vendored data/assembly2024),
+# falling back to the old DeepPBS location.
+BASELINE_DATA_DIR = os.environ.get(
+    "ORIG_ASSEMBLY_DIR",
+    "/project2/rohs_102/shewchuk/DeepPBS_data/deeppbsmar24/data/assembly2024")
 # Training run dirs are baked into the generated config's output_path. Take this
 # from $OUTPUTS_DIR (set by lib/common.sh -> TF-conformation/output/stage6_train)
 # so it matches what stage7's eval scans. Falls back to the old location.

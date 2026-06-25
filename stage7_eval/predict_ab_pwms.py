@@ -41,8 +41,10 @@ import numpy as np
 import torch
 from torch_geometric.data import DataLoader
 
-RUN_DIR = "/project2/rohs_102/shewchuk/DeepPBS/run"
-sys.path.insert(0, RUN_DIR)
+# Self-locate the repo: deeppbs from lib/, models.model_v2 from stage6_train/.
+_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(_TFCONF, "stage6_train"))  # models.model_v2
+sys.path.insert(0, os.path.join(_TFCONF, "lib"))           # deeppbs package
 
 from deeppbs.nn.utils import loadDataset          # noqa: E402
 from deeppbs.nn import Evaluator                   # noqa: E402
@@ -169,12 +171,11 @@ def main():
 
     if not args.outputs_dir:
         sys.exit("ERROR: --outputs-dir not given and $OUTPUTS_DIR unset")
-    combined_dir = args.combined_dir
+    # Prefer the per-pilot $COMBINED_ASSEMBLY_DIR set by lib/common.sh (now under
+    # the repo's output/stage5_aug/), falling back to the combined dir for --tf.
+    combined_dir = args.combined_dir or os.environ.get("COMBINED_ASSEMBLY_DIR")
     if not combined_dir:
-        data_dir = os.environ.get("DATA_DIR")
-        if not data_dir:
-            sys.exit("ERROR: --combined-dir not given and $DATA_DIR unset")
-        combined_dir = os.path.join(data_dir, f"combined_assembly_{args.tf}")
+        sys.exit("ERROR: --combined-dir not given and $COMBINED_ASSEMBLY_DIR unset")
     if not os.path.isdir(combined_dir):
         sys.exit(f"ERROR: combined-dir does not exist: {combined_dir}")
 

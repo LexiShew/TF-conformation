@@ -21,8 +21,11 @@ import numpy as np
 import torch
 from torch_geometric.data import DataLoader
 
-RUN_DIR = "/project2/rohs_102/shewchuk/DeepPBS/run"
-sys.path.insert(0, RUN_DIR)
+# Self-locate the repo so imports + inputs come from TF-conformation, not the
+# DeepPBS trees: deeppbs from lib/, models.model_v2 from stage6_train/.
+_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(_TFCONF, "stage6_train"))  # models.model_v2
+sys.path.insert(0, os.path.join(_TFCONF, "lib"))           # deeppbs package
 
 from deeppbs.nn.utils import loadDataset
 from deeppbs.nn import Evaluator
@@ -31,7 +34,7 @@ from models.model_v2 import Model
 
 NC = 4
 LABELS_KEY = "Y_pwm"
-DEFAULT_ID_FILE = os.path.join(RUN_DIR, "folds", "id.txt")
+DEFAULT_ID_FILE = os.path.join(_TFCONF, "data", "folds", "id.txt")
 
 
 def parse_args():

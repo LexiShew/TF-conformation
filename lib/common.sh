@@ -29,15 +29,19 @@ export BIOEMU_RAW_ROOT="${TFCONF_DIR}/structures/source_chains"
 # canonical Stage 1 output location that Stage 2 reads from (see STAGE1_DIR).
 export STAGE1_OUT_ROOT="${TFCONF_DIR}/structures/stage1_bioemu_output"
 
-# --- Data / outputs / training trees: still live in the DeepPBS data trees on
-# the cluster (large; not part of this repo). These are inputs/outputs, not code.
-export REPO_DIR="${PROJECT_ROOT}/DeepPBS"
-export RUN_DIR="${REPO_DIR}/run"
-export DATA_DIR="${PROJECT_ROOT}/DeepPBS_data"
-# Read-only INPUTS (original training assembly + baseline folds) stay in the
-# DeepPBS trees; the pipeline never writes there.
-export ORIG_ASSEMBLY_DIR="${DATA_DIR}/deeppbsmar24/data/assembly2024"
-export ORIG_FOLDS_DIR="${REPO_DIR}/run/folds"
+# --- Base INPUTS: now vendored into this repo's data/ tree (totally isolated;
+# nothing is read from the DeepPBS trees anymore). Overridable via env.
+#   data/folds/       — baseline train/valid splits + id.txt (small; in git)
+#   data/assembly2024 — base DeepPBS training npz (large; gitignored, copied in
+#                       on the cluster: see data/README.md)
+export DATA_ROOT="${TFCONF_DIR}/data"
+export ORIG_FOLDS_DIR="${ORIG_FOLDS_DIR:-${DATA_ROOT}/folds}"
+export ORIG_ASSEMBLY_DIR="${ORIG_ASSEMBLY_DIR:-${DATA_ROOT}/assembly2024}"
+
+# Make the vendored deeppbs package (lib/deeppbs) and the model definition
+# (stage6_train/models) importable from the repo, so nothing is pulled from
+# DeepPBS/run via sys.path. The conda env still supplies the dependencies.
+export PYTHONPATH="${TFCONF_DIR}/lib:${TFCONF_DIR}/stage6_train:${PYTHONPATH:-}"
 
 # ALL generated pipeline data lands in this repo's output/ tree, per stage — the
 # repo is totally isolated (no writes into the DeepPBS trees):

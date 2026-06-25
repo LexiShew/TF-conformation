@@ -23,7 +23,7 @@ conda activate deeppbs
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "${RUN_DIR}"
+cd "${OUTPUT_ROOT}"
 
 SEED="${SEED:?SEED env var must be set (1..5)}"
 SEED_SUFFIX="_s${SEED}"
@@ -36,7 +36,7 @@ VALID_FILE="${FOLDS_AUG_DIR}/valid${FOLD}_${TF_NAME}.txt"
 # Augmented runs use the original valid set (read-only input under RUN_DIR/folds)
 if [ ! -f "${VALID_FILE}" ]; then
     mkdir -p "${FOLDS_AUG_DIR}"
-    ln -sf "$(readlink -f ./folds/valid${FOLD}.txt)" "${VALID_FILE}"
+    ln -sf "$(readlink -f ${ORIG_FOLDS_DIR}/valid${FOLD}.txt)" "${VALID_FILE}"
 fi
 
 # Sanity check
