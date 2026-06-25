@@ -38,6 +38,6 @@ python "${STAGE_DIR}/build_training_configs.py" \
     --tf-name "${TF_NAME}" \
     --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
     --fold "${FOLD}" \
-    --output-dir "${RUN_DIR}"
+    --output-dir "${OUTPUTS_DIR}"
 
 echo "[stage5/${TF_NAME}] DONE"

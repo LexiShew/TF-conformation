@@ -59,7 +59,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --fold "${FOLD}" \
         --seed "${s}" \
         --seed-suffix "_s${s}" \
-        --output-dir "${RUN_DIR}"
+        --output-dir "${OUTPUTS_DIR}"
 done
 
 # -------------------- Step 2: Submit training jobs --------------------

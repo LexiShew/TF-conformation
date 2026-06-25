@@ -11,6 +11,8 @@
 
 require_var TF_NAME
 require_var FOLD
+require_var FOLDS_AUG_DIR
+require_var OUTPUTS_DIR
 
 conda activate deeppbs
 
@@ -27,18 +29,19 @@ fi
 
 if [ "${TASK_ID}" -eq 0 ]; then
     RUN_NAME="baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
-    CONFIG="config_baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
+    CONFIG="${OUTPUTS_DIR}/config_baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
+    # Baseline train/valid are read-only INPUTS (cwd is RUN_DIR -> DeepPBS/run/folds).
     TRAIN_FILE="./folds/train${FOLD}.txt"
     VALID_FILE="./folds/valid${FOLD}.txt"
 elif [ "${TASK_ID}" -eq 1 ]; then
     RUN_NAME="augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
-    CONFIG="config_augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
-    TRAIN_FILE="./folds_aug/train${FOLD}_aug_${TF_NAME}.txt"
-    VALID_FILE="./folds_aug/valid${FOLD}_${TF_NAME}.txt"
+    CONFIG="${OUTPUTS_DIR}/config_augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
+    TRAIN_FILE="${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt"
+    VALID_FILE="${FOLDS_AUG_DIR}/valid${FOLD}_${TF_NAME}.txt"
     # Augmented runs use the same valid set as baseline (no augmentation in valid)
     if [ ! -f "${VALID_FILE}" ]; then
         # Symlink the original valid file rather than duplicating it
-        mkdir -p ./folds_aug
+        mkdir -p "${FOLDS_AUG_DIR}"
         ln -sf "$(readlink -f ./folds/valid${FOLD}.txt)" "${VALID_FILE}"
     fi
 else

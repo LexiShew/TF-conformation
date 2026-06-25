@@ -34,23 +34,25 @@ export STAGE1_OUT_ROOT="${TFCONF_DIR}/structures/stage1_bioemu_output"
 export REPO_DIR="${PROJECT_ROOT}/DeepPBS"
 export RUN_DIR="${REPO_DIR}/run"
 export DATA_DIR="${PROJECT_ROOT}/DeepPBS_data"
+# Read-only INPUTS (original training assembly + baseline folds) stay in the
+# DeepPBS trees; the pipeline never writes there.
 export ORIG_ASSEMBLY_DIR="${DATA_DIR}/deeppbsmar24/data/assembly2024"
 export ORIG_FOLDS_DIR="${REPO_DIR}/run/folds"
-export CONFORMATIONS_DIR="${REPO_DIR}/data/conformations"
-export FOLDS_AUG_DIR="${REPO_DIR}/run/folds_aug"
 
-# Pipeline outputs now land in this repo's output/ tree (was DeepPBS_outputs).
-#   stage6_train/  — training run dirs (Model.best.tar, etc.); built into the
-#                    training configs by stage5's build_training_configs.py and
-#                    scanned by stage7's eval. OUTPUTS_DIR keeps that name so the
-#                    write side (training) and read side (eval) stay in sync.
-#   stage7_eval/   — benchmark JSON + per-entry prediction npz.
+# ALL generated pipeline data lands in this repo's output/ tree, per stage — the
+# repo is totally isolated (no writes into the DeepPBS trees):
+#   stage2_docked/ stage3_min/ stage4_npz/  — per-TF intermediate work
+#   stage5_aug/      — augmented folds (folds_aug/) + combined assembly
+#   stage6_train/    — training run dirs + the generated training configs (the
+#                      run-dir path is baked into each config and scanned by eval)
+#   stage7_eval/     — benchmark JSON + per-entry prediction npz
 export OUTPUT_ROOT="${TFCONF_DIR}/output"
-export OUTPUTS_DIR="${OUTPUT_ROOT}/stage6_train"
-export EVAL_OUT_DIR="${OUTPUT_ROOT}/stage7_eval"
+export OUTPUTS_DIR="${OUTPUT_ROOT}/stage6_train"   # training run dirs + configs
+export EVAL_OUT_DIR="${OUTPUT_ROOT}/stage7_eval"   # benchmark json + predict npz
+export FOLDS_AUG_DIR="${OUTPUT_ROOT}/stage5_aug/folds_aug"
 
-mkdir -p "${LOGS_DIR}" "${CONFORMATIONS_DIR}" "${FOLDS_AUG_DIR}" \
-         "${OUTPUTS_DIR}" "${EVAL_OUT_DIR}"
+mkdir -p "${LOGS_DIR}" "${OUTPUT_ROOT}" "${OUTPUTS_DIR}" "${EVAL_OUT_DIR}" \
+         "${FOLDS_AUG_DIR}"
 
 # -------------------- Conda init --------------------
 # In non-interactive SLURM shells, conda init isn't sourced automatically.
@@ -106,9 +108,6 @@ load_pilot_config() {
         export STAGE3_IGNORE_METALS=0
     fi
 
-    export WORK_DIR="${CONFORMATIONS_DIR}/${TF_NAME}"
-    export STAGE0_DIR="${WORK_DIR}/stage0_raw"
-
     # Stage 1 output = the binding chain's conformation dir in the new per-chain
     # library (B1). stage1_bioemu writes samples_sidechain_rec.{pdb,xtc} here;
     # Stage 2 reads them. BIOEMU_DIR is the same dir (raw BioEmu output lives
@@ -119,12 +118,12 @@ load_pilot_config() {
 
     # STAGE2_DIR intentionally has NO legacy suffix: docking is metal-independent,
     # so the legacy A/B (Stage 3 --ignore-metals) reuses the same docked frames (S5).
-    export STAGE2_DIR="${WORK_DIR}/stage2_docked"
+    export STAGE2_DIR="${OUTPUT_ROOT}/stage2_docked/${TF_NAME}"
     # Stages 3+ diverge in legacy mode
-    export STAGE3_DIR="${WORK_DIR}/stage3_min${suffix}"
-    export STAGE4_DIR="${WORK_DIR}/stage4_npz${suffix}"
+    export STAGE3_DIR="${OUTPUT_ROOT}/stage3_min${suffix}/${TF_NAME}"
+    export STAGE4_DIR="${OUTPUT_ROOT}/stage4_npz${suffix}/${TF_NAME}"
     export REF_CIF="${BIOEMU_RAW_ROOT}/${PDB_ID}_chains/${PDB_ID}.cif"
-    export COMBINED_ASSEMBLY_DIR="${DATA_DIR}/combined_assembly${suffix}_${TF_NAME}"
+    export COMBINED_ASSEMBLY_DIR="${OUTPUT_ROOT}/stage5_aug${suffix}/combined_assembly_${TF_NAME}"
     # Augmented fold also gets a legacy suffix
     export AUG_TRAIN_FOLD="${FOLDS_AUG_DIR}/train${FOLD}_aug${suffix}_${TF_NAME}.txt"
     # And the conditioning suffix used by training-config output dirs
@@ -140,7 +139,8 @@ load_pilot_config() {
 
     # NB: STAGE1_DIR is Stage 1's OUTPUT — do not pre-create it here, so a
     # missing Stage 1 run surfaces as a clear "samples_* not found" in Stage 2.
-    mkdir -p "${WORK_DIR}" "${STAGE2_DIR}" "${STAGE3_DIR}" "${STAGE4_DIR}/output"
+    mkdir -p "${STAGE2_DIR}" "${STAGE3_DIR}" "${STAGE4_DIR}/output" \
+             "${COMBINED_ASSEMBLY_DIR%/*}"
 
     echo "[common] Loaded pilot config: ${TF_NAME} (PDB ${PDB_ID}, PWM ${PWM_LABEL})${suffix:+ [LEGACY]}"
 }

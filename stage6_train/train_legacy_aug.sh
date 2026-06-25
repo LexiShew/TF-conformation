@@ -11,6 +11,8 @@
 
 require_var TF_NAME
 require_var FOLD
+require_var FOLDS_AUG_DIR
+require_var OUTPUTS_DIR
 
 if [ "${LEGACY:-0}" != "1" ]; then
     echo "ERROR: train_legacy_aug.sh requires LEGACY=1 to be set" >&2
@@ -27,13 +29,13 @@ SEED="${SEED:?SEED env var must be set (1..5)}"
 SEED_SUFFIX="_s${SEED}"
 
 RUN_NAME="augmented_legacy_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
-CONFIG="config_augmented_legacy_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
-TRAIN_FILE="./folds_aug/train${FOLD}_aug_legacy_${TF_NAME}.txt"
-VALID_FILE="./folds_aug/valid${FOLD}_${TF_NAME}.txt"
+CONFIG="${OUTPUTS_DIR}/config_augmented_legacy_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
+TRAIN_FILE="${FOLDS_AUG_DIR}/train${FOLD}_aug_legacy_${TF_NAME}.txt"
+VALID_FILE="${FOLDS_AUG_DIR}/valid${FOLD}_${TF_NAME}.txt"
 
-# Augmented runs use the original valid set
+# Augmented runs use the original valid set (read-only input under RUN_DIR/folds)
 if [ ! -f "${VALID_FILE}" ]; then
-    mkdir -p ./folds_aug
+    mkdir -p "${FOLDS_AUG_DIR}"
     ln -sf "$(readlink -f ./folds/valid${FOLD}.txt)" "${VALID_FILE}"
 fi
 
