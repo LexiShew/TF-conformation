@@ -19,7 +19,7 @@ the whole SLURM DAG with dependencies:
 
 | Stage | Dir | Does |
 | --- | --- | --- |
-| 1 | `stage1_bioemu/` | BioEmu sampling + HPacker side-chain reconstruction, for **every** protein chain of the structure → `structures/stage1_bioemu_output/<PDB>_chain<X>_conformations/` |
+| 1 | `stage1_bioemu/` | BioEmu sampling + HPacker side-chain reconstruction, for **every** protein chain of the structure → `output/stage1_bioemu/<PDB>_chain<X>_conformations/` |
 | 2 | `stage2_redock/` | Interface-aligned Kabsch dock of each frame onto the crystal DNA (carries DNA + structural metals across); monomer guard |
 | 2g | `fnat_gate/` | Score each docked state's `fnat` and drop sub-floor states before they become training data (`FNAT_FLOOR`, default 0.5) |
 | 3 | `stage3_minimize/` | OpenMM minimization with a metal-coordination cage |
@@ -45,8 +45,8 @@ fnat_gate/                     interface-fidelity gate (vendored interface_rmsd.
 scripts/pipeline/              run_pilot.sh, run_multiseed_pilot.sh, run_legacy_ab.sh
 scripts/{analysis,pymol,classification,pdb_prep,maintenance,deprecated}/
                                standalone utilities (not part of the DAG)
-structures/                    on-disk, gitignored: source_chains/ (per-chain
-                               inputs) + stage1_bioemu_output/ (ensembles)
+structures/                    on-disk, gitignored: source_chains/ (per-chain inputs)
+output/stage1_bioemu/          on-disk, gitignored: BioEmu+HPacker ensembles
 ```
 
 ## Running

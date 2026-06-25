@@ -9,8 +9,8 @@
 #
 # Reads:
 #   <CHAINS_DIR>/<PDB>_chain<X>_protein.pdb   (one or more protein chains)
-# Writes (per chain):
-#   <CHAINS_DIR>/<PDB>_chain<X>_conformations/
+# Writes (per chain, under output/stage1_bioemu/):
+#   <PDB>_chain<X>_conformations/
 #       topology.pdb, samples.xtc                 (BioEmu backbone-only)
 #       samples_sidechain_rec.pdb, .xtc           (HPacker full-atom)
 #
@@ -65,7 +65,8 @@ GEN_SCRIPT="${REPO_DIR}/stage1_bioemu/generate_monomer_confs.py"
 # All chains from all structures land flat in one output dir; each chain's
 # <PDB>_chain<X>_conformations/ name is globally unique, so there are no
 # collisions. Override with STAGE1_OUTPUT_DIR if needed.
-OUTPUT_DIR="${STAGE1_OUTPUT_DIR:-${REPO_DIR}/structures/stage1_bioemu_output}"
+# (Default: TF-conformation/output/stage1_bioemu/)
+OUTPUT_DIR="${STAGE1_OUTPUT_DIR:-${REPO_DIR}/output/stage1_bioemu}"
 mkdir -p "${OUTPUT_DIR}"
 
 pdb_id=$(basename "${CHAINS_DIR}" | cut -d'_' -f1)

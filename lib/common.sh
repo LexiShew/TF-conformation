@@ -27,7 +27,7 @@ export BIOEMU_RAW_ROOT="${TFCONF_DIR}/structures/source_chains"
 # per (PDB, source-chain) here as <PDB>_chain<X>_conformations/, each holding
 # topology.pdb, samples.xtc, samples_sidechain_rec.{pdb,xtc}. This is the single
 # canonical Stage 1 output location that Stage 2 reads from (see STAGE1_DIR).
-export STAGE1_OUT_ROOT="${TFCONF_DIR}/structures/stage1_bioemu_output"
+export STAGE1_OUT_ROOT="${TFCONF_DIR}/output/stage1_bioemu"
 
 # --- Base INPUTS: now vendored into this repo's data/ tree (totally isolated;
 # nothing is read from the DeepPBS trees anymore). Overridable via env.

@@ -24,11 +24,11 @@ structures/source_chains/<PDB>_chains/
 ## Outputs
 
 All chains from all structures land flat in one output directory,
-`structures/stage1_bioemu_output/` (override with `STAGE1_OUTPUT_DIR`). Each
+`output/stage1_bioemu/` (override with `STAGE1_OUTPUT_DIR`). Each
 chain's dir name is globally unique, so there are no collisions:
 
 ```
-structures/stage1_bioemu_output/<PDB>_chain<X>_conformations/
+output/stage1_bioemu/<PDB>_chain<X>_conformations/
     topology.pdb                   # BioEmu backbone-only reference
     samples.xtc                    # BioEmu backbone-only trajectory
     samples_sidechain_rec.pdb/.xtc # HPacker full-atom reconstruction

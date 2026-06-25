@@ -3,7 +3,7 @@
 # structure in the source-chains library, one SLURM job per <PDB>_chains/ dir.
 #
 # Each job runs BioEmu + HPacker on all protein chains of that structure (see
-# stage1_bioemu.sh). Output nests inside each <PDB>_chains/ dir as
+# stage1_bioemu.sh). Output lands flat in output/stage1_bioemu/ as
 # <PDB>_chain<X>_conformations/. SLURM logs go to <repo>/slurm_output/.
 #
 # Usage:

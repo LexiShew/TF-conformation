@@ -52,7 +52,7 @@ Files referenced (paths relative to repo root `TF-conformation/`):
 ## BLOCKERS (fix before the next new-TF run)
 
 ### B1 — Stage 1 output location/naming does not match what Stage 2 reads
-- **Stage 1 writes:** `structures/stage1_bioemu_output/<PDB>_chain<X>_conformations/`
+- **Stage 1 writes:** `output/stage1_bioemu/<PDB>_chain<X>_conformations/`
   containing `topology.pdb`, `samples.xtc`, `samples_sidechain_rec.{pdb,xtc}`
   (see `generate_monomer_confs.py::_run_all_chains_mode` and `reconstruct_sidechains`).
 - **`common.sh` says:** `STAGE1_DIR="${WORK_DIR}/stage1_relax"` (under

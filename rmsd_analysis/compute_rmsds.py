@@ -70,7 +70,7 @@ def import_mdtraj():
 #   PILOTS_DIR  — pilot configs:   <root>/<tf>.sh
 _TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BIOEMU_ROOT = os.environ.get("DEEPPBS_BIOEMU_ROOT", f"{_TFCONF}/structures/source_chains")
-STAGE1_OUT  = os.environ.get("DEEPPBS_STAGE1_OUT",  f"{_TFCONF}/structures/stage1_bioemu_output")
+STAGE1_OUT  = os.environ.get("DEEPPBS_STAGE1_OUT",  f"{_TFCONF}/output/stage1_bioemu")
 CONF_ROOT   = os.environ.get("DEEPPBS_CONF_ROOT",   f"{_TFCONF}/output")
 PILOTS_DIR  = os.environ.get("DEEPPBS_PILOTS_DIR",  f"{_TFCONF}/config/pilots")
 
