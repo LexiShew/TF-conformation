@@ -9,7 +9,7 @@ require_var STAGE3_DIR
 require_var RAMP_STAGES
 require_var STEPS_PER_STAGE
 
-conda activate bioemu
+conda activate "${BIOEMU_ENV:-bioemu}"
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

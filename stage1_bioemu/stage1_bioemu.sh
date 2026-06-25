@@ -47,7 +47,7 @@ fi
 
 # Activate conda in the (non-interactive) SLURM environment.
 source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
-conda activate bioemu
+conda activate "${BIOEMU_ENV:-bioemu}"
 export CONDA_ROOT=/home1/shewchuk/.conda
 
 # BioEmu / HuggingFace caches on scratch (large, regenerable). Override by

@@ -19,7 +19,7 @@ if [ "${LEGACY:-0}" != "1" ]; then
     exit 1
 fi
 
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

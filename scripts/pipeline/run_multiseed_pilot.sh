@@ -50,7 +50,7 @@ echo "  aug train:     ${AUG_TRAIN}  ($(wc -l < "${AUG_TRAIN}") entries)"
 echo "  n_seeds:       ${N_SEEDS}"
 
 # -------------------- Step 1: Build N paired-seed configs --------------------
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 echo "[multiseed/${TF_NAME}] Building ${N_SEEDS} paired-seed configs"
 for s in $(seq 1 "${N_SEEDS}"); do
     python "${TFCONF_DIR}/stage5_build_aug/build_training_configs.py" \

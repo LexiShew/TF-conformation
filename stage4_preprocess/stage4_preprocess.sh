@@ -8,7 +8,7 @@ require_var STAGE3_DIR
 require_var STAGE4_DIR
 require_var PWM_LABEL
 
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 
 # Self-contained: run this stage's co-located scripts (process_co_crystal.py,
 # proc_source.sh) and the vendored 3DNA toolchain in ../lib, not DeepPBS/run.

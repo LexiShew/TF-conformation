@@ -101,7 +101,7 @@ if stage_in_range 5; then
         --account=rohs_102 --partition=rohs \
         --output="${LOGS_DIR}/build_cfgs_legacy_%j.out" \
         --error="${LOGS_DIR}/build_cfgs_legacy_%j.err" \
-        --wrap="set -eo pipefail; source ${TFCONF_DIR}/lib/common.sh; load_pilot_config ${TF_NAME}; conda activate deeppbs; python ${TFCONF_DIR}/stage5_build_aug/build_legacy_training_configs.py --tf-name ${TF_NAME} --combined-dir ${COMBINED_ASSEMBLY_DIR} --fold ${FOLD} --seeds 1 2 3 4 5 --output-dir ${OUTPUTS_DIR}")
+        --wrap="set -eo pipefail; source ${TFCONF_DIR}/lib/common.sh; load_pilot_config ${TF_NAME}; conda activate ${DEEPPBS_ENV:-deeppbs}; python ${TFCONF_DIR}/stage5_build_aug/build_legacy_training_configs.py --tf-name ${TF_NAME} --combined-dir ${COMBINED_ASSEMBLY_DIR} --fold ${FOLD} --seeds 1 2 3 4 5 --output-dir ${OUTPUTS_DIR}")
     echo "[legacy-ab] build_cfgs jobid=${BUILD_CFG_JOB} depend=afterok:${PREV_JOB}"
     PREV_JOB="${BUILD_CFG_JOB}"
 fi

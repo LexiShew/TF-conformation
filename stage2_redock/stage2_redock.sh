@@ -28,7 +28,7 @@ if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
     exit 1
 fi
 
-conda activate bioemu
+conda activate "${BIOEMU_ENV:-bioemu}"
 
 # Resolve this stage's own directory so we run the co-located stage2_redock.py
 # (self-contained — no dependency on a shared SCRIPTS_DIR).

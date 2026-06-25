@@ -11,7 +11,7 @@ require_var TEST_PWM_FILTER
 require_var TEST_FILTER_NAME
 require_var COMBINED_ASSEMBLY_DIR
 
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

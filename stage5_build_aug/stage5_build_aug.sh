@@ -14,7 +14,7 @@ require_var STAGE4_DIR
 require_var FOLDS_AUG_DIR
 require_var COMBINED_ASSEMBLY_DIR
 
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 
 # Self-contained: run this stage's co-located scripts, not a shared SCRIPTS_DIR.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

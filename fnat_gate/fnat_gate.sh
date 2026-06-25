@@ -17,7 +17,7 @@ require_var STAGE2_DIR
 require_var REF_CIF
 
 # interface_rmsd.py needs biopython (Bio.PDB) + numpy; both live in the deeppbs env.
-conda activate deeppbs
+conda activate "${DEEPPBS_ENV:-deeppbs}"
 
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FNAT_FLOOR="${FNAT_FLOOR:-0.5}"

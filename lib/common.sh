@@ -69,10 +69,19 @@ else
     echo "WARNING: conda hook not found at ${CONDA_PREFIX_PATH}" >&2
 fi
 
+# Per-stage conda envs, defined once here and overridable via the environment
+# (e.g. BIOEMU_ENV=my-bioemu). Stages `conda activate "${BIOEMU_ENV}"` etc.
+#   BIOEMU_ENV  — stages 1-3: BioEmu sampling, HPacker relax, OpenMM minimize
+#   DEEPPBS_ENV — stages 4-7 + fnat gate: DeepPBS, 3DNA, biopython
+#   HPACKER_ENV — side-chain reconstruction, invoked by BioEmu (not activated)
+export BIOEMU_ENV="${BIOEMU_ENV:-bioemu}"
+export DEEPPBS_ENV="${DEEPPBS_ENV:-deeppbs}"
+export HPACKER_ENV="${HPACKER_ENV:-hpacker}"
+
 # Some BioEmu internals look for these even when conda is properly active
 export CONDA_ROOT="/home1/${USER}/.conda"
-export HPACKER_PYTHONBIN="${CONDA_ROOT}/envs/hpacker/bin/python"
-export HPACKER_REPO_DIR="${CONDA_ROOT}/envs/hpacker"
+export HPACKER_PYTHONBIN="${CONDA_ROOT}/envs/${HPACKER_ENV}/bin/python"
+export HPACKER_REPO_DIR="${CONDA_ROOT}/envs/${HPACKER_ENV}"
 
 # -------------------- TF-specific config loader --------------------
 # Caller must export TF_NAME before sourcing this if they want pilot config loaded.
