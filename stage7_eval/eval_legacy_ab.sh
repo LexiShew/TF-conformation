@@ -58,7 +58,7 @@ echo "[eval-ab/${TF_NAME}] Total conditions found: $(( ${#COND_ARGS[@]} / 2 ))"
 # at the combined_assembly dir which contains them. (Doesn't matter whether
 # we use _legacy or non-legacy version — the id.txt entries are identical
 # in both.)
-COMBINED_FOR_EVAL="${DATA_DIR}/combined_assembly_${TF_NAME}"
+COMBINED_FOR_EVAL="${OUTPUT_ROOT}/stage5_aug/combined_assembly_${TF_NAME}"
 OUTPUT_JSON="${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}_legacy_ab.json"
 
 echo "[eval-ab/${TF_NAME}] Running evaluator"

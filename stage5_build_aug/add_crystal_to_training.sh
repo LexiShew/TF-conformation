@@ -52,8 +52,11 @@ if [ ! -f "${DNA_PDB}" ]; then
     exit 1
 fi
 
-# Set up a tmp processing dir
-TMP_DIR="${PROJECT_ROOT}/DeepPBS/data/add_crystal/${PDB_ID}_${PWM_LABEL}"
+# Set up a tmp processing dir (generated -> repo output/). NOTE: the final npz
+# is still copied into the base assembly + folds (ASSEMBLY_DIR/FOLDS_DIR) below,
+# which live in the DeepPBS input trees; that injection follows the base data
+# and moves with it when inputs are vendored into the repo.
+TMP_DIR="${TFCONF_DIR}/output/add_crystal/${PDB_ID}_${PWM_LABEL}"
 rm -rf "${TMP_DIR}"
 mkdir -p "${TMP_DIR}/pdb_input" "${TMP_DIR}/output"
 
