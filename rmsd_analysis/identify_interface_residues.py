@@ -51,15 +51,10 @@ PROTEIN_RESNAMES = {
 DNA_RESNAMES = {"DA", "DC", "DG", "DT", "DU", "A", "C", "G", "T", "U",
                 "DA3", "DA5", "DC3", "DC5", "DG3", "DG5", "DT3", "DT5"}
 
-# Defaults match compute_rmsds.py (env-overridable).
-PROJECT_ROOT = os.environ.get("DEEPPBS_PROJECT_ROOT",
-                              "/project2/rohs_102/shewchuk")
-DEEPPBS_DIR  = os.environ.get("DEEPPBS_DIR", f"{PROJECT_ROOT}/DeepPBS")
-BIOEMU_ROOT  = os.environ.get(
-    "DEEPPBS_BIOEMU_ROOT",
-    f"{PROJECT_ROOT}/TF-conformation/deeppbs_pdbs/monomer_chains")
-PILOTS_DIR   = os.environ.get("DEEPPBS_PILOTS_DIR",
-                              f"{DEEPPBS_DIR}/run/jobs/config/pilots")
+# Defaults match compute_rmsds.py — current repo layout, self-located, env-overridable.
+_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BIOEMU_ROOT = os.environ.get("DEEPPBS_BIOEMU_ROOT", f"{_TFCONF}/structures/source_chains")
+PILOTS_DIR  = os.environ.get("DEEPPBS_PILOTS_DIR",  f"{_TFCONF}/config/pilots")
 
 
 def load_pilot_config(tf_name):

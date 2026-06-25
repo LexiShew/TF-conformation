@@ -43,6 +43,7 @@ Usage:
     python compute_rmsds.py --variants metal_cage          # only metal_cage
 """
 import argparse
+import glob
 import os
 import sys
 import warnings
@@ -61,17 +62,17 @@ def import_mdtraj():
 # ---------------------------------------------------------------------------
 # Defaults: cluster layout. Override with CLI flags or env vars when running
 # locally (see --bioemu-root / --conf-root / --pilots-dir).
-PROJECT_ROOT = os.environ.get("DEEPPBS_PROJECT_ROOT",
-                              "/project2/rohs_102/shewchuk")
-DEEPPBS_DIR  = os.environ.get("DEEPPBS_DIR",
-                              f"{PROJECT_ROOT}/DeepPBS")
-BIOEMU_ROOT  = os.environ.get(
-    "DEEPPBS_BIOEMU_ROOT",
-    f"{PROJECT_ROOT}/TF-conformation/deeppbs_pdbs/monomer_chains")
-CONF_ROOT    = os.environ.get("DEEPPBS_CONF_ROOT",
-                              f"{DEEPPBS_DIR}/data/conformations")
-PILOTS_DIR   = os.environ.get("DEEPPBS_PILOTS_DIR",
-                              f"{DEEPPBS_DIR}/run/jobs/config/pilots")
+# Defaults follow the current repo layout (self-located); override via env/flags.
+#   BIOEMU_ROOT — source chains:   <root>/<pdb>_chains/<pdb>.cif
+#   STAGE1_OUT  — Stage 1 library: <root>/<pdb>_chain<X>_conformations/
+#                 (topology.pdb, samples.xtc, samples_sidechain_rec.{pdb,xtc})
+#   CONF_ROOT   — pipeline output: <root>/<stage>/<tf>/<pdb>_state_NNN.pdb
+#   PILOTS_DIR  — pilot configs:   <root>/<tf>.sh
+_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BIOEMU_ROOT = os.environ.get("DEEPPBS_BIOEMU_ROOT", f"{_TFCONF}/structures/source_chains")
+STAGE1_OUT  = os.environ.get("DEEPPBS_STAGE1_OUT",  f"{_TFCONF}/structures/stage1_bioemu_output")
+CONF_ROOT   = os.environ.get("DEEPPBS_CONF_ROOT",   f"{_TFCONF}/output")
+PILOTS_DIR  = os.environ.get("DEEPPBS_PILOTS_DIR",  f"{_TFCONF}/config/pilots")
 
 BACKBONE_ATOMS = {"N", "CA", "C", "O"}
 PROTEIN_RESNAMES = {
@@ -120,10 +121,21 @@ def load_reference_full(pdb_id):
     return md.load(cif_path)
 
 
+def stage1_conf_dir(pdb_id):
+    """The Stage 1 per-chain conformations dir for this PDB. stage1_bioemu writes
+    <pdb>_chain<X>_conformations/ (one per sampled chain); take the first match
+    (the binding chain, if only it was sampled)."""
+    hits = sorted(glob.glob(f"{STAGE1_OUT}/{pdb_id}_chain*_conformations"))
+    return hits[0] if hits else None
+
+
 def load_stage0(pdb_id):
     """Load BioEmu raw samples (backbone-only XTC + topology)."""
-    topo_path = f"{BIOEMU_ROOT}/{pdb_id}_chains/{pdb_id}_conformations/topology.pdb"
-    xtc_path  = f"{BIOEMU_ROOT}/{pdb_id}_chains/{pdb_id}_conformations/samples.xtc"
+    s1d = stage1_conf_dir(pdb_id)
+    if s1d is None:
+        return None
+    topo_path = f"{s1d}/topology.pdb"
+    xtc_path  = f"{s1d}/samples.xtc"
     if not (os.path.isfile(topo_path) and os.path.isfile(xtc_path)):
         return None
     traj = md.load(xtc_path, top=topo_path)
@@ -134,9 +146,11 @@ def load_stage0(pdb_id):
 
 def load_stage1(pdb_id):
     """Load HPACKER-relaxed samples (sidechain-restored)."""
-    s1_dir = f"{CONF_ROOT}/{infer_tf_from_pdb(pdb_id)}/stage1_relax"
-    topo_path = f"{s1_dir}/{pdb_id}_sidechain_rec.pdb"
-    xtc_path  = f"{s1_dir}/{pdb_id}_sidechain_rec.xtc"
+    s1d = stage1_conf_dir(pdb_id)
+    if s1d is None:
+        return None
+    topo_path = f"{s1d}/samples_sidechain_rec.pdb"
+    xtc_path  = f"{s1d}/samples_sidechain_rec.xtc"
     if not (os.path.isfile(topo_path) and os.path.isfile(xtc_path)):
         return None
     traj = md.load(xtc_path, top=topo_path)
@@ -146,7 +160,7 @@ def load_stage1(pdb_id):
 
 def load_stage_per_state(pdb_id, tf_name, stage_dir_name, n_states):
     """Load per-state PDBs (Stage 2 or 3) as a list, indexed by state number."""
-    stage_dir = f"{CONF_ROOT}/{tf_name}/{stage_dir_name}"
+    stage_dir = f"{CONF_ROOT}/{stage_dir_name}/{tf_name}"
     out = [None] * (n_states + 1)  # 1-indexed
     if not os.path.isdir(stage_dir):
         return out
@@ -171,10 +185,14 @@ def load_stage_per_state(pdb_id, tf_name, stage_dir_name, n_states):
 
 
 def infer_tf_from_pdb(pdb_id):
-    """Helper: given a PDB ID, figure out which TF directory it lives in."""
-    for tf in os.listdir(CONF_ROOT):
-        if os.path.isfile(f"{CONF_ROOT}/{tf}/stage1_relax/{pdb_id}_sidechain_rec.pdb"):
-            return tf
+    """Map a PDB id to its pilot/TF name via the pilot configs' PDB_ID field."""
+    for cfg_path in sorted(glob.glob(f"{PILOTS_DIR}/*.sh")):
+        tf = os.path.basename(cfg_path)[:-len(".sh")]
+        try:
+            if load_pilot_config(tf).get("PDB_ID", "").lower() == pdb_id.lower():
+                return tf
+        except Exception:
+            continue
     return pdb_id  # fallback
 
 
@@ -535,7 +553,7 @@ def write_csv(rows, path, columns):
 # Main
 # ---------------------------------------------------------------------------
 def main():
-    global BIOEMU_ROOT, CONF_ROOT, PILOTS_DIR
+    global BIOEMU_ROOT, STAGE1_OUT, CONF_ROOT, PILOTS_DIR
     parser = argparse.ArgumentParser(description=__doc__,
                                       formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--tfs", nargs="+", default=["egr1", "dux4", "tbp"],
@@ -547,11 +565,13 @@ def main():
                              "(default: both metal_cage and legacy).")
     parser.add_argument("--output-dir", default=".", help="Where to write CSVs")
     parser.add_argument("--bioemu-root", default=BIOEMU_ROOT,
-                        help=f"Dir holding <pdb>_chains/<pdb>.cif and the "
-                             f"BioEmu conformations subtree "
+                        help=f"Source-chain dir: <pdb>_chains/<pdb>.cif "
                              f"(default: {BIOEMU_ROOT}; env: DEEPPBS_BIOEMU_ROOT).")
+    parser.add_argument("--stage1-out", default=STAGE1_OUT,
+                        help=f"Stage 1 library: <pdb>_chain<X>_conformations/ "
+                             f"(default: {STAGE1_OUT}; env: DEEPPBS_STAGE1_OUT).")
     parser.add_argument("--conf-root", default=CONF_ROOT,
-                        help=f"Dir holding <tf>/stage{{0..3}}_* subtrees "
+                        help=f"Pipeline output root: <stage>/<tf>/ "
                              f"(default: {CONF_ROOT}; env: DEEPPBS_CONF_ROOT).")
     parser.add_argument("--pilots-dir", default=PILOTS_DIR,
                         help=f"Dir holding <tf>.sh pilot configs "
@@ -566,6 +586,7 @@ def main():
 
     # Apply CLI overrides to module-level path globals.
     BIOEMU_ROOT = args.bioemu_root
+    STAGE1_OUT  = args.stage1_out
     CONF_ROOT   = args.conf_root
     PILOTS_DIR  = args.pilots_dir
 
