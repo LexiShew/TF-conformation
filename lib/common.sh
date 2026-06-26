@@ -136,6 +136,12 @@ load_pilot_config() {
     export STAGE2_DIR="${OUTPUT_ROOT}/stage2_docked/${TF_NAME}"
     # Stages 3+ diverge in legacy mode
     export STAGE3_DIR="${OUTPUT_ROOT}/stage3_min${suffix}/${TF_NAME}"
+    # fnat gate (B7): the single structural-quality filter, Stage 3 -> Stage 4.
+    # The gate scores post-minimization fnat and builds STAGE3_PASS_DIR (a mirror
+    # of STAGE3_DIR holding only states with fnat >= FNAT_FLOOR); Stage 4 reads
+    # ONLY that pass dir. FNAT_FLOOR is overridable globally or per-pilot config.
+    export FNAT_FLOOR="${FNAT_FLOOR:-0.5}"
+    export STAGE3_PASS_DIR="${STAGE3_DIR}_pass"
     export STAGE4_DIR="${OUTPUT_ROOT}/stage4_npz${suffix}/${TF_NAME}"
     export REF_CIF="${BIOEMU_RAW_ROOT}/${PDB_ID}_chains/${PDB_ID}.cif"
     export COMBINED_ASSEMBLY_DIR="${OUTPUT_ROOT}/stage5_aug${suffix}/combined_assembly_${TF_NAME}"

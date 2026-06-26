@@ -4,7 +4,7 @@
 
 require_var TF_NAME
 require_var PDB_ID
-require_var STAGE3_DIR
+require_var STAGE3_PASS_DIR
 require_var STAGE4_DIR
 require_var PWM_LABEL
 
@@ -14,15 +14,19 @@ conda activate "${DEEPPBS_ENV:-deeppbs}"
 # proc_source.sh) and the vendored 3DNA toolchain in ../lib, not DeepPBS/run.
 STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Build input.txt and process_config.json
+# Build input.txt and process_config.json. Input is the fnat-GATED set only:
+# STAGE3_PASS_DIR holds symlinks (identical filenames) to the Stage 3 states that
+# cleared FNAT_FLOOR. Never glob the full STAGE3_DIR here — sub-floor states must
+# not become training data (B7).
 mkdir -p "${STAGE4_DIR}/pdb_input" "${STAGE4_DIR}/output"
 cd "${STAGE4_DIR}/pdb_input"
-ln -sf "${STAGE3_DIR}"/${PDB_ID}_state_*.pdb . 2>/dev/null || true
+ln -sf "${STAGE3_PASS_DIR}"/${PDB_ID}_state_*.pdb . 2>/dev/null || true
 n_inputs=$(ls "${STAGE4_DIR}/pdb_input"/*.pdb 2>/dev/null | wc -l)
-echo "[stage4/${TF_NAME}] Linked ${n_inputs} structures from Stage 3"
+echo "[stage4/${TF_NAME}] Linked ${n_inputs} fnat-passing structures from ${STAGE3_PASS_DIR}"
 
 if [ "${n_inputs}" -eq 0 ]; then
-    echo "ERROR: No Stage 3 outputs found. Did Stage 3 run successfully?" >&2
+    echo "ERROR: No gated Stage 3 inputs in ${STAGE3_PASS_DIR}." >&2
+    echo "       Did the fnat gate run and did any state clear FNAT_FLOOR?" >&2
     exit 1
 fi
 

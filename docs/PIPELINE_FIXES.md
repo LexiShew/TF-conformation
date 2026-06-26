@@ -118,15 +118,22 @@ Files referenced (paths relative to repo root `TF-conformation/`):
   pattern), default `interface`.
 - **Accept:** `STAGE2_ALIGN_MODE=all sbatch …` runs the global baseline.
 
-### B7 — No fnat gate before training data is built
-- Stages 1–7 exist but nothing filters wrong-register conformations before they become training
-  pairs in Stage 5 (build_aug). After the dock-frame work, this is the main data-integrity risk.
-- **Fix:** Wire `interface_rmsd.py` (currently in `TF_conf_init_outputs/scripts/`) in as a gate
-  between Stage 2 and Stage 5: score every docked state, drop states below an fnat floor, log
-  what was dropped. Move/import the scorer into the repo so it's a pipeline dependency.
-- **DECISION NEEDED (ask the user):** the fnat floor (suggested starting point 0.5).
-- **Accept:** Stage 5 consumes only states above the floor; a per-state fnat CSV + drop log are
-  produced.
+### B7 — fnat gate before training data is built — DONE
+- **Implemented:** a single structural-quality gate at **Stage 3 → Stage 4** (`fnat_gate/`,
+  vendored scorer `interface_rmsd.py` + `score_stage3.py`). It scores every **post-minimization**
+  state (`fnat` vs the model's own DNA) and builds `${STAGE3_DIR}_pass/` — a symlink mirror of
+  only the states with `fnat >= FNAT_FLOOR`. Stage 4 reads ONLY that pass dir.
+- **Why Stage 3, not Stage 2:** minimization moves per-state fnat both ways, so the gate must
+  score the minimized pose. Stage 2 now carries EVERY docked state forward — it never drops,
+  moves, or quarantines (the earlier `rejected_fnat/` + `fnat_drops.log` Stage-2 rejection was
+  removed; it shrank the denominator before minimization could rescue near-misses).
+- **Floor:** `FNAT_FLOOR=0.5` default (`lib/common.sh`), overridable globally or per-pilot
+  (`config/pilots/<tf>.sh`).
+- **Fail-loud:** empty pass-list ⇒ gate exits non-zero; Stage 4 depends `afterok` on the gate,
+  so the DAG halts (no training on an empty/ungated set).
+- **Accept:** Stage 4 consumes only passing states; a per-state fnat CSV + pass-list are produced;
+  `FNAT_FLOOR=0.99` halts the DAG. Verified locally on FOXA (65/72 minimized states pass @ 0.5;
+  0/72 @ 0.99 → exit 1). Full-ensemble yield requires the cluster re-run (see below).
 
 ---
 

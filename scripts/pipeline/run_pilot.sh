@@ -13,10 +13,13 @@
 #   ./scripts/pipeline/run_pilot.sh dux4 6 7          # just retrain + reeval
 #
 # Dependency policy:
-#   afterany — Stage 3 array → 3r, 3r → 4. Partial failure on
-#              minimization is expected and recovery is designed to handle it.
-#              Without this, a single task failure halts the whole pipeline.
-#   afterok  — everywhere else; partial failure is fatal.
+#   afterany — Stage 3 array → 3r only. Partial failure on minimization is
+#              expected and recovery is designed to handle it; without this a
+#              single task failure would halt the whole pipeline.
+#   afterok  — everywhere else, INCLUDING the fnat gate (3g) → Stage 4. The gate
+#              exits non-zero when no conformation clears FNAT_FLOOR, and that
+#              MUST halt the pipeline so Stage 4 never trains on an empty set.
+#              Recovery (3r) exits 0, so the gate's afterok on it still fires.
 
 set -eo pipefail
 # TF-conformation repo root (this launcher's own dir); export so the wrappers
@@ -77,13 +80,6 @@ if stage_in_range 2; then
     submit_stage 2 "${WRAPPERS_DIR}/stage2_redock.sh" ok
 fi
 
-# Stage 2 gate (B7): fnat-filter docked states before they reach training data.
-# Runs whenever Stage 2 ran and the pipeline continues into downstream stages,
-# so Stage 3 only minimizes states that passed the fnat floor.
-if stage_in_range 2 && [ "${STAGE_END}" -ge 3 ]; then
-    submit_stage "2g" "${WRAPPERS_DIR}/fnat_gate.sh" ok
-fi
-
 # Stage 3: array of N_FRAMES tasks
 if stage_in_range 3; then
     submit_stage 3 "${WRAPPERS_DIR}/stage3_array.sh" ok \
@@ -96,10 +92,19 @@ if stage_in_range 3 && [ "${STAGE_END}" -ge 3 ]; then
     submit_stage "3r" "${WRAPPERS_DIR}/stage3_recover.sh" any
 fi
 
-# Stage 4: preprocess — uses afterany so a partial recovery still runs.
-# Inside Stage 4, the script counts npz outputs and warns if anything is off.
+# fnat gate (B7): the single structural-quality filter, Stage 3 -> Stage 4.
+# Depends afterok on Stage 3 + its recover step (PREV_JOB = 3r, which exits 0),
+# scores post-minimization fnat, and builds STAGE3_PASS_DIR. Runs whenever Stage
+# 4 will run, so the pass dir is always fresh before preprocessing. If nothing
+# clears FNAT_FLOOR the gate exits non-zero and the afterok edge halts Stage 4.
 if stage_in_range 4; then
-    submit_stage 4 "${WRAPPERS_DIR}/stage4_preprocess.sh" any
+    submit_stage "3g" "${WRAPPERS_DIR}/fnat_gate.sh" ok
+fi
+
+# Stage 4: preprocess — afterok on the gate (NOT on recover), so an empty
+# pass-list halts the pipeline. Stage 4 reads only STAGE3_PASS_DIR.
+if stage_in_range 4; then
+    submit_stage 4 "${WRAPPERS_DIR}/stage4_preprocess.sh" ok
 fi
 
 # Stage 5: build augmented fold (must succeed before training)

@@ -129,59 +129,10 @@ def main():
     ap.add_argument("--min_ident", type=float, default=0.9)
     ap.add_argument("--use_model_dna", action="store_true",
                     help="measure fnat vs the model's own DNA (coordinate-frame cross-check)")
-    # --- Stage 2 gate mode (B7): score every per-state PDB in a dir, optionally
-    # filtering sub-floor states out before they become training data. ---
-    ap.add_argument("--states-dir",
-                    help="Score every <pdb-id>_state_*.pdb in this dir vs --ref.")
-    ap.add_argument("--pdb-id", help="PDB id prefix for --states-dir filenames.")
-    ap.add_argument("--floor", type=float, default=None,
-                    help="--states-dir: drop states with fnat < floor (or unscored) "
-                         "by moving them to --reject-dir. Omit to score only.")
-    ap.add_argument("--reject-dir",
-                    help="--states-dir: where dropped state PDBs go (default "
-                         "<states-dir>/rejected_fnat).")
+    # NB: per-directory state scoring + the single fnat quality gate live in
+    # score_stage3.py / fnat_gate/fnat_gate.sh (Stage 3 -> Stage 4, B7). This
+    # module is the scorer only — it never moves or drops state files.
     a = ap.parse_args()
-
-    if a.states_dir:
-        import re as _re, shutil
-        if not a.ref or not a.pdb_id:
-            sys.exit("--states-dir requires --ref and --pdb-id")
-        sdir = Path(a.states_dir)
-        reject = Path(a.reject_dir) if a.reject_dir else sdir / "rejected_fnat"
-        R = ref_side(load_models(a.ref)[0], a.iface_cutoff, a.contact_cutoff, a.gap)
-        states = sorted(sdir.glob(f"{a.pdb_id}_state_*.pdb"))
-        kept = dropped = 0
-        with open(a.out, "w") as out, open(a.fail, "w") as flog:
-            out.write(COLS + "\n")
-            if a.floor is not None:
-                reject.mkdir(parents=True, exist_ok=True)
-            for sf in states:
-                msf = _re.search(r"_state_(\d+)\.pdb$", sf.name)
-                state = int(msf.group(1)) if msf else 0
-                try:
-                    models = load_models(sf)
-                    m = score(R, models[0], a.contact_cutoff, a.use_model_dna)
-                except Exception as e:
-                    flog.write(f"{a.pdb_id}\tstate{state}\tSCORE_ERROR\t{e}\n")
-                    if a.floor is not None:
-                        shutil.move(str(sf), str(reject / sf.name)); dropped += 1
-                    continue
-                if m['ident'] < a.min_ident:
-                    flog.write(f"{a.pdb_id}\tstate{state}\tLOW_IDENT\t{m['ident']:.2f}\n")
-                out.write(row(a.pdb_id, state, m) + "\n")
-                fnat = m['fnat']
-                if a.floor is not None and (fnat != fnat or fnat < a.floor):  # NaN or below
-                    shutil.move(str(sf), str(reject / sf.name))
-                    flog.write(f"{a.pdb_id}\tstate{state}\tBELOW_FLOOR\tfnat={fmt(fnat)}\n")
-                    dropped += 1
-                else:
-                    kept += 1
-        if a.floor is not None:
-            print(f"fnat gate: kept {kept}, dropped {dropped} "
-                  f"(floor={a.floor}) -> rejects in {reject}", file=sys.stderr)
-        else:
-            print(f"scored {len(states)} states -> {a.out}", file=sys.stderr)
-        return
 
     if a.batch:
         root = Path(a.batch)
