@@ -79,6 +79,14 @@ if [ -n "${STAGE2_ALIGN_MODE:-}" ]; then
     align_args+=( --align-mode "${STAGE2_ALIGN_MODE}" )
 fi
 
+# Monomer-assembly passthrough: set MONOMER_ASSEMBLY=1 in the pilot config when
+# the crystal holds a second assembly or a packing partner that contacts the
+# configured DNA, so the configured protein chain is the sole biological binder.
+monomer_args=()
+if [ "${MONOMER_ASSEMBLY:-0}" = "1" ]; then
+    monomer_args+=( --monomer-assembly )
+fi
+
 echo "[stage2/${TF_NAME}] Re-docking ${PDB_ID} frames (chain ${BINDING_CHAIN})"
 if [ -n "${MISMATCH_ACTION:-}" ]; then
     echo "[stage2/${TF_NAME}] Mismatch policy: action=${MISMATCH_ACTION} max=${MAX_MISMATCHES:-0}"
@@ -94,7 +102,8 @@ python "${STAGE_DIR}/stage2_redock.py" \
     --protein-chain "${PROTEIN_CHAIN}" \
     --dna-chains "${DNA_CHAINS}" \
     "${mismatch_args[@]}" \
-    "${align_args[@]}"
+    "${align_args[@]}" \
+    "${monomer_args[@]}"
 
 n_pdbs=$(ls "${STAGE2_DIR}"/${PDB_ID}_state_*.pdb 2>/dev/null | wc -l)
 echo "[stage2/${TF_NAME}] DONE — wrote ${n_pdbs} structures to ${STAGE2_DIR}"
