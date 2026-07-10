@@ -123,6 +123,17 @@ load_pilot_config() {
         export STAGE3_IGNORE_METALS=0
     fi
 
+    # DNA relaxation (Tier 1) is a SEPARATE parallel pipeline, keyed on the pilot
+    # config having opted in via STAGE3_DNA_RESTRAINT_K. It appends "_dnarelax" to
+    # the suffix so relaxed Stage-3+ outputs never overwrite the frozen-DNA
+    # baseline (which the 5-seed benchmark depends on). Like LEGACY, STAGE2_DIR is
+    # NOT suffixed — docking is DNA-restraint-independent, so relaxed runs reuse
+    # the same docked frames. Composes with LEGACY (e.g. _legacy_dnarelax).
+    if [ -n "${STAGE3_DNA_RESTRAINT_K:-}" ]; then
+        suffix="${suffix}_dnarelax"
+        echo "[common] DNA relaxation ON (STAGE3_DNA_RESTRAINT_K=${STAGE3_DNA_RESTRAINT_K}${STAGE3_DNA_RELEASE_STAGE:+, release stage ${STAGE3_DNA_RELEASE_STAGE}}): writing Stage 3+ to *${suffix}/ paths"
+    fi
+
     # Stage 1 output = the binding chain's conformation dir in the new per-chain
     # library (B1). stage1_bioemu writes samples_sidechain_rec.{pdb,xtc} here;
     # Stage 2 reads them. BIOEMU_DIR is the same dir (raw BioEmu output lives

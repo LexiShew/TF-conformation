@@ -40,6 +40,9 @@ for i in $(seq 1 "${N_FRAMES}"); do
     if [ -n "${STAGE3_DNA_RESTRAINT_K:-}" ]; then
         extra_args+=( --dna-restraint-k "${STAGE3_DNA_RESTRAINT_K}" )
     fi
+    if [ -n "${STAGE3_DNA_RELEASE_STAGE:-}" ]; then
+        extra_args+=( --dna-release-stage "${STAGE3_DNA_RELEASE_STAGE}" )
+    fi
     if python "${STAGE_DIR}/stage3_minimize.py" \
         --input-pdb "${INPUT}" \
         --output-pdb "${OUTPUT}" \

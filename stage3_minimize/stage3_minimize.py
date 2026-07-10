@@ -39,6 +39,14 @@ parser.add_argument("--dna-restraint-k", type=float, default=None,
                          "kcal/mol/Å². Default None = use --restraint-k "
                          "(identical to current behaviour). "
                          "0 = DNA fully relaxed; small value = soft tether.")
+parser.add_argument("--dna-release-stage", type=int, default=None,
+                    help="1-based vdW-ramp stage index at which the DNA restraint "
+                         "is released from --restraint-k down to --dna-restraint-k "
+                         "(requires --dna-restraint-k). DNA is held at the protein "
+                         "k for stages 1..N-1 (protein settles first), then relaxed "
+                         "to the target k for stages N..end AND the final "
+                         "minimization. Default None = DNA at the target k from "
+                         "stage 1 (no late release).")
 parser.add_argument("--metal-cage-k", type=float, default=20.0,
                     help="Sidechain-pair (coordination-cage) restraint k "
                          "(kcal/mol/Å²)")
@@ -232,6 +240,30 @@ system = forcefield.createSystem(
 # Protein backbone is always restrained at --restraint-k regardless.
 dna_k = args.dna_restraint_k
 split_dna = dna_k is not None
+release_stage = args.dna_release_stage
+if release_stage is not None:
+    if not split_dna:
+        sys.exit("[stage3] --dna-release-stage requires --dna-restraint-k "
+                 "(the DNA k to release TO).")
+    if release_stage < 1:
+        sys.exit("[stage3] --dna-release-stage must be >= 1 (1-based ramp-stage "
+                 "index).")
+
+def _k_md(k_kcal):
+    """kcal/mol/Å² -> the bare number OpenMM's setParameter expects (md units)."""
+    return (k_kcal * unit.kilocalories_per_mole
+            / unit.angstrom**2).value_in_unit_system(unit.md_unit_system)
+
+# A dedicated, RUNTIME-TUNABLE DNA restraint force (global param k_dna) is built
+# whenever we split DNA off AND either hold a nonzero tether OR schedule a late
+# release (which must be able to hold DNA at the protein k early, then drop k_dna
+# — possibly to 0 — later). When dna_k==0 with NO release schedule, DNA is simply
+# omitted from every restraint (free from stage 1) and no DNA force is built.
+need_dna_force = split_dna and (dna_k > 0 or release_stage is not None)
+# Stage-1 DNA k: held at the protein k if a later release is scheduled, else the
+# target dna_k. Scheduling in the ramp loop overrides this per stage.
+dna_k_stage1 = (args.restraint_k
+                if (release_stage is not None and release_stage > 1) else dna_k)
 
 backbone_restraint = openmm.CustomExternalForce("0.5 * k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
 backbone_restraint.addGlobalParameter("k", args.restraint_k * unit.kilocalories_per_mole / unit.angstrom**2)
@@ -239,19 +271,18 @@ backbone_restraint.addPerParticleParameter("x0")
 backbone_restraint.addPerParticleParameter("y0")
 backbone_restraint.addPerParticleParameter("z0")
 
-# Second force for DNA, built only when a positive DNA k is requested. Two forces
-# cannot share a global parameter name, so this one uses "k_dna".
+# Two forces cannot share a global parameter name, so the DNA force uses "k_dna".
 dna_restraint = None
-if split_dna and dna_k > 0:
+if need_dna_force:
     dna_restraint = openmm.CustomExternalForce("0.5 * k_dna * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
-    dna_restraint.addGlobalParameter("k_dna", dna_k * unit.kilocalories_per_mole / unit.angstrom**2)
+    dna_restraint.addGlobalParameter("k_dna", dna_k_stage1 * unit.kilocalories_per_mole / unit.angstrom**2)
     dna_restraint.addPerParticleParameter("x0")
     dna_restraint.addPerParticleParameter("y0")
     dna_restraint.addPerParticleParameter("z0")
 
 n_restrained = 0       # atoms on the protein/legacy force
-n_dna_restrained = 0   # DNA atoms on the soft-tether force
-n_dna_free = 0         # DNA atoms left unrestrained (k_dna == 0)
+n_dna_restrained = 0   # DNA atoms on the tunable k_dna force
+n_dna_free = 0         # DNA atoms left unrestrained (dna_k==0, no release)
 for atom in modeller.topology.atoms():
     is_protein_bb = (atom.residue.name in ("ALA","ARG","ASN","ASP","CYS","GLN","GLU","GLY",
                                             "HIS","ILE","LEU","LYS","MET","PHE","PRO","SER",
@@ -267,17 +298,22 @@ for atom in modeller.topology.atoms():
         # Protein backbone always; DNA backbone too when not splitting (legacy).
         backbone_restraint.addParticle(atom.index, [p[0], p[1], p[2]])
         n_restrained += 1
-    elif dna_k > 0:
+    elif need_dna_force:
         dna_restraint.addParticle(atom.index, [p[0], p[1], p[2]])
         n_dna_restrained += 1
     else:
-        n_dna_free += 1  # k_dna == 0: DNA fully relaxed, no restraint added
+        n_dna_free += 1  # dna_k==0, no release: DNA fully relaxed, no force
 system.addForce(backbone_restraint)
 if dna_restraint is not None:
     system.addForce(dna_restraint)
 if not split_dna:
     print(f"[{basename}]   Restrained {n_restrained} backbone atoms "
           f"(protein+DNA, k={args.restraint_k} kcal/mol/Å²)")
+elif release_stage is not None:
+    print(f"[{basename}]   Restrained {n_restrained} protein backbone atoms "
+          f"(k={args.restraint_k}); {n_dna_restrained} DNA backbone atoms held at "
+          f"k={args.restraint_k} then released to k_dna={dna_k} at ramp stage "
+          f"{release_stage}")
 elif dna_k > 0:
     print(f"[{basename}]   Restrained {n_restrained} protein backbone atoms "
           f"(k={args.restraint_k}); {n_dna_restrained} DNA backbone atoms on "
@@ -312,6 +348,15 @@ def set_sigma_scale(scale):
 
 for stage_i, scale in enumerate(ramp_stages, 1):
     set_sigma_scale(scale)
+    # Late DNA release: hold DNA at the protein k for stages 1..release_stage-1,
+    # then set k_dna to the target for stages release_stage..end. Applied to the
+    # live context each stage; the final minimization inherits the last value.
+    if dna_restraint is not None and release_stage is not None:
+        k_now = args.restraint_k if stage_i < release_stage else dna_k
+        sim.context.setParameter("k_dna", _k_md(k_now))
+        if stage_i == release_stage:
+            print(f"[{basename}]   >> DNA released at stage {stage_i}: "
+                  f"k_dna {args.restraint_k} -> {dna_k} kcal/mol/Å²")
     try:
         sim.minimizeEnergy(maxIterations=args.steps_per_stage)
         st = sim.context.getState(getPositions=True, getEnergy=True)
@@ -326,6 +371,11 @@ for stage_i, scale in enumerate(ramp_stages, 1):
 # PHASE 2: Final minimization at full vdW
 # ============================================================
 print(f"[{basename}] Phase 2: final minimization (max {args.final_iterations} iters)")
+# Guarantee the DNA is at its target k for the final minimization: if the
+# release stage was beyond the ramp (release intended for final min only), it
+# never fired inside the loop, so apply it here.
+if dna_restraint is not None and release_stage is not None:
+    sim.context.setParameter("k_dna", _k_md(dna_k))
 try:
     sim.minimizeEnergy(maxIterations=args.final_iterations)
     final_state = sim.context.getState(getPositions=True, getEnergy=True)
