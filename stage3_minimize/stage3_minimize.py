@@ -34,6 +34,11 @@ parser.add_argument("--output-pdb", required=True)
 parser.add_argument("--scratch-dir", default="/scratch1/shewchuk/deeppbs_min_tmp")
 parser.add_argument("--restraint-k", type=float, default=10.0,
                     help="Backbone restraint constant (kcal/mol/Å²)")
+parser.add_argument("--dna-restraint-k", type=float, default=None,
+                    help="Backbone restraint k for DNA (P, C1') atoms, "
+                         "kcal/mol/Å². Default None = use --restraint-k "
+                         "(identical to current behaviour). "
+                         "0 = DNA fully relaxed; small value = soft tether.")
 parser.add_argument("--metal-cage-k", type=float, default=20.0,
                     help="Sidechain-pair (coordination-cage) restraint k "
                          "(kcal/mol/Å²)")
@@ -218,12 +223,35 @@ system = forcefield.createSystem(
 )
 
 # --- Backbone restraints ---
+# By default (--dna-restraint-k omitted) protein AND DNA backbone atoms share
+# ONE CustomExternalForce at --restraint-k, reproducing the frozen-DNA behaviour
+# byte-for-byte. When --dna-restraint-k IS given, DNA backbone atoms are
+# split off:
+#   k_dna > 0  -> DNA on its own soft-tether force (distinct global param k_dna)
+#   k_dna == 0 -> DNA omitted from all backbone restraints (fully relaxed)
+# Protein backbone is always restrained at --restraint-k regardless.
+dna_k = args.dna_restraint_k
+split_dna = dna_k is not None
+
 backbone_restraint = openmm.CustomExternalForce("0.5 * k * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
 backbone_restraint.addGlobalParameter("k", args.restraint_k * unit.kilocalories_per_mole / unit.angstrom**2)
 backbone_restraint.addPerParticleParameter("x0")
 backbone_restraint.addPerParticleParameter("y0")
 backbone_restraint.addPerParticleParameter("z0")
-n_restrained = 0
+
+# Second force for DNA, built only when a positive DNA k is requested. Two forces
+# cannot share a global parameter name, so this one uses "k_dna".
+dna_restraint = None
+if split_dna and dna_k > 0:
+    dna_restraint = openmm.CustomExternalForce("0.5 * k_dna * ((x-x0)^2 + (y-y0)^2 + (z-z0)^2)")
+    dna_restraint.addGlobalParameter("k_dna", dna_k * unit.kilocalories_per_mole / unit.angstrom**2)
+    dna_restraint.addPerParticleParameter("x0")
+    dna_restraint.addPerParticleParameter("y0")
+    dna_restraint.addPerParticleParameter("z0")
+
+n_restrained = 0       # atoms on the protein/legacy force
+n_dna_restrained = 0   # DNA atoms on the soft-tether force
+n_dna_free = 0         # DNA atoms left unrestrained (k_dna == 0)
 for atom in modeller.topology.atoms():
     is_protein_bb = (atom.residue.name in ("ALA","ARG","ASN","ASP","CYS","GLN","GLU","GLY",
                                             "HIS","ILE","LEU","LYS","MET","PHE","PRO","SER",
@@ -232,12 +260,32 @@ for atom in modeller.topology.atoms():
     is_dna_bb = (atom.residue.name in ("DA","DG","DC","DT","DA5","DG5","DC5","DT5",
                                         "DA3","DG3","DC3","DT3")
                  and atom.name in ("P","C1'"))
-    if is_protein_bb or is_dna_bb:
-        p = relaxed_positions[atom.index].value_in_unit(unit.nanometer)
+    if not (is_protein_bb or is_dna_bb):
+        continue
+    p = relaxed_positions[atom.index].value_in_unit(unit.nanometer)
+    if is_protein_bb or not split_dna:
+        # Protein backbone always; DNA backbone too when not splitting (legacy).
         backbone_restraint.addParticle(atom.index, [p[0], p[1], p[2]])
         n_restrained += 1
+    elif dna_k > 0:
+        dna_restraint.addParticle(atom.index, [p[0], p[1], p[2]])
+        n_dna_restrained += 1
+    else:
+        n_dna_free += 1  # k_dna == 0: DNA fully relaxed, no restraint added
 system.addForce(backbone_restraint)
-print(f"[{basename}]   Restrained {n_restrained} backbone atoms")
+if dna_restraint is not None:
+    system.addForce(dna_restraint)
+if not split_dna:
+    print(f"[{basename}]   Restrained {n_restrained} backbone atoms "
+          f"(protein+DNA, k={args.restraint_k} kcal/mol/Å²)")
+elif dna_k > 0:
+    print(f"[{basename}]   Restrained {n_restrained} protein backbone atoms "
+          f"(k={args.restraint_k}); {n_dna_restrained} DNA backbone atoms on "
+          f"soft tether (k_dna={dna_k} kcal/mol/Å²)")
+else:
+    print(f"[{basename}]   Restrained {n_restrained} protein backbone atoms "
+          f"(k={args.restraint_k}); {n_dna_free} DNA backbone atoms FULLY "
+          f"RELAXED (k_dna=0)")
 
 # --- Coordination-cage pairwise distance restraints ---
 if cage_pairs:
