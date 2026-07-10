@@ -46,6 +46,8 @@ Files referenced (paths relative to repo root `TF-conformation/`):
    `--inspect-only`.
 5. **Monomer-only scope.** The project filters to functionally monomeric TFs. The pipeline
    must enforce this, not silently dock chain 0 of an assembly.
+   *Deprecated example:* `config/pilots/dux4.sh` (DUX4/5z6z) is a **dimer** and is
+   excluded for exactly this reason — see the banner in that file. Not in the benchmark.
 
 ---
 

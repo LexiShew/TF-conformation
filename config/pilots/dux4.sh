@@ -1,4 +1,16 @@
 #!/bin/bash
+# ============================================================================
+# DEPRECATED — DO NOT USE AS A PILOT.
+# DUX4 / 5z6z is a DIMER: two DUX4 homeodomains bind the site cooperatively.
+# This violates the monomer-only scope (docs/PIPELINE_FIXES.md invariant #5) —
+# the project is restricted to functionally monomeric TF-DNA complexes. Docking
+# a single-chain BioEmu ensemble against a dimeric binding site does not
+# represent the biological complex, and BioEmu samples the isolated monomer far
+# from its bound (partner-stabilized) state. Excluded from the current benchmark
+# (no output/stage7_eval/id_benchmark_dux4.json). Kept only for reference.
+# NOTE: unrelated to the Stage-3 "_legacy" A/B variant (metal-cage vs
+# --ignore-metals) in lib/common.sh; "legacy" there means something different.
+# ============================================================================
 # Pilot config: DUX4 / 5z6z
 
 export TF_NAME="dux4"
