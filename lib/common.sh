@@ -174,7 +174,7 @@ load_pilot_config() {
     mkdir -p "${STAGE2_DIR}" "${STAGE3_DIR}" "${STAGE4_DIR}/output" \
              "${COMBINED_ASSEMBLY_DIR%/*}"
 
-    echo "[common] Loaded pilot config: ${TF_NAME} (PDB ${PDB_ID}, PWM ${PWM_LABEL})${suffix:+ [LEGACY]}"
+    echo "[common] Loaded pilot config: ${TF_NAME} (PDB ${PDB_ID}, PWM ${PWM_LABEL})${suffix:+ [mode:${suffix#_}]}"
 }
 
 # Validate that a required variable is set; bail with a helpful message if not.
