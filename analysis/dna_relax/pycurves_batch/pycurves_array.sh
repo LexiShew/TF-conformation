@@ -24,14 +24,16 @@ sed -n "${start},${end}p" "${WL}" | while IFS=$'\t' read -r tf cond state inpdb 
     # Run BOTH axis conventions (flags identical across crystal/frozen/relaxed):
     #   legacy    -> global bend + curvature + minimization (headline induced-fit metric)
     #   curvesplus-> Curves+ local base-pair axis params (literature-comparable)
-    # Grooves come from either. --ends for fuller terminal-level coverage.
+    # Grooves come from either. NOTE: --ends is NOT used -- it requires equal-length
+    # strands and errors out on the many asymmetric/overhang duplexes here (dux4,
+    # egr1, ...). Groove coverage is fine without it.
     # No --visualization here (aggregation batch); viz is a separate representatives run.
     for conv in legacy curvesplus; do
         out="${outpref}_${conv}.json"
         if [ -f "$out" ]; then echo "SKIP ${tf}/${cond}_${state} ${conv} (done)"; continue; fi
         echo "RUN ${tf}/${cond}_${state} ${conv} <- ${inpdb}"
         pycurves "$inpdb" --format json --output-file "$out" \
-            --axis-convention "$conv" --ends \
+            --axis-convention "$conv" \
             && echo "  OK $out" || echo "  FAIL ${tf}/${cond}_${state} ${conv}"
     done
 done
