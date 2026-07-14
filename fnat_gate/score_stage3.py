@@ -65,9 +65,21 @@ def main():
     ap.add_argument("--iface-cutoff", type=float, default=5.0)
     ap.add_argument("--contact-cutoff", type=float, default=4.5)
     ap.add_argument("--gap", type=int, default=4)
+    ap.add_argument("--protein-chain", type=int, default=None,
+                    help="0-based positional chain index of the reference protein "
+                         "(matches Stage-2 PROTEIN_CHAIN). If set with --dna-chains, "
+                         "selects the reference by config instead of the contact-count "
+                         "auto-pick — required for multi-copy crystals.")
+    ap.add_argument("--dna-chains", default=None,
+                    help="comma-separated 0-based positional chain indices of the "
+                         "reference DNA duplex (matches Stage-2 DNA_CHAINS), e.g. '1,2'.")
     a = ap.parse_args()
 
-    R = ir.ref_side(ir.load_models(a.ref)[0], a.iface_cutoff, a.contact_cutoff, a.gap)
+    dna_chains = None
+    if a.dna_chains is not None:
+        dna_chains = [int(x) for x in a.dna_chains.split(",") if x.strip() != ""]
+    R = ir.ref_side(ir.load_models(a.ref)[0], a.iface_cutoff, a.contact_cutoff, a.gap,
+                    protein_chain=a.protein_chain, dna_chains=dna_chains)
 
     pdb, primary = score_dir(R, a.dir, a.contact_cutoff, a.pdb_id)
     if not primary:

@@ -104,9 +104,47 @@ def _select_bound_monomer(rp, rseq, rd, iface_cut, contact_cut):
     return rp2, seq2, rd2
 
 
-def ref_side(model, iface_cut, contact_cut, gap):
+def _chain_ids_by_index(model, indices):
+    """Map positional chain indices (0-based file order, identical to mdtraj
+    chainid and to Stage-2's PROTEIN_CHAIN/DNA_CHAINS) to Bio.PDB chain ids."""
+    chains = list(model.get_chains())
+    out = []
+    for i in indices:
+        if i < 0 or i >= len(chains):
+            raise ValueError(f"chain index {i} out of range (model has {len(chains)} chains)")
+        out.append(chains[i].id)
+    return out
+
+
+def _select_by_config(rp, rseq, rd, prot_id, dna_ids):
+    """Select the reference protein + DNA by EXPLICIT chain ids resolved from the
+    pilot config's PROTEIN_CHAIN / DNA_CHAINS. Use this instead of the
+    contact-count auto-pick so the gate scores the ensemble against the SAME
+    protein copy and duplex that Stage-2 docked onto. Essential for multi-copy
+    crystals (e.g. 1hjc: two Runt copies each on its own duplex) where the
+    auto-pick can choose the other copy and report a spurious fnat=0."""
+    rp2 = [r for r in rp if r.get_parent().id == prot_id]
+    rd2 = [r for r in rd if r.get_parent().id in dna_ids]
+    if not rp2:
+        raise ValueError(f"config protein chain id {prot_id!r} matched no reference residues")
+    if not rd2:
+        raise ValueError(f"config DNA chain ids {sorted(dna_ids)} matched no reference residues")
+    seq2 = "".join(AA3TO1[r.get_resname().strip()] for r in rp2)
+    sys.stderr.write(f"[fnat] config-selected reference: protein chain {prot_id} "
+                     f"+ DNA {sorted(dna_ids)} ({len(rp2)} prot res, {len(rd2)} DNA res)\n")
+    return rp2, seq2, rd2
+
+
+def ref_side(model, iface_cut, contact_cut, gap, protein_chain=None, dna_chains=None):
     rp, rseq, rd = ordered(model)
-    rp, rseq, rd = _select_bound_monomer(rp, rseq, rd, iface_cut, contact_cut)
+    if protein_chain is not None and dna_chains is not None:
+        # Config-driven: honor the redock's chain selection (positional indices).
+        prot_id = _chain_ids_by_index(model, [protein_chain])[0]
+        dna_ids = set(_chain_ids_by_index(model, dna_chains))
+        rp, rseq, rd = _select_by_config(rp, rseq, rd, prot_id, dna_ids)
+    else:
+        # Legacy auto-pick: best-bound monomer by DNA-contact count.
+        rp, rseq, rd = _select_bound_monomer(rp, rseq, rd, iface_cut, contact_cut)
     iface = [i for i,pr in enumerate(rp) if any(min_dist(pr,nr)<=iface_cut for nr in rd)]
     segs, cur = [], []
     for i in iface:

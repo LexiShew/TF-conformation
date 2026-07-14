@@ -48,13 +48,27 @@ echo "[fnat_gate/${TF_NAME}] scoring ${n_in} post-min states in ${STAGE3_DIR} (f
 # score_stage3.py measures fnat vs each model's OWN DNA (use_model_dna=True,
 # hard-wired there), writes <pdb>_fnat.csv, and with --floor writes the pass-list
 # (one "<pdb>_state_NNN" per surviving state, no .pdb suffix).
+#
+# Reference chain selection: when the pilot config declares PROTEIN_CHAIN and
+# DNA_CHAINS (positional indices, identical to Stage-2's redock selection), pass
+# them through so the gate scores against the SAME protein copy + duplex that was
+# docked. Without this, score_stage3.py falls back to its contact-count auto-pick,
+# which on a multi-copy crystal (e.g. 1hjc: two Runt copies, each on its own
+# duplex) can choose the OTHER copy and report a spurious fnat=0 for every state.
+# Single-copy pilots leave these unset and keep the (byte-identical) auto-pick.
+chain_args=()
+if [ -n "${PROTEIN_CHAIN:-}" ] && [ -n "${DNA_CHAINS:-}" ]; then
+    chain_args=( --protein-chain "${PROTEIN_CHAIN}" --dna-chains "${DNA_CHAINS}" )
+    echo "[fnat_gate/${TF_NAME}] using config reference chains: protein=${PROTEIN_CHAIN} dna=${DNA_CHAINS}"
+fi
 python "${STAGE_DIR}/score_stage3.py" \
     --ref "${REF_CIF}" \
     --dir "${STAGE3_DIR}" \
     --pdb-id "${PDB_ID}" \
     --floor "${FNAT_FLOOR}" \
     --out "${CSV}" \
-    --pass-out "${PASS_LIST}"
+    --pass-out "${PASS_LIST}" \
+    "${chain_args[@]}"
 
 # Rebuild the pass-only mirror dir from scratch each run (idempotent). Guard the
 # rm so it can only ever fire on a path ending in _pass — never on STAGE3_DIR.
