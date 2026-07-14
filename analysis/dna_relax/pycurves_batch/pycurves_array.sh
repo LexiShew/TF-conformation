@@ -21,9 +21,18 @@ start=$(( TASK * CHUNK + 1 )); end=$(( start + CHUNK - 1 ))
 sed -n "${start},${end}p" "${WL}" | while IFS=$'\t' read -r tf cond state inpdb outpref; do
     [ -z "$inpdb" ] && continue
     mkdir -p "$(dirname "$outpref")"
-    if [ -f "${outpref}.txt" ]; then echo "SKIP ${tf}/${cond}_${state} (done)"; continue; fi
-    echo "RUN ${tf}/${cond}_${state} <- ${inpdb}"
-    pycurves "$inpdb" --format curves --output-file "${outpref}.txt" \
-        && echo "  OK ${outpref}.txt" || echo "  FAIL ${tf}/${cond}_${state}"
+    # Run BOTH axis conventions (flags identical across crystal/frozen/relaxed):
+    #   legacy    -> global bend + curvature + minimization (headline induced-fit metric)
+    #   curvesplus-> Curves+ local base-pair axis params (literature-comparable)
+    # Grooves come from either. --ends for fuller terminal-level coverage.
+    # No --visualization here (aggregation batch); viz is a separate representatives run.
+    for conv in legacy curvesplus; do
+        out="${outpref}_${conv}.json"
+        if [ -f "$out" ]; then echo "SKIP ${tf}/${cond}_${state} ${conv} (done)"; continue; fi
+        echo "RUN ${tf}/${cond}_${state} ${conv} <- ${inpdb}"
+        pycurves "$inpdb" --format json --output-file "$out" \
+            --axis-convention "$conv" --ends \
+            && echo "  OK $out" || echo "  FAIL ${tf}/${cond}_${state} ${conv}"
+    done
 done
 echo "task ${TASK} done (rows ${start}-${end})"
