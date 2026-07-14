@@ -38,7 +38,11 @@ if [ ! -d "${COMBINED_ASSEMBLY_DIR}" ]; then
     echo "Run stages 1-5 first via ./scripts/pipeline/run_pilot.sh ${TF_NAME} 1 5" >&2
     exit 1
 fi
-AUG_TRAIN="${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt"
+# Condition suffix (e.g. "_dnarelax") set by common.sh; empty for frozen runs.
+# Use the suffix-aware augmented train file so the DNA-relaxed pipeline validates
+# against ITS data (train${FOLD}_aug_dnarelax_${TF_NAME}.txt), not the frozen one.
+COND="${CONDITION_NAME_SUFFIX:-}"
+AUG_TRAIN="${AUG_TRAIN_FOLD:-${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt}"
 if [ ! -f "${AUG_TRAIN}" ]; then
     echo "ERROR: augmented train file not found: ${AUG_TRAIN}" >&2
     exit 1
@@ -58,7 +62,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
         --fold "${FOLD}" \
         --seed "${s}" \
-        --seed-suffix "_s${s}" \
+        --seed-suffix "${COND}_s${s}" \
         --output-dir "${OUTPUTS_DIR}"
 done
 

@@ -27,16 +27,28 @@ if [ -n "${SEED:-}" ]; then
     SEED_SUFFIX="_s${SEED}"
 fi
 
+# Condition suffix (e.g. "_dnarelax") distinguishes the DNA-relaxed pipeline's
+# runs/configs from the frozen-DNA baseline that shares the same TF_NAME (tbp).
+# Empty for frozen runs -> names are byte-identical to before. Set by common.sh
+# (keyed on STAGE3_DNA_RESTRAINT_K, propagated here via sbatch --export=ALL).
+# Placed BEFORE the seed suffix: augmented_tbp_fold0_dnarelax_s1. The eval glob
+# ..._fold${FOLD}_s* cannot match ..._fold${FOLD}_dnarelax_s*, so frozen and
+# dnarelax benchmarks stay disjoint in both directions.
+COND="${CONDITION_NAME_SUFFIX:-}"
+
 if [ "${TASK_ID}" -eq 0 ]; then
-    RUN_NAME="baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
-    CONFIG="${OUTPUTS_DIR}/config_baseline_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
+    RUN_NAME="baseline_${TF_NAME}_fold${FOLD}${COND}${SEED_SUFFIX}"
+    CONFIG="${OUTPUTS_DIR}/config_baseline_${TF_NAME}_fold${FOLD}${COND}${SEED_SUFFIX}.json"
     # Baseline train/valid are read-only INPUTS (cwd is RUN_DIR -> DeepPBS/run/folds).
     TRAIN_FILE="${ORIG_FOLDS_DIR}/train${FOLD}.txt"
     VALID_FILE="${ORIG_FOLDS_DIR}/valid${FOLD}.txt"
 elif [ "${TASK_ID}" -eq 1 ]; then
-    RUN_NAME="augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}"
-    CONFIG="${OUTPUTS_DIR}/config_augmented_${TF_NAME}_fold${FOLD}${SEED_SUFFIX}.json"
-    TRAIN_FILE="${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt"
+    RUN_NAME="augmented_${TF_NAME}_fold${FOLD}${COND}${SEED_SUFFIX}"
+    CONFIG="${OUTPUTS_DIR}/config_augmented_${TF_NAME}_fold${FOLD}${COND}${SEED_SUFFIX}.json"
+    # Use the suffix-aware augmented train file from common.sh (AUG_TRAIN_FOLD =
+    # train${FOLD}_aug${suffix}_${TF_NAME}.txt). Fall back to the frozen name if
+    # unset, preserving legacy behaviour.
+    TRAIN_FILE="${AUG_TRAIN_FOLD:-${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt}"
     VALID_FILE="${FOLDS_AUG_DIR}/valid${FOLD}_${TF_NAME}.txt"
     # Augmented runs use the same valid set as baseline (no augmentation in valid)
     if [ ! -f "${VALID_FILE}" ]; then

@@ -37,24 +37,31 @@ scan_run_subdirs() {
     done
 }
 
+# Condition suffix (e.g. "_dnarelax") scopes discovery to THIS pipeline's runs,
+# keeping the DNA-relaxed benchmark disjoint from the frozen baseline that shares
+# TF_NAME. Empty for frozen -> discovery is byte-identical to before. Note the
+# frozen glob ..._fold${FOLD}_s* cannot match ..._fold${FOLD}_dnarelax_s*, so a
+# frozen eval never picks up dnarelax checkpoints and vice-versa.
+COND="${CONDITION_NAME_SUFFIX:-}"
+
 for kind in baseline augmented; do
     # Default-seed outer dir (legacy/default)
-    scan_run_subdirs "${kind}" "${OUTPUTS_DIR}/${kind}_${TF_NAME}_fold${FOLD}"
+    scan_run_subdirs "${kind}" "${OUTPUTS_DIR}/${kind}_${TF_NAME}_fold${FOLD}${COND}"
     # Multi-seed outer dirs (_s1, _s2, ...)
-    for outer in "${OUTPUTS_DIR}/${kind}_${TF_NAME}_fold${FOLD}"_s*/; do
+    for outer in "${OUTPUTS_DIR}/${kind}_${TF_NAME}_fold${FOLD}${COND}"_s*/; do
         [ -d "${outer}" ] || continue
         scan_run_subdirs "${kind}" "${outer%/}"
     done
 done
 
 if [ "${#COND_ARGS[@]}" -eq 0 ]; then
-    echo "ERROR: No checkpoints found in ${OUTPUTS_DIR}/{baseline,augmented}_${TF_NAME}_fold${FOLD}/ or _s*/" >&2
+    echo "ERROR: No checkpoints found in ${OUTPUTS_DIR}/{baseline,augmented}_${TF_NAME}_fold${FOLD}${COND}/ or ${COND}_s*/" >&2
     exit 1
 fi
 
 echo "[eval/${TF_NAME}] Total conditions found: $(( ${#COND_ARGS[@]} / 2 ))"
 
-OUTPUT_JSON="${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}.json"
+OUTPUT_JSON="${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}${COND}.json"
 
 echo "[eval/${TF_NAME}] Running evaluator"
 python "${STAGE_DIR}/evaluate_id_benchmark.py" \
