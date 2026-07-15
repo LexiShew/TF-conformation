@@ -2,9 +2,10 @@
 """Build a base-pair-step -> stiffness lookup table from the hexABC ensemble.
 
 Reads sum_stiffness.json (summed diagonal elastic constant per dinucleotide step)
-across ALL hexABC sequences, groups by canonical step label (AA/TT, AC/GT, ...),
-and reports mean/std/n per step. This canonical 10-step (Watson-Crick-collapsed)
-table is the sequence-dependent stiffness prior for mapping onto per-position k_dna.
+across ALL hexABC sequences, groups by step label (AA/TT, AC/GT, TA/TA, ...) and reports mean/std/n per step.
+hexABC keeps both reading directions, so this yields 16 distinct dinucleotide-step
+labels (NOT collapsed to the 10 unique WC pairs). This step-stiffness table is the
+sequence-dependent prior for mapping onto per-position k_dna.
 
 Also emits the per-step breakdown for the 6 helical DOF (twist/roll/tilt/shift/
 slide/rise) so a richer per-DOF restraint is possible later.
@@ -19,7 +20,8 @@ HEXABC="/project2/rohs_102/share/HexABC_data"
 DOF=["sum","twist","roll","tilt","shift","slide","rise"]
 
 def norm_step(label):
-    # labels already canonical "XY/WZ"; use as-is (hexABC collapses WC complement)
+    # labels are "XY/WZ" (step on strand1 / its WC complement); use as-is.
+    # hexABC keeps both reading directions -> 16 distinct step labels, not 10.
     return label.strip()
 
 acc={dof:defaultdict(list) for dof in DOF}
