@@ -1,0 +1,2942 @@
+{
+  "program": "pyCurves",
+  "format": "pycurves-slim-v1",
+  "frame_convention": {
+    "name": "standard",
+    "compatible_with": [
+      "Curves+",
+      "3DNA",
+      "x3dna"
+    ],
+    "reference_source": "/project2/rohs_102/shewchuk/conda/envs/pycurves/lib/python3.12/site-packages/pycurves_lib/data/reference/standard_b.lib",
+    "axis_convention": "legacy"
+  },
+  "analysis_options": {
+    "comb": true,
+    "groove": true,
+    "ends": false,
+    "mini": true,
+    "axis_convention": "legacy"
+  },
+  "inputs": {
+    "inpfile": "1lo1_state_011_auto.inp",
+    "pdbfile": "/project2/rohs_102/shewchuk/TF-conformation/output/stage3_min_dnarelax/err/1lo1_state_011.pdb",
+    "generated_inpfiles": [
+      "1lo1_state_011_auto.inp"
+    ]
+  },
+  "sequence": {
+    "n_strands": 2,
+    "n_levels": 13,
+    "strands": [
+      {
+        "strand": 1,
+        "sequence": "GCTCAAGGTCA",
+        "residues": [
+          {
+            "level": 1,
+            "chain_id": "B",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 1
+          },
+          {
+            "level": 2,
+            "chain_id": "B",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 2
+          },
+          {
+            "level": 3,
+            "chain_id": "B",
+            "residue_name": "DT",
+            "parent_base": "T",
+            "residue_id": 3
+          },
+          {
+            "level": 4,
+            "chain_id": "B",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 4
+          },
+          {
+            "level": 5,
+            "chain_id": "B",
+            "residue_name": "DA",
+            "parent_base": "A",
+            "residue_id": 5
+          },
+          {
+            "level": 8,
+            "chain_id": "B",
+            "residue_name": "DA",
+            "parent_base": "A",
+            "residue_id": 6
+          },
+          {
+            "level": 9,
+            "chain_id": "B",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 7
+          },
+          {
+            "level": 10,
+            "chain_id": "B",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 8
+          },
+          {
+            "level": 11,
+            "chain_id": "B",
+            "residue_name": "DT",
+            "parent_base": "T",
+            "residue_id": 9
+          },
+          {
+            "level": 12,
+            "chain_id": "B",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 10
+          },
+          {
+            "level": 13,
+            "chain_id": "B",
+            "residue_name": "DA",
+            "parent_base": "A",
+            "residue_id": 11
+          }
+        ]
+      },
+      {
+        "strand": 2,
+        "sequence": "CGAGTTCCAGT",
+        "residues": [
+          {
+            "level": 1,
+            "chain_id": "C",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 26
+          },
+          {
+            "level": 2,
+            "chain_id": "C",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 25
+          },
+          {
+            "level": 3,
+            "chain_id": "C",
+            "residue_name": "DA",
+            "parent_base": "A",
+            "residue_id": 24
+          },
+          {
+            "level": 6,
+            "chain_id": "C",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 23
+          },
+          {
+            "level": 7,
+            "chain_id": "C",
+            "residue_name": "DT",
+            "parent_base": "T",
+            "residue_id": 22
+          },
+          {
+            "level": 8,
+            "chain_id": "C",
+            "residue_name": "DT",
+            "parent_base": "T",
+            "residue_id": 21
+          },
+          {
+            "level": 9,
+            "chain_id": "C",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 20
+          },
+          {
+            "level": 10,
+            "chain_id": "C",
+            "residue_name": "DC",
+            "parent_base": "C",
+            "residue_id": 19
+          },
+          {
+            "level": 11,
+            "chain_id": "C",
+            "residue_name": "DA",
+            "parent_base": "A",
+            "residue_id": 18
+          },
+          {
+            "level": 12,
+            "chain_id": "C",
+            "residue_name": "DG",
+            "parent_base": "G",
+            "residue_id": 17
+          },
+          {
+            "level": 13,
+            "chain_id": "C",
+            "residue_name": "DT",
+            "parent_base": "T",
+            "residue_id": 16
+          }
+        ]
+      }
+    ]
+  },
+  "dataframes": {
+    "global_base_axis": [
+      {
+        "strand": 1,
+        "level": 1,
+        "residue_name": "DGB",
+        "residue_id": 1,
+        "xdisp": 1.6853706021585986,
+        "ydisp": 0.3501216424864573,
+        "inclin": -12.367638213438704,
+        "tip": -0.8774882144231059
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "residue_name": "DCB",
+        "residue_id": 2,
+        "xdisp": 1.3828699830977746,
+        "ydisp": 0.48294918332362285,
+        "inclin": -15.168072239376707,
+        "tip": -11.07113106139824
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "residue_name": "DTB",
+        "residue_id": 3,
+        "xdisp": 1.140879845273442,
+        "ydisp": 0.2057461933688856,
+        "inclin": -10.654893566354602,
+        "tip": -1.3063331285933524
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "residue_name": "DCB",
+        "residue_id": 4,
+        "xdisp": 2.006166416387772,
+        "ydisp": -0.052101730241078614,
+        "inclin": -0.30228082247139515,
+        "tip": -8.06247918688974
+      },
+      {
+        "strand": 1,
+        "level": 5,
+        "residue_name": "DAB",
+        "residue_id": 5,
+        "xdisp": 2.589631976068873,
+        "ydisp": 0.018041061170957717,
+        "inclin": 6.185005724759655,
+        "tip": -8.844243444448136
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "residue_name": "DAB",
+        "residue_id": 6,
+        "xdisp": -3.197904294232249,
+        "ydisp": 3.243876959141385,
+        "inclin": -29.27266044149108,
+        "tip": 112.01753865738971
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "residue_name": "DGB",
+        "residue_id": 7,
+        "xdisp": -2.0451274489740014,
+        "ydisp": 2.574476091434352,
+        "inclin": 19.2100219630174,
+        "tip": 81.57728155635792
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "residue_name": "DGB",
+        "residue_id": 8,
+        "xdisp": 0.9526929896287905,
+        "ydisp": 1.212135456347316,
+        "inclin": 30.246806370513184,
+        "tip": 33.06151931795515
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "residue_name": "DTB",
+        "residue_id": 9,
+        "xdisp": 0.985086511366966,
+        "ydisp": -0.21806694120095274,
+        "inclin": 16.701091072886967,
+        "tip": 4.5415132790772805
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "residue_name": "DCB",
+        "residue_id": 10,
+        "xdisp": 1.4226732392755062,
+        "ydisp": -0.9115402318584643,
+        "inclin": 15.8917130702369,
+        "tip": 0.6296626999107195
+      },
+      {
+        "strand": 1,
+        "level": 13,
+        "residue_name": "DAB",
+        "residue_id": 11,
+        "xdisp": 1.248240608028373,
+        "ydisp": -1.0178871833077376,
+        "inclin": 9.830311981875733,
+        "tip": -2.6113510682398755
+      },
+      {
+        "strand": 2,
+        "level": 1,
+        "residue_name": "DCC",
+        "residue_id": 26,
+        "xdisp": 1.81607904486756,
+        "ydisp": -0.3455596341193399,
+        "inclin": -18.767301086390706,
+        "tip": -1.718980278712923
+      },
+      {
+        "strand": 2,
+        "level": 2,
+        "residue_name": "DGC",
+        "residue_id": 25,
+        "xdisp": 1.6207587013239582,
+        "ydisp": -0.2152432500238987,
+        "inclin": -21.195466875986302,
+        "tip": -11.994202242944
+      },
+      {
+        "strand": 2,
+        "level": 3,
+        "residue_name": "DAC",
+        "residue_id": 24,
+        "xdisp": 1.157192369347222,
+        "ydisp": 0.05778820273536945,
+        "inclin": -24.354756066591026,
+        "tip": 16.64024860501387
+      },
+      {
+        "strand": 2,
+        "level": 6,
+        "residue_name": "DGC",
+        "residue_id": 23,
+        "xdisp": -3.1797420601507533,
+        "ydisp": -4.179554649350803,
+        "inclin": -12.228114990709285,
+        "tip": 175.65260063784262
+      },
+      {
+        "strand": 2,
+        "level": 7,
+        "residue_name": "DTC",
+        "residue_id": 22,
+        "xdisp": -3.0812632197973167,
+        "ydisp": -4.154309572664502,
+        "inclin": -4.389238778708848,
+        "tip": -158.59299404057285
+      },
+      {
+        "strand": 2,
+        "level": 8,
+        "residue_name": "DTC",
+        "residue_id": 21,
+        "xdisp": -2.346420604675278,
+        "ydisp": -2.9833762167153544,
+        "inclin": 13.20528529626564,
+        "tip": -122.16147203532317
+      },
+      {
+        "strand": 2,
+        "level": 9,
+        "residue_name": "DCC",
+        "residue_id": 20,
+        "xdisp": 0.06810360962984757,
+        "ydisp": -0.9466023119229874,
+        "inclin": 2.685141780087344,
+        "tip": -109.12598902605609
+      },
+      {
+        "strand": 2,
+        "level": 10,
+        "residue_name": "DCC",
+        "residue_id": 19,
+        "xdisp": 0.5665526207274156,
+        "ydisp": -1.272789027396502,
+        "inclin": 32.7977411552796,
+        "tip": -57.9074915892667
+      },
+      {
+        "strand": 2,
+        "level": 11,
+        "residue_name": "DAC",
+        "residue_id": 18,
+        "xdisp": 1.352263643348795,
+        "ydisp": 0.019918857129854015,
+        "inclin": 33.276626784227666,
+        "tip": -29.063839208418347
+      },
+      {
+        "strand": 2,
+        "level": 12,
+        "residue_name": "DGC",
+        "residue_id": 17,
+        "xdisp": 1.698605958737898,
+        "ydisp": 0.7189350837577586,
+        "inclin": 23.34377065919891,
+        "tip": -25.832141404057797
+      },
+      {
+        "strand": 2,
+        "level": 13,
+        "residue_name": "DTC",
+        "residue_id": 16,
+        "xdisp": 1.1108358985426858,
+        "ydisp": 1.072320360077466,
+        "inclin": 27.945121599524725,
+        "tip": -16.497832671651295
+      }
+    ],
+    "global_base_pair_axis": [
+      {
+        "partner_strand": 2,
+        "sequence_index": 1,
+        "level": 1,
+        "duplex": "G  1-C 26",
+        "xdisp": 1.7507248235130795,
+        "ydisp": 0.3478406383028986,
+        "inclin": -15.567469649914706,
+        "tip": 0.4207460321449085
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 2,
+        "level": 2,
+        "duplex": "C  2-G 25",
+        "xdisp": 1.5018143422108663,
+        "ydisp": 0.3490962166737608,
+        "inclin": -18.181769557681505,
+        "tip": 0.46153559077288
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 3,
+        "level": 3,
+        "duplex": "T  3-A 24",
+        "xdisp": 1.149036107310332,
+        "ydisp": 0.07397899531675808,
+        "inclin": -17.504824816472812,
+        "tip": -8.97329086680361
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 4,
+        "level": 4,
+        "duplex": "",
+        "xdisp": null,
+        "ydisp": null,
+        "inclin": null,
+        "tip": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 5,
+        "level": 5,
+        "duplex": "",
+        "xdisp": null,
+        "ydisp": null,
+        "inclin": null,
+        "tip": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 6,
+        "level": 8,
+        "duplex": "A  6-T 21",
+        "xdisp": -2.7721624494537638,
+        "ydisp": 3.11362658792837,
+        "inclin": -8.03368757261272,
+        "tip": 117.08950534635645
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 7,
+        "level": 9,
+        "duplex": "G  7-C 20",
+        "xdisp": -0.988511919672077,
+        "ydisp": 1.7605392016786696,
+        "inclin": 10.947581871552373,
+        "tip": 95.351635291207
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 8,
+        "level": 10,
+        "duplex": "G  8-C 19",
+        "xdisp": 0.7596228051781031,
+        "ydisp": 1.242462241871909,
+        "inclin": 31.522273762896393,
+        "tip": 45.48450545361092
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 9,
+        "level": 11,
+        "duplex": "T  9-A 18",
+        "xdisp": 1.1686750773578805,
+        "ydisp": -0.11899289916540337,
+        "inclin": 24.988858928557317,
+        "tip": 16.802676243747815
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 10,
+        "level": 12,
+        "duplex": "C 10-G 17",
+        "xdisp": 1.5606395990067021,
+        "ydisp": -0.8152376578081115,
+        "inclin": 19.617741864717907,
+        "tip": 13.230902051984259
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 11,
+        "level": 13,
+        "duplex": "A 11-T 16",
+        "xdisp": 1.1795382532855294,
+        "ydisp": -1.045103771692602,
+        "inclin": 18.887716790700228,
+        "tip": 6.94324080170571
+      }
+    ],
+    "global_base_base": [
+      {
+        "partner_strand": 2,
+        "sequence_index": 1,
+        "level": 1,
+        "duplex": "G  1-C 26",
+        "shear": -0.13070844270896154,
+        "stretch": 0.004562008367117398,
+        "stagger": 0.10511037342056383,
+        "buckle": 6.3996628729520015,
+        "propel": -2.5964684931360287,
+        "opening": 1.0293657836573948
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 2,
+        "level": 2,
+        "duplex": "C  2-G 25",
+        "shear": -0.23788871822618352,
+        "stretch": 0.26770593329972414,
+        "stagger": 0.45717866006536756,
+        "buckle": 6.0273946366095945,
+        "propel": -23.06533330434224,
+        "opening": -4.189613033987513
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 3,
+        "level": 3,
+        "duplex": "T  3-A 24",
+        "shear": -0.01631252407377981,
+        "stretch": 0.26353439610425505,
+        "stagger": -1.5506268283862514,
+        "buckle": 13.699862500236424,
+        "propel": 15.333915476420518,
+        "opening": -24.907822122799075
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 4,
+        "level": 4,
+        "duplex": "",
+        "shear": null,
+        "stretch": null,
+        "stagger": null,
+        "buckle": null,
+        "propel": null,
+        "opening": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 5,
+        "level": 5,
+        "duplex": "",
+        "shear": null,
+        "stretch": null,
+        "stagger": null,
+        "buckle": null,
+        "propel": null,
+        "opening": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 6,
+        "level": 8,
+        "duplex": "A  6-T 21",
+        "shear": -0.8514836895569711,
+        "stretch": 0.26050074242603083,
+        "stagger": 11.822966957068441,
+        "buckle": -42.47794573775672,
+        "propel": -10.143933377933465,
+        "opening": 108.01694993259093
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 7,
+        "level": 9,
+        "duplex": "G  7-C 20",
+        "shear": -2.113231058603849,
+        "stretch": 1.6278737795113645,
+        "stagger": -0.12499081854954586,
+        "buckle": 16.524880182930055,
+        "propel": -27.548707469698172,
+        "opening": 37.64798786243787
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 8,
+        "level": 10,
+        "duplex": "G  8-C 19",
+        "shear": 0.3861403689013748,
+        "stretch": -0.060653571049186006,
+        "stagger": 1.7681591785065254,
+        "buckle": -2.5509347847664188,
+        "propel": -24.845972271311545,
+        "opening": -10.785405590827622
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 9,
+        "level": 11,
+        "duplex": "T  9-A 18",
+        "shear": -0.3671771319818289,
+        "stretch": -0.19814808407109874,
+        "stagger": 0.44730524810153094,
+        "buckle": -16.5755357113407,
+        "propel": -24.522325929341065,
+        "opening": -6.9063386386944785
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 10,
+        "level": 12,
+        "duplex": "C 10-G 17",
+        "shear": -0.27593271946239195,
+        "stretch": -0.19260514810070573,
+        "stagger": -0.24169770283157854,
+        "buckle": -7.45205758896201,
+        "propel": -25.202478704147076,
+        "opening": 4.283500677120884
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 11,
+        "level": 13,
+        "duplex": "A 11-T 16",
+        "shear": 0.13740470948568717,
+        "stretch": 0.054433176769728364,
+        "stagger": -0.5463588726948911,
+        "buckle": -18.114809617648994,
+        "propel": -19.109183739891172,
+        "opening": -3.5655797708729438
+      }
+    ],
+    "local_base_base": [
+      {
+        "partner_strand": 2,
+        "sequence_index": 1,
+        "level": 1,
+        "duplex": "G  1-C 26",
+        "shear": -0.13779336242746595,
+        "stretch": 0.006418048396731723,
+        "stagger": 0.10987711768256465,
+        "buckle": 6.392695657089653,
+        "propel": -2.870101055686225,
+        "opening": 1.0391938822787836
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 2,
+        "level": 2,
+        "duplex": "C  2-G 25",
+        "shear": -0.22289250538990749,
+        "stretch": -0.002673364526492248,
+        "stagger": 0.5902426793447507,
+        "buckle": 6.087347451904617,
+        "propel": -22.052102937152362,
+        "opening": -2.9735161371048657
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 3,
+        "level": 3,
+        "duplex": "T  3-A 24",
+        "shear": -0.15576215761246268,
+        "stretch": -0.006707743304068113,
+        "stagger": -1.0217022739934039,
+        "buckle": 9.131890013786604,
+        "propel": 23.44187112052264,
+        "opening": -28.775813676766376
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 4,
+        "level": 4,
+        "duplex": "",
+        "shear": null,
+        "stretch": null,
+        "stagger": null,
+        "buckle": null,
+        "propel": null,
+        "opening": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 5,
+        "level": 5,
+        "duplex": "",
+        "shear": null,
+        "stretch": null,
+        "stagger": null,
+        "buckle": null,
+        "propel": null,
+        "opening": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 6,
+        "level": 8,
+        "duplex": "A  6-T 21",
+        "shear": 1.0919325020893678,
+        "stretch": 1.3957619723540864,
+        "stagger": 0.8657729779728764,
+        "buckle": 36.533396500871376,
+        "propel": -6.832617941107698,
+        "opening": -28.5929460050006
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 7,
+        "level": 9,
+        "duplex": "G  7-C 20",
+        "shear": 2.1897398411494406,
+        "stretch": 0.857677767629023,
+        "stagger": -2.451315462126578,
+        "buckle": -19.719829539086234,
+        "propel": -23.620535708525484,
+        "opening": 14.723251468692768
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 8,
+        "level": 10,
+        "duplex": "G  8-C 19",
+        "shear": 0.12243761453721543,
+        "stretch": 0.07506216848453816,
+        "stagger": 0.18873876210480103,
+        "buckle": -6.451754687810085,
+        "propel": -20.831233753473743,
+        "opening": 2.7523272654494066
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 9,
+        "level": 11,
+        "duplex": "T  9-A 18",
+        "shear": -0.5091492246597115,
+        "stretch": 0.06171445621258242,
+        "stagger": 0.42505275961495415,
+        "buckle": -16.174559204604112,
+        "propel": -24.04755391059291,
+        "opening": -4.2017741527861725
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 10,
+        "level": 12,
+        "duplex": "C 10-G 17",
+        "shear": -0.26403110734380897,
+        "stretch": 0.045086820565995625,
+        "stagger": 0.23217187758478836,
+        "buckle": -8.385962521446064,
+        "propel": -23.473817333468187,
+        "opening": 2.9004040749487694
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 11,
+        "level": 13,
+        "duplex": "A 11-T 16",
+        "shear": 0.1952638046034137,
+        "stretch": -0.00807306473821407,
+        "stagger": -0.2538666930274226,
+        "buckle": -18.225044201357733,
+        "propel": -18.48317646012884,
+        "opening": -0.8438845449136785
+      }
+    ],
+    "global_inter_base": [
+      {
+        "strand": 1,
+        "level": 1,
+        "step": "G  1/C  2",
+        "shift": -0.505305858487842,
+        "slide": 0.2243377912154132,
+        "rise": 3.447280844264581,
+        "tilt": -4.564973326275437,
+        "roll": -7.252848047475163,
+        "twist": 36.330021776178825
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "step": "C  2/T  3",
+        "shift": -0.564520981438372,
+        "slide": -0.4220515101147093,
+        "rise": 3.049189576712699,
+        "tilt": 4.302694274693851,
+        "roll": 7.4326376962256795,
+        "twist": 35.8424792131396
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "step": "T  3/C  4",
+        "shift": 1.4979181714380478,
+        "slide": -0.10399115828412797,
+        "rise": 3.3404343989348266,
+        "tilt": 8.685580662549897,
+        "roll": 6.750208922524707,
+        "twist": 39.829963095019025
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "step": "C  4/A  5",
+        "shift": 1.1105058583904839,
+        "slide": 0.33190554425245283,
+        "rise": 3.4463048342897435,
+        "tilt": 10.4811998946478,
+        "roll": 5.279812256982297,
+        "twist": 38.81783624002014
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "step": "A  6/G  7",
+        "shift": 3.1958721250468223,
+        "slide": -0.6629081323593455,
+        "rise": -7.600548689039306,
+        "tilt": 52.65600840926108,
+        "roll": 18.40161028030994,
+        "twist": -12.568892604164006
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "step": "G  7/G  8",
+        "shift": 4.963252505970458,
+        "slide": -0.4134037825888073,
+        "rise": 4.7104158759790025,
+        "tilt": 32.90271153628905,
+        "roll": -8.777231694619672,
+        "twist": 44.612784725678125
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "step": "G  8/T  9",
+        "shift": 1.0853121350312858,
+        "slide": -2.1385135393449053,
+        "rise": 3.0411953342701854,
+        "tilt": 7.511892808182182,
+        "roll": -24.02295589402275,
+        "twist": 33.86480795547061
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "step": "T  9/C 10",
+        "shift": 1.2901580502591266,
+        "slide": -1.3819497269018766,
+        "rise": 2.6489886391849446,
+        "tilt": 13.763191817903024,
+        "roll": -1.0409422085349975,
+        "twist": 30.390018177674477
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "step": "C 10/A 11",
+        "shift": -0.4123789842891301,
+        "slide": -0.41349167815529697,
+        "rise": 3.6485954357443147,
+        "tilt": -1.3817155377986712,
+        "roll": -13.519174076942226,
+        "twist": 49.46911243508441
+      },
+      {
+        "strand": 2,
+        "level": 1,
+        "step": "C 26/G 25",
+        "shift": -0.39812558297062006,
+        "slide": 0.03880613371719349,
+        "rise": 2.9901021841992135,
+        "tilt": -4.192705089933032,
+        "roll": -13.21601676373105,
+        "twist": 40.51963481016634
+      },
+      {
+        "strand": 2,
+        "level": 2,
+        "step": "G 25/A 24",
+        "shift": -0.7860971755907757,
+        "slide": 0.41787997291924023,
+        "rise": 4.5998164050989505,
+        "tilt": -3.369773588932979,
+        "roll": 30.966611084537078,
+        "twist": 60.75030133593867
+      },
+      {
+        "strand": 2,
+        "level": 6,
+        "step": "G 23/T 22",
+        "shift": 0.527021849936721,
+        "slide": -0.38059203198209257,
+        "rise": -8.093525882931345,
+        "tilt": 4.6930109645221645,
+        "roll": -306.3817915146318,
+        "twist": -46.134550666779035
+      },
+      {
+        "strand": 2,
+        "level": 7,
+        "step": "T 22/T 21",
+        "shift": 2.106810168887245,
+        "slide": 0.825678683767324,
+        "rise": -4.20458748457478,
+        "tilt": 32.53979967374607,
+        "roll": 41.67918262192855,
+        "twist": -64.21075863583013
+      },
+      {
+        "strand": 2,
+        "level": 8,
+        "step": "T 21/C 20",
+        "shift": 4.4576194940937,
+        "slide": 2.030281169444679,
+        "rise": -7.4755578704897605,
+        "tilt": -6.346817511425699,
+        "roll": -35.806384372074646,
+        "twist": -50.21688046660188
+      },
+      {
+        "strand": 2,
+        "level": 9,
+        "step": "C 20/C 19",
+        "shift": 2.463881078465234,
+        "slide": -1.2751235679717432,
+        "rise": 2.942256697472477,
+        "tilt": 51.97852650398553,
+        "roll": 11.479966893006292,
+        "twist": 55.39819031650575
+      },
+      {
+        "strand": 2,
+        "level": 10,
+        "step": "C 19/A 18",
+        "shift": 1.8386296359144894,
+        "slide": 2.001019026322992,
+        "rise": 2.5938900861686545,
+        "tilt": 21.536493734756462,
+        "roll": 24.34660223599323,
+        "twist": 40.77114659416509
+      },
+      {
+        "strand": 2,
+        "level": 11,
+        "step": "A 18/G 17",
+        "shift": 1.1989136377396896,
+        "slide": 1.3874926628722697,
+        "rise": 2.890686342016523,
+        "tilt": 4.639713695524335,
+        "roll": 0.36078943372898564,
+        "twist": 26.106517500553593
+      },
+      {
+        "strand": 2,
+        "level": 12,
+        "step": "G 17/T 16",
+        "shift": -0.8257164132372092,
+        "slide": 0.6605300030257308,
+        "rise": 4.194954308439206,
+        "tilt": 9.281036490888312,
+        "roll": 19.612469041198132,
+        "twist": 53.034692205957356
+      }
+    ],
+    "local_inter_base": [
+      {
+        "strand": 1,
+        "level": 1,
+        "step": "G  1/C  2",
+        "shift": -0.36411796004940283,
+        "slide": 0.40951566501681663,
+        "rise": 3.5968238244718265,
+        "tilt": -0.7579909386694638,
+        "roll": -15.605792610668397,
+        "twist": 36.36831405838673
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "step": "C  2/T  3",
+        "shift": -0.4200963084485499,
+        "slide": -0.4223146868493738,
+        "rise": 3.147127727912819,
+        "tilt": 8.146484111213473,
+        "roll": -0.8630392712145015,
+        "twist": 33.679187643357956
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "step": "T  3/C  4",
+        "shift": 1.4827754216977964,
+        "slide": 0.856586468035389,
+        "rise": 2.9311242810035316,
+        "tilt": 9.83147878712509,
+        "roll": 3.1707870224591317,
+        "twist": 40.047798222570904
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "step": "C  4/A  5",
+        "shift": 1.5178106142743881,
+        "slide": 2.0517372276104817,
+        "rise": 2.9091378337037885,
+        "tilt": 15.829849470109231,
+        "roll": 7.424647723071452,
+        "twist": 36.506049622871
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "step": "A  6/G  7",
+        "shift": 4.20190911397059,
+        "slide": 0.9857555562007747,
+        "rise": 3.343945601745243,
+        "tilt": 1.834403448265756,
+        "roll": 22.892858490814646,
+        "twist": 47.76824276995089
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "step": "G  7/G  8",
+        "shift": -2.5439885744842883,
+        "slide": 2.458847943030514,
+        "rise": 5.159448063713308,
+        "tilt": 0.11552262202976717,
+        "roll": 7.1275491281994325,
+        "twist": 39.77261096452431
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "step": "G  8/T  9",
+        "shift": -0.24190582936916263,
+        "slide": -0.10964762060238155,
+        "rise": 3.5495976396602327,
+        "tilt": -1.449208372718653,
+        "roll": -11.053603509834723,
+        "twist": 30.069479834463912
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "step": "T  9/C 10",
+        "shift": 1.4907878672472452,
+        "slide": -0.06419577878982936,
+        "rise": 2.615512685813853,
+        "tilt": 12.713143918128502,
+        "roll": 7.128674629188611,
+        "twist": 28.85230175530631
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "step": "C 10/A 11",
+        "shift": 0.5317384004669489,
+        "slide": 1.4942929793589177,
+        "rise": 3.534153599720942,
+        "tilt": -0.2961018480612808,
+        "roll": -2.5303330623490594,
+        "twist": 50.46361444121691
+      },
+      {
+        "strand": 2,
+        "level": 1,
+        "step": "C 26/G 25",
+        "shift": -0.9530019105710974,
+        "slide": 0.061682163213179556,
+        "rise": 3.027499237436365,
+        "tilt": -8.724086876659735,
+        "roll": -1.1362586361419302,
+        "twist": 38.277922311416575
+      },
+      {
+        "strand": 2,
+        "level": 2,
+        "step": "G 25/A 24",
+        "shift": -0.6037956802907278,
+        "slide": -0.5411832545076403,
+        "rise": 4.773450840009931,
+        "tilt": -1.2066314914199439,
+        "roll": -52.03002998714768,
+        "twist": 56.80411041536926
+      },
+      {
+        "strand": 2,
+        "level": 6,
+        "step": "G 23/T 22",
+        "shift": -2.138389660131004,
+        "slide": 4.175284745278673,
+        "rise": 9.42523533609046,
+        "tilt": 3.1770404182869756,
+        "roll": -45.92365186230486,
+        "twist": 50.05692318116175
+      },
+      {
+        "strand": 2,
+        "level": 7,
+        "step": "T 22/T 21",
+        "shift": -1.9337572165618542,
+        "slide": 2.2175817081257505,
+        "rise": 6.518191526094545,
+        "tilt": 17.30111147278416,
+        "roll": -43.440954625878994,
+        "twist": 70.6376053306874
+      },
+      {
+        "strand": 2,
+        "level": 8,
+        "step": "T 21/C 20",
+        "shift": 2.041704481530248,
+        "slide": -1.1031566015692142,
+        "rise": 8.028288105230649,
+        "tilt": 49.97033454590774,
+        "roll": 31.33743287910816,
+        "twist": 18.119685561063587
+      },
+      {
+        "strand": 2,
+        "level": 9,
+        "step": "C 20/C 19",
+        "shift": -1.6275184869419077,
+        "slide": 2.993694454152605,
+        "rise": 1.3356296264119683,
+        "tilt": -30.80553009404155,
+        "roll": 12.148444139225337,
+        "twist": 43.672117510340364
+      },
+      {
+        "strand": 2,
+        "level": 10,
+        "step": "C 19/A 18",
+        "shift": -0.90543998929366,
+        "slide": 0.6467174473124464,
+        "rise": 3.041556281386517,
+        "tilt": -5.3599454905565995,
+        "roll": -1.249790160503043,
+        "twist": 36.96172884564109
+      },
+      {
+        "strand": 2,
+        "level": 11,
+        "step": "A 18/G 17",
+        "shift": 0.05520104736482441,
+        "slide": 0.7444069494629872,
+        "rise": 2.989924391726456,
+        "tilt": -5.477356197180036,
+        "roll": 11.979385522805252,
+        "twist": 21.063140022476837
+      },
+      {
+        "strand": 2,
+        "level": 12,
+        "step": "G 17/T 16",
+        "shift": -1.278468285760864,
+        "slide": 2.429507392397077,
+        "rise": 3.407313910716405,
+        "tilt": -10.103985588053394,
+        "roll": 4.740289679042155,
+        "twist": 51.99711740517468
+      }
+    ],
+    "global_inter_base_pair": [
+      {
+        "partner_strand": 2,
+        "sequence_index": 1,
+        "level": 1,
+        "next_level": 2,
+        "step": "G  1/C  2",
+        "duplex": "G  1-C 26/C  2-G 25",
+        "shift": -0.4517157207292313,
+        "slide": 0.09276582874910988,
+        "rise": 3.2186915142318973,
+        "tilt": -4.378839208104214,
+        "roll": 2.98158435812796,
+        "twist": 38.42482829317258
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 2,
+        "level": 2,
+        "next_level": 3,
+        "step": "C  2/T  3",
+        "duplex": "C  2-G 25/T  3-A 24",
+        "shift": -0.6753090785145739,
+        "slide": -0.41996574151697474,
+        "rise": 3.824502990905825,
+        "tilt": 0.46646034288043126,
+        "roll": -11.766986694155694,
+        "twist": 48.296390274539135
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 3,
+        "level": 3,
+        "next_level": 4,
+        "step": "T  3/C  4",
+        "duplex": "T  3-A 24/",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 4,
+        "level": 4,
+        "next_level": 5,
+        "step": "C  4/A  5",
+        "duplex": "/",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 5,
+        "level": 5,
+        "next_level": 8,
+        "step": "A  5/A  6",
+        "duplex": "/A  6-T 21",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 6,
+        "level": 8,
+        "next_level": 9,
+        "step": "A  6/G  7",
+        "duplex": "A  6-T 21/G  7-C 20",
+        "shift": 3.8267458095702613,
+        "slide": -1.3465946509020128,
+        "rise": -7.538053279764533,
+        "tilt": 23.154595448917686,
+        "roll": 27.10399732619227,
+        "twist": -31.392886535382942
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 7,
+        "level": 9,
+        "next_level": 10,
+        "step": "G  7/G  8",
+        "duplex": "G  7-C 20/G  8-C 19",
+        "shift": 3.713566792217846,
+        "slide": 0.4308598926914684,
+        "rise": 3.8263362867257396,
+        "tilt": 42.44061902013723,
+        "roll": -10.128599293812982,
+        "twist": 50.005487521091936
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 8,
+        "level": 10,
+        "next_level": 11,
+        "step": "G  8/T  9",
+        "duplex": "G  8-C 19/T  9-A 18",
+        "shift": 1.4619708854728874,
+        "slide": -2.0697662828339487,
+        "rise": 2.8175427102194197,
+        "tilt": 14.524193271469379,
+        "roll": -24.184779065007984,
+        "twist": 37.31797727481785
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 9,
+        "level": 11,
+        "next_level": 12,
+        "step": "T  9/C 10",
+        "duplex": "T  9-A 18/C 10-G 17",
+        "shift": 1.244535843999408,
+        "slide": -1.384721194887073,
+        "rise": 2.769837490600734,
+        "tilt": 9.201452756713685,
+        "roll": -0.7008658211319947,
+        "twist": 28.248267839114035
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 10,
+        "level": 12,
+        "next_level": 13,
+        "step": "C 10/A 11",
+        "duplex": "C 10-G 17/A 11-T 16",
+        "shift": -0.6190476987631697,
+        "slide": -0.5370108405905138,
+        "rise": 3.9217748720917602,
+        "tilt": 3.949660476544807,
+        "roll": -16.56582155907018,
+        "twist": 51.251902320520884
+      }
+    ],
+    "local_inter_base_pair": [
+      {
+        "partner_strand": 2,
+        "sequence_index": 1,
+        "level": 1,
+        "next_level": 2,
+        "step": "G  1/C  2",
+        "duplex": "G  1-C 26/C  2-G 25",
+        "shift": -0.6854426020517496,
+        "slide": 0.2173631734629937,
+        "rise": 3.3289648591227374,
+        "tilt": -4.715663556304042,
+        "roll": -8.355168981144608,
+        "twist": 37.30860833673968
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 2,
+        "level": 2,
+        "next_level": 3,
+        "step": "C  2/T  3",
+        "duplex": "C  2-G 25/T  3-A 24",
+        "shift": -0.5153119413181068,
+        "slide": -0.45662189545506715,
+        "rise": 3.9609019088051927,
+        "tilt": 5.191523799820616,
+        "roll": -26.44218692239257,
+        "twist": 45.85889241450689
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 3,
+        "level": 3,
+        "next_level": 4,
+        "step": "T  3/C  4",
+        "duplex": "T  3-A 24/",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 4,
+        "level": 4,
+        "next_level": 5,
+        "step": "C  4/A  5",
+        "duplex": "/",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 5,
+        "level": 5,
+        "next_level": 8,
+        "step": "A  5/A  6",
+        "duplex": "/A  6-T 21",
+        "shift": null,
+        "slide": null,
+        "rise": null,
+        "tilt": null,
+        "roll": null,
+        "twist": null
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 6,
+        "level": 8,
+        "next_level": 9,
+        "step": "A  6/G  7",
+        "duplex": "A  6-T 21/G  7-C 20",
+        "shift": 3.543036722603626,
+        "slide": 0.13829295325721955,
+        "rise": 5.851500772882605,
+        "tilt": 24.553579467409783,
+        "roll": 26.979205995339093,
+        "twist": 30.663856454991098
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 7,
+        "level": 9,
+        "next_level": 10,
+        "step": "G  7/G  8",
+        "duplex": "G  7-C 20/G  8-C 19",
+        "shift": -2.359394144328553,
+        "slide": 2.8443327783959935,
+        "rise": 3.110573933159338,
+        "tilt": -15.027472801704342,
+        "roll": 10.079906851306816,
+        "twist": 43.35581387873888
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 8,
+        "level": 10,
+        "next_level": 11,
+        "step": "G  8/T  9",
+        "duplex": "G  8-C 19/T  9-A 18",
+        "shift": -0.6102932079091482,
+        "slide": 0.2854979340218591,
+        "rise": 3.316086781108941,
+        "tilt": -3.0669752826084435,
+        "roll": -6.3298365458519354,
+        "twist": 33.9504405147134
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 9,
+        "level": 11,
+        "next_level": 12,
+        "step": "T  9/C 10",
+        "duplex": "T  9-A 18/C 10-G 17",
+        "shift": 0.7956627147869422,
+        "slide": 0.3245297807942765,
+        "rise": 2.917345762354437,
+        "tilt": 3.201451623796841,
+        "roll": 9.73587099841223,
+        "twist": 26.023874539394868
+      },
+      {
+        "partner_strand": 2,
+        "sequence_index": 10,
+        "level": 12,
+        "next_level": 13,
+        "step": "C 10/A 11",
+        "duplex": "C 10-G 17/A 11-T 16",
+        "shift": -0.3523310362274169,
+        "slide": 1.9550600668539462,
+        "rise": 3.609398087672676,
+        "tilt": -5.102009503544792,
+        "roll": 1.07506015075993,
+        "twist": 51.917013524072786
+      }
+    ],
+    "backbone": [
+      {
+        "strand": 1,
+        "level": 1,
+        "residue_name": "DGB",
+        "residue_id": 1,
+        "c1_c2": 40.30636656684681,
+        "c2_c3": -23.803506908164884,
+        "phase": 124.91000576340777,
+        "amplitude": 42.98068764781532,
+        "pucker": "C1'-exo",
+        "c1_prime": 103.38567515538853,
+        "c2_prime": 101.84147285712098,
+        "c3_prime": 103.17050287581678,
+        "chi": -80.78087416731377,
+        "gamma": 56.95871547077359,
+        "delta": 120.857455530027,
+        "epsilon": -60.503121913918434,
+        "zeta": 94.48679793565194,
+        "alpha": 84.62031542278281,
+        "beta": -152.66000781971687
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "residue_name": "DCB",
+        "residue_id": 2,
+        "c1_c2": 30.99821670184713,
+        "c2_c3": -32.11159581678957,
+        "phase": 168.65527193292544,
+        "amplitude": 33.691409579552854,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.2045537687675,
+        "c2_prime": 102.80342310180227,
+        "c3_prime": 102.20204646480852,
+        "chi": -133.13952673026432,
+        "gamma": -171.9136638481016,
+        "delta": 142.85339917561524,
+        "epsilon": -161.62828097494295,
+        "zeta": -94.43415764664182,
+        "alpha": -75.97971760747616,
+        "beta": -179.5770939720745
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "residue_name": "DTB",
+        "residue_id": 3,
+        "c1_c2": 32.02839497274103,
+        "c2_c3": -21.746620038607293,
+        "phase": 133.24072954985468,
+        "amplitude": 32.7455355374543,
+        "pucker": "C1'-exo",
+        "c1_prime": 105.56863128139497,
+        "c2_prime": 103.31415977115797,
+        "c3_prime": 103.30684939630949,
+        "chi": -105.56464249178373,
+        "gamma": 53.93679837553393,
+        "delta": 121.18823596758973,
+        "epsilon": -173.94181842691117,
+        "zeta": -92.0321438148969,
+        "alpha": -64.19399161676735,
+        "beta": 164.96325707732814
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "residue_name": "DCB",
+        "residue_id": 4,
+        "c1_c2": 22.234993583769658,
+        "c2_c3": -5.051385888452551,
+        "phase": 99.2656313866136,
+        "amplitude": 32.111382130387824,
+        "pucker": "O1'-endo",
+        "c1_prime": 106.24253918917016,
+        "c2_prime": 104.71810377365577,
+        "c3_prime": 103.53541475743128,
+        "chi": -109.53060473623258,
+        "gamma": 57.92895427672243,
+        "delta": 101.22233807110932,
+        "epsilon": -177.56291838583212,
+        "zeta": -85.68364349210506,
+        "alpha": -56.14493111700465,
+        "beta": 173.42748536891
+      },
+      {
+        "strand": 1,
+        "level": 5,
+        "residue_name": "DAB",
+        "residue_id": 5,
+        "c1_c2": 35.883729829314724,
+        "c2_c3": -34.23967070752756,
+        "phase": 161.20720732179075,
+        "amplitude": 37.33455219268703,
+        "pucker": "C2'-endo",
+        "c1_prime": 105.86657621854891,
+        "c2_prime": 101.0088408625589,
+        "c3_prime": 102.54291718893965,
+        "chi": -76.48775752330597,
+        "gamma": 55.88000096071411,
+        "delta": 143.6131078111949,
+        "epsilon": -79.35052233677804,
+        "zeta": 164.66393431939676,
+        "alpha": 63.04563823858006,
+        "beta": -116.49422307308909
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "residue_name": "DAB",
+        "residue_id": 6,
+        "c1_c2": 46.968426112247236,
+        "c2_c3": -34.44861420798331,
+        "phase": 138.54560295209237,
+        "amplitude": 47.35036052235657,
+        "pucker": "C1'-exo",
+        "c1_prime": 102.27524607593817,
+        "c2_prime": 99.52053860846924,
+        "c3_prime": 102.48501939448775,
+        "chi": -111.38193390674877,
+        "gamma": -178.12879582077557,
+        "delta": 129.76279312258893,
+        "epsilon": -169.7479254247439,
+        "zeta": -85.81288925259592,
+        "alpha": -56.14075203339671,
+        "beta": 168.09217901674148
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "residue_name": "DGB",
+        "residue_id": 7,
+        "c1_c2": -44.49073441419543,
+        "c2_c3": 28.62008981775756,
+        "phase": 311.2297832090025,
+        "amplitude": 45.5019099760531,
+        "pucker": "C1'-endo",
+        "c1_prime": 104.46256664130767,
+        "c2_prime": 99.70967846558091,
+        "c3_prime": 102.42685372810062,
+        "chi": -53.79268955601777,
+        "gamma": 47.41710374766671,
+        "delta": 113.71628319616087,
+        "epsilon": -138.20979637998113,
+        "zeta": -155.17384855284155,
+        "alpha": -172.00691178285925,
+        "beta": 173.78820497740278
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "residue_name": "DGB",
+        "residue_id": 8,
+        "c1_c2": 12.44643221469475,
+        "c2_c3": -30.624559707225554,
+        "phase": 217.25814144141304,
+        "amplitude": 39.520597012398206,
+        "pucker": "C4'-endo",
+        "c1_prime": 106.46318421831016,
+        "c2_prime": 103.911871695395,
+        "c3_prime": 100.36622343907236,
+        "chi": -91.22358899977556,
+        "gamma": 157.8576584154447,
+        "delta": 153.66898685942493,
+        "epsilon": 161.85719667443735,
+        "zeta": -83.74955811321516,
+        "alpha": -68.22000348259182,
+        "beta": -179.25447486765592
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "residue_name": "DTB",
+        "residue_id": 9,
+        "c1_c2": 40.09516518750548,
+        "c2_c3": -31.062057737211425,
+        "phase": 143.17292948373162,
+        "amplitude": 40.07569485745175,
+        "pucker": "C1'-exo",
+        "c1_prime": 104.30634655021173,
+        "c2_prime": 101.31342565081754,
+        "c3_prime": 102.27056662143167,
+        "chi": -104.3122262206405,
+        "gamma": 54.086420604748824,
+        "delta": 130.0876046623024,
+        "epsilon": -175.548557661657,
+        "zeta": -86.79212097817906,
+        "alpha": -69.09362643843617,
+        "beta": 169.81283459468577
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "residue_name": "DCB",
+        "residue_id": 10,
+        "c1_c2": 47.953450427870486,
+        "c2_c3": -34.039817195847895,
+        "phase": 136.45663229928758,
+        "amplitude": 48.52357859674239,
+        "pucker": "C1'-exo",
+        "c1_prime": 102.02634735794001,
+        "c2_prime": 99.18917214100996,
+        "c3_prime": 102.32472592983066,
+        "chi": -91.63229846166303,
+        "gamma": 49.751455683961964,
+        "delta": 130.8301468310713,
+        "epsilon": -84.8331307520295,
+        "zeta": 156.40212568117965,
+        "alpha": -84.73259274568503,
+        "beta": 146.65438970754798
+      },
+      {
+        "strand": 1,
+        "level": 13,
+        "residue_name": "DAB",
+        "residue_id": 11,
+        "c1_c2": 30.14115782841872,
+        "c2_c3": -31.243351678396802,
+        "phase": 169.52137815635305,
+        "amplitude": 32.845134476741855,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.65999815455731,
+        "c2_prime": 102.96828761176404,
+        "c3_prime": 101.66830667603766,
+        "chi": -103.13496181876043,
+        "gamma": 48.667627159234755,
+        "delta": 138.60973148949302,
+        "epsilon": 999.0,
+        "zeta": 999.0,
+        "alpha": 999.0,
+        "beta": 999.0
+      },
+      {
+        "strand": 2,
+        "level": 1,
+        "residue_name": "DCC",
+        "residue_id": 26,
+        "c1_c2": 39.671320111972484,
+        "c2_c3": -31.730914942409647,
+        "phase": 145.99164876091916,
+        "amplitude": 39.627409325649815,
+        "pucker": "C2'-endo",
+        "c1_prime": 105.00625820479569,
+        "c2_prime": 100.78525209688912,
+        "c3_prime": 102.86257963189469,
+        "chi": -103.2439703912983,
+        "gamma": 55.01994813657203,
+        "delta": 136.47339265920357,
+        "epsilon": 999.0,
+        "zeta": 999.0,
+        "alpha": 999.0,
+        "beta": 999.0
+      },
+      {
+        "strand": 2,
+        "level": 2,
+        "residue_name": "DGC",
+        "residue_id": 25,
+        "c1_c2": 29.4922808499907,
+        "c2_c3": -33.589949465551534,
+        "phase": 177.17499853090033,
+        "amplitude": 34.6163089652049,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.57362741573931,
+        "c2_prime": 102.64456678855092,
+        "c3_prime": 101.77278498567705,
+        "chi": -124.64186157623382,
+        "gamma": -179.2166877288228,
+        "delta": 146.55575605793223,
+        "epsilon": -169.0339973830573,
+        "zeta": -88.43072169571595,
+        "alpha": -73.27280378694633,
+        "beta": 173.0860909224846
+      },
+      {
+        "strand": 2,
+        "level": 3,
+        "residue_name": "DAC",
+        "residue_id": 24,
+        "c1_c2": 43.4248853281775,
+        "c2_c3": -25.517044650086127,
+        "phase": 121.6117073777562,
+        "amplitude": 49.03722954000958,
+        "pucker": "C1'-exo",
+        "c1_prime": 97.91501248881389,
+        "c2_prime": 102.17060516046826,
+        "c3_prime": 102.76296690378894,
+        "chi": -162.11061966028288,
+        "gamma": 66.07021611559695,
+        "delta": 109.80948483088045,
+        "epsilon": 168.2457397963501,
+        "zeta": -91.78858631072714,
+        "alpha": 173.89288202664844,
+        "beta": 173.02514943627023
+      },
+      {
+        "strand": 2,
+        "level": 6,
+        "residue_name": "DGC",
+        "residue_id": 23,
+        "c1_c2": 5.780539054983858,
+        "c2_c3": -28.230167658429295,
+        "phase": 228.73811643332652,
+        "amplitude": 44.71790996675062,
+        "pucker": "C4'-endo",
+        "c1_prime": 105.9891967592108,
+        "c2_prime": 105.88607502666163,
+        "c3_prime": 96.8295145666896,
+        "chi": -101.26721252425824,
+        "gamma": -138.2621286575545,
+        "delta": 50.40168463238652,
+        "epsilon": 178.9670787589714,
+        "zeta": -130.21273729781902,
+        "alpha": -103.56185223549387,
+        "beta": 164.4395849697679
+      },
+      {
+        "strand": 2,
+        "level": 7,
+        "residue_name": "DTC",
+        "residue_id": 22,
+        "c1_c2": 31.94418089980746,
+        "c2_c3": -32.40138853843635,
+        "phase": 168.28209017635135,
+        "amplitude": 34.34738096552366,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.6737133412987,
+        "c2_prime": 102.63283865906274,
+        "c3_prime": 101.22424725246451,
+        "chi": -110.64324851618322,
+        "gamma": 66.42059064080908,
+        "delta": 144.11195224293004,
+        "epsilon": -153.54077533264493,
+        "zeta": 178.17613889818966,
+        "alpha": -162.31801655736277,
+        "beta": -86.84615229503707
+      },
+      {
+        "strand": 2,
+        "level": 8,
+        "residue_name": "DTC",
+        "residue_id": 21,
+        "c1_c2": 44.87710546688619,
+        "c2_c3": -42.706840012376865,
+        "phase": 161.68640862566355,
+        "amplitude": 46.77648166813503,
+        "pucker": "C2'-endo",
+        "c1_prime": 105.7926071058157,
+        "c2_prime": 97.00348775785181,
+        "c3_prime": 101.56299290500134,
+        "chi": -121.27091145844197,
+        "gamma": 65.9536097286136,
+        "delta": 157.4972612091536,
+        "epsilon": -79.7176786330555,
+        "zeta": -176.4552848398482,
+        "alpha": -78.20943502325606,
+        "beta": 132.57763119905965
+      },
+      {
+        "strand": 2,
+        "level": 9,
+        "residue_name": "DCC",
+        "residue_id": 20,
+        "c1_c2": 35.90993700888281,
+        "c2_c3": -36.94192691787999,
+        "phase": 168.53152033948086,
+        "amplitude": 38.90860223984979,
+        "pucker": "C2'-endo",
+        "c1_prime": 105.42752070506458,
+        "c2_prime": 101.47888273550682,
+        "c3_prime": 101.04255620717889,
+        "chi": -79.41179007193224,
+        "gamma": -178.03452222229805,
+        "delta": 151.37124196002617,
+        "epsilon": -152.79286849567313,
+        "zeta": -133.55807701082105,
+        "alpha": -81.68222463053151,
+        "beta": 178.2017408058114
+      },
+      {
+        "strand": 2,
+        "level": 10,
+        "residue_name": "DCC",
+        "residue_id": 19,
+        "c1_c2": 46.25056069874887,
+        "c2_c3": -34.09443485443327,
+        "phase": 139.6460170759254,
+        "amplitude": 46.29955701952474,
+        "pucker": "C1'-exo",
+        "c1_prime": 102.96301305364875,
+        "c2_prime": 99.84175189579864,
+        "c3_prime": 102.11990531802344,
+        "chi": -105.3045215860306,
+        "gamma": 48.638585832332865,
+        "delta": 133.82431136454474,
+        "epsilon": -85.55186945696587,
+        "zeta": -178.38732523377928,
+        "alpha": 80.36942935658217,
+        "beta": -125.106571409414
+      },
+      {
+        "strand": 2,
+        "level": 11,
+        "residue_name": "DAC",
+        "residue_id": 18,
+        "c1_c2": 46.638529247284026,
+        "c2_c3": -37.59669702009831,
+        "phase": 146.9476378844293,
+        "amplitude": 46.53462399746245,
+        "pucker": "C2'-endo",
+        "c1_prime": 103.66371180291502,
+        "c2_prime": 98.70597310543539,
+        "c3_prime": 101.88458250802199,
+        "chi": -85.81216327947486,
+        "gamma": 52.829880333981315,
+        "delta": 142.70804154526132,
+        "epsilon": -82.48323044869917,
+        "zeta": 164.1802356016131,
+        "alpha": -74.66908519815563,
+        "beta": 121.7947643923405
+      },
+      {
+        "strand": 2,
+        "level": 12,
+        "residue_name": "DGC",
+        "residue_id": 17,
+        "c1_c2": 32.84174862322907,
+        "c2_c3": -27.60634485702812,
+        "phase": 149.98844922345376,
+        "amplitude": 32.905644020101015,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.02058032057502,
+        "c2_prime": 102.605655715844,
+        "c3_prime": 103.05254820618322,
+        "chi": -84.79787690438374,
+        "gamma": 66.02958469416767,
+        "delta": 131.53052896257685,
+        "epsilon": -166.637613559878,
+        "zeta": -103.07636591294026,
+        "alpha": -73.00612812457445,
+        "beta": 164.19302767465243
+      },
+      {
+        "strand": 2,
+        "level": 13,
+        "residue_name": "DTC",
+        "residue_id": 16,
+        "c1_c2": 33.8226508861625,
+        "c2_c3": -36.3390360740921,
+        "phase": 172.68959927715602,
+        "amplitude": 37.85259721576327,
+        "pucker": "C2'-endo",
+        "c1_prime": 106.63998681927923,
+        "c2_prime": 101.63686356256483,
+        "c3_prime": 101.29960966132539,
+        "chi": -145.15869365527087,
+        "gamma": 170.2303457191082,
+        "delta": 152.05210036370252,
+        "epsilon": -116.92966912233076,
+        "zeta": -95.54461943670577,
+        "alpha": -81.22353958842942,
+        "beta": 147.44721654889653
+      }
+    ],
+    "global_axis_curvature": [
+      {
+        "strand": 1,
+        "level": 1,
+        "next_level": 2,
+        "step": "G  1/C  2",
+        "ax": -0.2028052394270181,
+        "ay": 0.09151025037824767,
+        "ainc": -1.7645393003374354,
+        "atip": 2.940794799499972,
+        "adis": 0.22249514840404885,
+        "angle": 3.429558717269819,
+        "path": 3.224934549655072,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "next_level": 3,
+        "step": "C  2/T  3",
+        "ax": -0.3225308436140395,
+        "ay": -0.14484852015997207,
+        "ainc": -0.21048439832825444,
+        "atip": -2.3321602365792082,
+        "adis": 0.3535636277601499,
+        "angle": 2.341639393890698,
+        "path": 3.840016070740799,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "next_level": 4,
+        "step": "T  3/C  4",
+        "ax": 0.6326316003237177,
+        "ay": 0.15385676532583625,
+        "ainc": -1.667032081333309,
+        "atip": 13.506354980821095,
+        "adis": 0.6510719207312488,
+        "angle": 13.60884347871432,
+        "path": 2.9002426813626605,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "next_level": 5,
+        "step": "C  4/A  5",
+        "ax": 0.5270402987093828,
+        "ay": 0.2617627528404165,
+        "ainc": 3.9939133474167483,
+        "atip": 6.061576514540692,
+        "adis": 0.5884651351085028,
+        "angle": 7.259066997094388,
+        "path": 3.489373053343692,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 5,
+        "next_level": 6,
+        "step": "-",
+        "ax": -10.072742536428494,
+        "ay": 1.8529245369609564,
+        "ainc": -129.91787670559708,
+        "atip": -29.606710953147385,
+        "adis": 10.241751390501916,
+        "angle": 133.2486848758889,
+        "path": 10.904424179235994,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 6,
+        "next_level": 7,
+        "step": "-",
+        "ax": 0.42854300958328445,
+        "ay": 0.4058371086683932,
+        "ainc": -3.1458652474782722,
+        "atip": -27.863803163783636,
+        "adis": 0.5902142575667079,
+        "angle": 28.04082728639386,
+        "path": 7.874625066110726,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 7,
+        "next_level": 8,
+        "step": "-",
+        "ax": 1.3719675537652063,
+        "ay": 0.3452546721818237,
+        "ainc": 14.945275598771577,
+        "atip": -5.247660616678866,
+        "adis": 1.4147422935813656,
+        "angle": 15.839798125957273,
+        "path": 5.138086724080803,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "next_level": 9,
+        "step": "A  6/G  7",
+        "ax": 2.0430952797885746,
+        "ay": 0.006492735347687573,
+        "ainc": 4.173326004752597,
+        "atip": 48.84186738134172,
+        "adis": 2.043105596367121,
+        "angle": 49.01983944525438,
+        "path": 7.156914821501149,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "next_level": 10,
+        "step": "G  7/G  8",
+        "ax": 1.9654320673676662,
+        "ay": 0.9489368524982289,
+        "ainc": 21.865927128793263,
+        "atip": 39.73853054378309,
+        "adis": 2.1825224767379563,
+        "angle": 45.3571337165487,
+        "path": 4.152975273111787,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "next_level": 11,
+        "step": "G  8/T  9",
+        "ax": 1.05291861329311,
+        "ay": -0.7083111417966365,
+        "ainc": 21.0576081058084,
+        "atip": 4.497050144855123,
+        "adis": 1.268992624018099,
+        "angle": 21.53244805272148,
+        "path": 3.0449971714764827,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "next_level": 12,
+        "step": "T  9/C 10",
+        "ax": 0.8525713223505865,
+        "ay": -0.688476436244365,
+        "ainc": 14.572569820553092,
+        "atip": 2.8709083706315637,
+        "adis": 1.095845638289613,
+        "angle": 14.852673363656024,
+        "path": 2.957149844963702,
+        "dc": 0
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "next_level": 13,
+        "step": "C 10/A 11",
+        "ax": -0.2379463530419969,
+        "ay": -0.30714472670602355,
+        "ainc": 4.679685550562496,
+        "atip": -10.278160308791632,
+        "adis": 0.38853101558215986,
+        "angle": 11.293362483572512,
+        "path": 3.922045516940796,
+        "dc": 0
+      }
+    ],
+    "global_axis_bending": [
+      {
+        "strand": 1,
+        "level": 1,
+        "residue_name": "G",
+        "residue_id": 1,
+        "offset": 0.0,
+        "local_direction": 0.0
+      },
+      {
+        "strand": 1,
+        "level": 2,
+        "residue_name": "C",
+        "residue_id": 2,
+        "offset": 0.9724848905842521,
+        "local_direction": 87.53291103420254
+      },
+      {
+        "strand": 1,
+        "level": 3,
+        "residue_name": "T",
+        "residue_id": 3,
+        "offset": 2.5490438653862895,
+        "local_direction": 52.30425007414755
+      },
+      {
+        "strand": 1,
+        "level": 4,
+        "residue_name": "C",
+        "residue_id": 4,
+        "offset": 2.6353423832946934,
+        "local_direction": 19.02657371683609
+      },
+      {
+        "strand": 1,
+        "level": 5,
+        "residue_name": "A",
+        "residue_id": 5,
+        "offset": 2.4376269965093895,
+        "local_direction": -16.312912410937685
+      },
+      {
+        "strand": 1,
+        "level": 6,
+        "residue_name": "-",
+        "residue_id": null,
+        "offset": 10.938071477440914,
+        "local_direction": 90.0
+      },
+      {
+        "strand": 1,
+        "level": 7,
+        "residue_name": "-",
+        "residue_id": null,
+        "offset": 6.943865400670466,
+        "local_direction": 90.0
+      },
+      {
+        "strand": 1,
+        "level": 8,
+        "residue_name": "A",
+        "residue_id": 6,
+        "offset": 3.7655735261691645,
+        "local_direction": 155.79985821374663
+      },
+      {
+        "strand": 1,
+        "level": 9,
+        "residue_name": "G",
+        "residue_id": 7,
+        "offset": 2.5651167798478745,
+        "local_direction": 178.97871887701524
+      },
+      {
+        "strand": 1,
+        "level": 10,
+        "residue_name": "G",
+        "residue_id": 8,
+        "offset": 0.1608904337506673,
+        "local_direction": -96.0755477913004
+      },
+      {
+        "strand": 1,
+        "level": 11,
+        "residue_name": "T",
+        "residue_id": 9,
+        "offset": 0.5202844183113566,
+        "local_direction": -106.0179894170791
+      },
+      {
+        "strand": 1,
+        "level": 12,
+        "residue_name": "C",
+        "residue_id": 10,
+        "offset": 0.7711225978101055,
+        "local_direction": -167.90984866520208
+      },
+      {
+        "strand": 1,
+        "level": 13,
+        "residue_name": "A",
+        "residue_id": 11,
+        "offset": 2.0062525197292242e-12,
+        "local_direction": 0.0
+      }
+    ],
+    "global_axis_bending_summary": [
+      {
+        "strand": 1,
+        "path_length": 58.605784952523656,
+        "end_to_end": 35.39478238209949,
+        "shortening_percent": 39.60530959397152,
+        "overall_bend_uu": 33.70713820302126,
+        "overall_bend_pp": 27.998316976773634
+      }
+    ],
+    "groove": {
+      "atom_defining_backbone": "P",
+      "levels": 11,
+      "sub_levels": 3,
+      "data": {
+        "1": {
+          "base_pair": "G-C",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "1": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "2": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "3": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            }
+          }
+        },
+        "2": {
+          "base_pair": "C-G",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "1": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "2": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "3": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 17.25
+            }
+          }
+        },
+        "3": {
+          "base_pair": "T-A",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 17.34
+            },
+            "1": {
+              "minor_width": 4.92,
+              "minor_depth": 5.39,
+              "minor_angle": 31.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 17.9
+            },
+            "2": {
+              "minor_width": 5.15,
+              "minor_depth": 5.37,
+              "minor_angle": 31.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 18.34
+            },
+            "3": {
+              "minor_width": 5.48,
+              "minor_depth": 5.4,
+              "minor_angle": 34.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 18.89
+            }
+          }
+        },
+        "4": {
+          "base_pair": "C-",
+          "sub_levels": {
+            "0": {
+              "minor_width": 5.93,
+              "minor_depth": 5.32,
+              "minor_angle": 42.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 19.55
+            },
+            "1": {
+              "minor_width": 6.41,
+              "minor_depth": 5.32,
+              "minor_angle": 45.0,
+              "major_width": 15.54,
+              "major_depth": -0.94,
+              "major_angle": 58.0,
+              "diameter": 20.29
+            },
+            "2": {
+              "minor_width": 6.68,
+              "minor_depth": 5.48,
+              "minor_angle": 43.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.69
+            },
+            "3": {
+              "minor_width": 6.94,
+              "minor_depth": 5.86,
+              "minor_angle": 43.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.79
+            }
+          }
+        },
+        "5": {
+          "base_pair": "A-",
+          "sub_levels": {
+            "0": {
+              "minor_width": 7.28,
+              "minor_depth": 6.39,
+              "minor_angle": 45.0,
+              "major_width": 14.21,
+              "major_depth": 2.23,
+              "major_angle": 38.0,
+              "diameter": 20.39
+            },
+            "1": {
+              "minor_width": 7.16,
+              "minor_depth": 5.82,
+              "minor_angle": 46.0,
+              "major_width": 14.2,
+              "major_depth": 3.65,
+              "major_angle": 32.0,
+              "diameter": 19.45
+            },
+            "2": {
+              "minor_width": 7.05,
+              "minor_depth": 5.26,
+              "minor_angle": 48.0,
+              "major_width": 13.86,
+              "major_depth": 5.05,
+              "major_angle": 30.0,
+              "diameter": 18.69
+            },
+            "3": {
+              "minor_width": 6.95,
+              "minor_depth": 4.79,
+              "minor_angle": 49.0,
+              "major_width": 13.27,
+              "major_depth": 5.95,
+              "major_angle": 36.0,
+              "diameter": 18.14
+            },
+            "4": {
+              "minor_width": 6.86,
+              "minor_depth": 4.43,
+              "minor_angle": 51.0,
+              "major_width": 12.48,
+              "major_depth": 6.85,
+              "major_angle": 38.0,
+              "diameter": 17.83
+            },
+            "5": {
+              "minor_width": 6.77,
+              "minor_depth": 4.23,
+              "minor_angle": 50.0,
+              "major_width": 12.47,
+              "major_depth": 6.51,
+              "major_angle": 48.0,
+              "diameter": 17.88
+            },
+            "6": {
+              "minor_width": 6.68,
+              "minor_depth": 4.24,
+              "minor_angle": 47.0,
+              "major_width": 13.11,
+              "major_depth": 5.11,
+              "major_angle": 59.0,
+              "diameter": 18.39
+            },
+            "7": {
+              "minor_width": 6.57,
+              "minor_depth": 4.5,
+              "minor_angle": 44.0,
+              "major_width": 13.1,
+              "major_depth": 2.71,
+              "major_angle": 73.0,
+              "diameter": 21.3
+            },
+            "8": {
+              "minor_width": 6.39,
+              "minor_depth": 5.14,
+              "minor_angle": 39.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.76
+            },
+            "9": {
+              "minor_width": 6.33,
+              "minor_depth": 5.9,
+              "minor_angle": 33.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "10": {
+              "minor_width": 5.78,
+              "minor_depth": 7.03,
+              "minor_angle": -29.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "11": {
+              "minor_width": 5.39,
+              "minor_depth": 8.74,
+              "minor_angle": -31.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "12": {
+              "minor_width": 4.92,
+              "minor_depth": 10.73,
+              "minor_angle": -32.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            }
+          }
+        },
+        "6": {
+          "base_pair": "-G",
+          "sub_levels": {
+            "0": {
+              "minor_width": 15.96,
+              "minor_depth": 0.96,
+              "minor_angle": 55.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "1": {
+              "minor_width": 15.97,
+              "minor_depth": -1.08,
+              "minor_angle": 61.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "2": {
+              "minor_width": 5.05,
+              "minor_depth": 11.15,
+              "minor_angle": -32.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "3": {
+              "minor_width": 5.39,
+              "minor_depth": 10.57,
+              "minor_angle": -27.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "4": {
+              "minor_width": 5.89,
+              "minor_depth": 9.78,
+              "minor_angle": -23.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "5": {
+              "minor_width": 6.34,
+              "minor_depth": 9.07,
+              "minor_angle": -16.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "6": {
+              "minor_width": 6.61,
+              "minor_depth": 8.42,
+              "minor_angle": -12.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "7": {
+              "minor_width": 6.79,
+              "minor_depth": 7.89,
+              "minor_angle": -11.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 19.34
+            },
+            "8": {
+              "minor_width": 6.96,
+              "minor_depth": 7.53,
+              "minor_angle": -10.0,
+              "major_width": 13.11,
+              "major_depth": -0.16,
+              "major_angle": 86.0,
+              "diameter": 19.67
+            },
+            "9": {
+              "minor_width": 7.13,
+              "minor_depth": 7.34,
+              "minor_angle": -10.0,
+              "major_width": 13.15,
+              "major_depth": 0.46,
+              "major_angle": 82.0,
+              "diameter": 20.13
+            }
+          }
+        },
+        "7": {
+          "base_pair": "-T",
+          "sub_levels": {
+            "0": {
+              "minor_width": 7.31,
+              "minor_depth": 7.18,
+              "minor_angle": -10.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.63
+            },
+            "1": {
+              "minor_width": 7.62,
+              "minor_depth": 6.63,
+              "minor_angle": 11.0,
+              "major_width": 14.77,
+              "major_depth": -1.08,
+              "major_angle": 86.0,
+              "diameter": 21.19
+            },
+            "2": {
+              "minor_width": 6.96,
+              "minor_depth": 5.76,
+              "minor_angle": 17.0,
+              "major_width": 15.07,
+              "major_depth": -1.5,
+              "major_angle": 82.0,
+              "diameter": 21.77
+            },
+            "3": {
+              "minor_width": 6.32,
+              "minor_depth": 5.55,
+              "minor_angle": 20.0,
+              "major_width": 15.38,
+              "major_depth": -1.98,
+              "major_angle": 78.0,
+              "diameter": 22.42
+            },
+            "4": {
+              "minor_width": 5.81,
+              "minor_depth": 6.21,
+              "minor_angle": 26.0,
+              "major_width": 15.06,
+              "major_depth": -4.47,
+              "major_angle": 75.0,
+              "diameter": 23.12
+            }
+          }
+        },
+        "8": {
+          "base_pair": "A-T",
+          "sub_levels": {
+            "0": {
+              "minor_width": 5.24,
+              "minor_depth": 7.88,
+              "minor_angle": 14.0,
+              "major_width": 14.82,
+              "major_depth": -3.98,
+              "major_angle": 75.0,
+              "diameter": null
+            },
+            "1": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": 14.66,
+              "major_depth": -2.23,
+              "major_angle": 74.0,
+              "diameter": 18.42
+            },
+            "2": {
+              "minor_width": 8.15,
+              "minor_depth": 4.53,
+              "minor_angle": 84.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 19.17
+            },
+            "3": {
+              "minor_width": 8.43,
+              "minor_depth": 4.73,
+              "minor_angle": 74.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.04
+            },
+            "4": {
+              "minor_width": 8.66,
+              "minor_depth": 4.11,
+              "minor_angle": 67.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.81
+            },
+            "5": {
+              "minor_width": 8.9,
+              "minor_depth": 3.82,
+              "minor_angle": 58.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 21.64
+            },
+            "6": {
+              "minor_width": 9.19,
+              "minor_depth": 3.55,
+              "minor_angle": 46.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.65
+            },
+            "7": {
+              "minor_width": 9.31,
+              "minor_depth": 4.04,
+              "minor_angle": 33.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.78
+            },
+            "8": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.81
+            }
+          }
+        },
+        "9": {
+          "base_pair": "G-C",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": 12.1,
+              "major_depth": 5.24,
+              "major_angle": -72.0,
+              "diameter": 20.71
+            },
+            "1": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 20.1
+            },
+            "2": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 34.63
+            },
+            "3": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": 11.73,
+              "major_depth": -0.72,
+              "major_angle": -62.0,
+              "diameter": 32.96
+            },
+            "4": {
+              "minor_width": 7.74,
+              "minor_depth": 5.42,
+              "minor_angle": -35.0,
+              "major_width": 11.99,
+              "major_depth": -2.02,
+              "major_angle": -65.0,
+              "diameter": 26.72
+            }
+          }
+        },
+        "10": {
+          "base_pair": "G-C",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": 9.79,
+              "major_depth": 1.3,
+              "major_angle": -90.0,
+              "diameter": 23.03
+            },
+            "1": {
+              "minor_width": 4.43,
+              "minor_depth": 6.98,
+              "minor_angle": -13.0,
+              "major_width": 12.75,
+              "major_depth": -3.03,
+              "major_angle": -76.0,
+              "diameter": 18.81
+            },
+            "2": {
+              "minor_width": 4.32,
+              "minor_depth": 6.45,
+              "minor_angle": -13.0,
+              "major_width": 11.87,
+              "major_depth": -0.81,
+              "major_angle": -84.0,
+              "diameter": 19.97
+            }
+          }
+        },
+        "11": {
+          "base_pair": "T-A",
+          "sub_levels": {
+            "0": {
+              "minor_width": 4.4,
+              "minor_depth": 6.32,
+              "minor_angle": -20.0,
+              "major_width": 12.17,
+              "major_depth": -1.05,
+              "major_angle": -90.0,
+              "diameter": 19.57
+            },
+            "1": {
+              "minor_width": 11.47,
+              "minor_depth": 1.89,
+              "minor_angle": -72.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 19.14
+            },
+            "2": {
+              "minor_width": 11.94,
+              "minor_depth": 0.41,
+              "minor_angle": -78.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            }
+          }
+        },
+        "12": {
+          "base_pair": "C-G",
+          "sub_levels": {
+            "0": {
+              "minor_width": 11.29,
+              "minor_depth": 0.29,
+              "minor_angle": -81.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 18.58
+            },
+            "1": {
+              "minor_width": 11.28,
+              "minor_depth": 1.12,
+              "minor_angle": -81.0,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": 18.14
+            },
+            "2": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "3": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            },
+            "4": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            }
+          }
+        },
+        "13": {
+          "base_pair": "A-T",
+          "sub_levels": {
+            "0": {
+              "minor_width": null,
+              "minor_depth": null,
+              "minor_angle": null,
+              "major_width": null,
+              "major_depth": null,
+              "major_angle": null,
+              "diameter": null
+            }
+          }
+        }
+      }
+    },
+    "annotations": [],
+    "noncanonical_base_pairs": []
+  }
+}
