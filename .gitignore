@@ -238,3 +238,44 @@ structures/
 
 # Base DeepPBS training assembly (large) — copied in on the cluster, not git.
 data/assembly2024/
+
+# ---------------------------------------------------------------------------
+# Added 2026-08-10 -- generated / regenerable output that should not be tracked
+# ---------------------------------------------------------------------------
+
+# pyCurves input decks: written next to the caller by pycurves_array.sh and
+# af3_pycurves.sh, one per structure. Regenerated on every run.
+*_auto.inp
+*_auto_1.inp
+*_auto_2.inp
+# ...except the 20 hand-picked visualization decks already tracked:
+!analysis/dna_relax/pycurves_viz/*_auto.inp
+
+# Rollback snapshots taken by hand before an edit (.bak_precolor, .bak_10pilot,
+# .bak_pre12, .bak_csl_nd, ...). Git history is the rollback mechanism.
+*.bak_*
+
+# Slurm stdout logs written next to the code that submitted them (*.err was
+# already ignored). Vendored libs ship legitimate .out fixtures -- keep those.
+*.out
+!lib/**/*.out
+
+# Scratch minimization/docking intermediates. Regenerate with
+# analysis/align_compare/align_array_min.sbatch (+ align_compare_job.sbatch);
+# the two summary CSVs at align_compare/ root ARE tracked.
+analysis/align_compare/_work/
+analysis/align_compare/logs/
+
+# Bulk PyMOL renders. Per-pilot af3/bioemu panels ARE tracked; these two trees
+# are 75 MB of overlay frames and camera tests, regenerated with
+# analysis/figscripts/render_prepost.sbatch -> render_prepost_min.py.
+analysis/figures/pymol/prepost_min/
+analysis/figures/pymol/_viewtest/
+
+# Exported slide decks: binary, non-delta-compressing, and rebuildable from the
+# committed figures. (deck/TF_conformation_deck.pptx predates this rule and
+# stays tracked.)
+*.pptx
+
+# Scratch structure dumps
+*.tmp.pdb
