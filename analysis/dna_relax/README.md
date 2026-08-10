@@ -65,3 +65,34 @@ Caveat: `batch_dna_shape.py` metrics are numpy geometric proxies; pyCurves
 provides the reference-grade helical parameters. The ensemble pyCurves run
 (bend/groove distributions over all states, not just state 2) is the natural
 next step.
+
+
+## Per-TF generalization (all 11 pilots)
+
+`scripts/batch_dna_shape_v2.py` generalizes `batch_dna_shape.py`: instead of the
+hardcoded 1tgh REG, it AUTO-DETECTS the antiparallel base-pair register from the
+docked reference (strands = first two chains sorted; strand B paired to strand C
+positionally, duplex orientation resolved geometrically from the C1' endpoints).
+Metric definitions are identical -- validated to reproduce the original TBP CSVs
+(tbp_dna_perstate/perres/perbp) byte-for-byte (0 diffs). Also writes
+`<prefix>_register.json` (n_bp + strand ids) for the plotter.
+
+`scripts/plot_dna_shape.py` reproduces the 4-panel TBP figure for any pilot from
+the CSVs. Panels: (a) DNA backbone RMSD vs docked, (b) per-residue mean P
+displacement with strand split, (c) max adjacent P-P gap w/ 9 A unwind line,
+(d) Delta global bend vs docked. Panel titles are DATA-DRIVEN (computed per TF).
+
+### Run one TF
+```bash
+source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh; conda activate deeppbs
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1  # login-node BLAS thread cap segfaults otherwise
+python scripts/batch_dna_shape_v2.py \
+  ../../output/stage2_docked/<tf> ../../output/stage3_min/<tf> ../../output/stage3_min_dnarelax/<tf> \
+  data/<tf>_dna
+python scripts/plot_dna_shape.py data/<tf>_dna <LABEL> figures/<tf>_dna_shape.png
+```
+
+### All pilots (csl dux4 egr1 engrailed err ets1 foxa lef1 nfat runx tbp)
+figures/<tf>_dna_shape.png + data/<tf>_dna_{perstate,perres,perbp}.csv + _register.json
+were generated this way. Note: relaxed-state counts reflect the pipeline snapshot
+at run time (some pilots, e.g. csl/err, were still being populated).
