@@ -20,12 +20,16 @@ DATA = os.path.join(BASE, "analysis", "data")
 FIGS = os.path.join(BASE, "analysis", "figures")
 
 # fnat pass-rate order (README): ETS1 100, TBP 100, EGR1 91, engrailed 91, FOXA 75, LEF1 19
-ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1"]
+ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "dux4", "hsf"]
 LABELS = {"ets1": "ETS1", "tbp": "TBP", "egr1": "EGR1",
-          "engrailed": "engrailed", "foxa": "FOXA", "lef1": "LEF1"}
+          "engrailed": "engrailed", "foxa": "FOXA", "lef1": "LEF1",
+          "csl": "CSL", "err": "ERR", "nfat": "NFAT",
+          "runx": "RUNX", "dux4": "DUX4", "hsf": "HSF"}
 # cool-pastel: BioEmu = teal (focal, the diverse one), AF3 = slate/lavender
-C_BIO = "#4c9aa8"
-C_AF3 = "#b9a7d6"
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(BASE))
+from palette import TEAL as C_BIO, AF3 as C_AF3
+
 
 
 def main():
@@ -58,7 +62,7 @@ def main():
                     color="black", lw=1.3, zorder=5)
             # median value ABOVE the violin body (top ~= 96th pct), white bbox
             
-            txt_col = "#2f6d78" if src == "bioemu" else "#6d5b96"
+            txt_col = C_BIO if src == "bioemu" else C_AF3
             ax.text(x + dx, med + 0.05, f"{med:.2f}", va="bottom", ha="center",
                     fontsize=6.5, color=txt_col, zorder=6)
         # fold-ratio callout in a dedicated row above the axes

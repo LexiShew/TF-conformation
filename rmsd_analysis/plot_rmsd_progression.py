@@ -39,7 +39,10 @@ def import_matplotlib():
 
 # TF display config: stable color and order
 TF_ORDER = ["egr1", "tbp", "dux4"]
-TF_COLORS = {"egr1": "#2c7fb8", "tbp": "#41ab5d", "dux4": "#e6550d"}
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from palette import TF_PALETTE as _TFP, VARIANT_COLOR as _VC
+TF_COLORS = {"egr1": _TFP["egr1"], "tbp": _TFP["tbp"], "dux4": _TFP["dux4"]}
 TF_LABELS = {"egr1": "EGR1 (1aay, zinc finger)",
              "tbp": "TBP (1tgh, β-saddle)",
              "dux4": "DUX4 (5z6z, homeodomain)"}
@@ -51,8 +54,8 @@ VARIANT_LABELS = {
     "metal_cage": "augmented (metal cage)",
 }
 VARIANT_COLORS = {
-    "legacy":     "#F17AD5",
-    "metal_cage": "#BD56EC",
+    "legacy":     _VC["legacy"],
+    "metal_cage": _VC["metal_cage"],
 }
 
 
