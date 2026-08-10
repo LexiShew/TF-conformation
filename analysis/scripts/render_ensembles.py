@@ -4,7 +4,7 @@
 For each pilot, all protein conformations are superposed on the crystal
 binding-chain Cα:
   - crystal protein : opaque dark-grey cartoon (the reference bound pose)
-  - crystal DNA     : gold cartoon, shown once for binding context
+  - crystal DNA     : white surface (transparency 0.55), shown for binding context
   - AF3 (10 models) : lavender cartoon, semi-transparent (tight bundle)
   - BioEmu (~90)    : teal cartoon, high transparency (broad fan)
 
@@ -26,8 +26,15 @@ PILOTS = {   # pilot -> (pdb, af3 subdir, docked subdir)
     "engrailed": ("3hdd", "engrailed_3hdd", "engrailed"),
     "foxa":      ("1vtn", "foxa_1vtn",      "foxa"),
     "lef1":      ("2lef", "lef1_2lef",      "lef1"),
+    "csl":       ("3brg", "csl_3brg",       "csl"),
+    "err":       ("1lo1", "err_1lo1",       "err"),
+    "nfat":      ("1a66", "nfat_1a66",      "nfat"),
+    "runx":      ("1hjc", "runx_1hjc",      "runx"),
+    "dux4":      ("5z6z", "dux4_5z6z",      "dux4"),
+    "hsf":       ("5d5u", "hsf_5d5u",       "hsf"),
 }
-ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1"]
+ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1",
+         "csl", "err", "nfat", "runx", "dux4", "hsf"]
 
 C_CRYST = "0x404040"   # dark grey
 C_DNA   = "0xcbb994"   # muted warm sand (soft context, not competing)
@@ -104,13 +111,37 @@ def render_pilot(pilot):
     cmd.color(C_AF3, "af3")
     cmd.color(C_BIO, "bio")
     if has_dna:
-        cmd.set("cartoon_ring_mode", 3, "dna")
-        cmd.set("cartoon_ring_finder", 1, "dna")
-        cmd.color(C_DNA, "dna")
+        cmd.color("white", "dna")
+        cmd.set("surface_quality", 1)
 
-    # fixed view for both panels (frame on the crystal complex)
+    # interface-facing view: look perpendicular to BOTH the protein->DNA
+    # centroid axis and the DNA helical axis, so the contact face is toward
+    # the camera (plain orient() can look end-on down the DNA or hide the
+    # interface behind the protein).
+    import numpy as np
     view_sel = "cryst or dna" if has_dna else "cryst"
     cmd.orient(view_sel)
+    if has_dna:
+        pc = np.asarray(cmd.get_coords("cryst")).mean(0)
+        dxyz = np.asarray(cmd.get_coords("dna")); dc = dxyz.mean(0)
+        v = pc - dc; nv = np.linalg.norm(v)
+        if nv > 1e-6:
+            v = v / nv
+            X = dxyz - dc
+            dna_axis = np.linalg.svd(X, full_matrices=False)[2][0]
+            dna_axis = dna_axis / np.linalg.norm(dna_axis)
+            cam_z = np.cross(v, dna_axis)
+            if np.linalg.norm(cam_z) < 1e-3:
+                cam_z = np.array([0., 0., 1.])
+            cam_z = cam_z / np.linalg.norm(cam_z)
+            up = dna_axis - np.dot(dna_axis, cam_z) * cam_z
+            up = up / np.linalg.norm(up)
+            right = np.cross(up, cam_z); right = right / np.linalg.norm(right)
+            view = list(cmd.get_view())
+            view[0:9] = [right[0], right[1], right[2],
+                         up[0], up[1], up[2],
+                         cam_z[0], cam_z[1], cam_z[2]]
+            cmd.set_view(view)
     cmd.zoom(view_sel, buffer=8)
 
     os.makedirs(OUTDIR, exist_ok=True)
@@ -124,8 +155,9 @@ def render_pilot(pilot):
         cmd.set("cartoon_tube_radius", 0.3, "cryst")
         cmd.set("cartoon_transparency", ens_transp, ensemble_obj)
         if has_dna:
-            cmd.show("cartoon", "dna")
-            cmd.set("cartoon_transparency", 0.10, "dna")
+            cmd.show("surface", "dna")
+            cmd.color("white", "dna")
+            cmd.set("transparency", 0.55, "dna")
         out = os.path.join(OUTDIR, f"{pilot}_{tag}.png")
         cmd.png(out, width=1200, height=1200, dpi=200, ray=1)
         sys.stdout.flush()

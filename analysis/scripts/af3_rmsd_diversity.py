@@ -34,6 +34,12 @@ PILOTS = [
     ("engrailed", "3hdd", "engrailed_3hdd"),
     ("foxa",      "1vtn", "foxa_1vtn"),
     ("lef1",      "2lef", "lef1_2lef"),
+    ("csl",       "3brg", "csl_3brg"),
+    ("err",       "1lo1", "err_1lo1"),
+    ("nfat",      "1a66", "nfat_1a66"),
+    ("runx",      "1hjc", "runx_1hjc"),
+    ("dux4",      "5z6z", "dux4_5z6z"),
+    ("hsf",       "5d5u", "hsf_5d5u"),
 ]
 
 
