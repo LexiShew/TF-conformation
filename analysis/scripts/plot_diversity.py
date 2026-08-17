@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""D1 — BioEmu vs AF3 conformational diversity.
+
+Reads analysis/data/ensemble_diversity_pairwise.csv (all unique-pair Cα-RMSDs)
+and ensemble_diversity.csv (summaries). Renders analysis/figures/D1_diversity.png:
+per-pilot pairwise Cα-RMSD distributions, BioEmu vs AF3, on a shared axis,
+ordered by fnat pass-rate (repo convention). Cool-pastel palette.
+
+Run in any env with pandas+matplotlib (e.g. deeppbs); cap BLAS threads on the
+login node.
+"""
+import os
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+BASE = "/project2/rohs_102/shewchuk/TF-conformation"
+DATA = os.path.join(BASE, "analysis", "data")
+FIGS = os.path.join(BASE, "analysis", "figures")
+
+# fnat pass-rate order (README): ETS1 100, TBP 100, EGR1 91, engrailed 91, FOXA 75, LEF1 19
+ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "dux4", "hsf"]
+LABELS = {"ets1": "ETS1", "tbp": "TBP", "egr1": "EGR1",
+          "engrailed": "engrailed", "foxa": "FOXA", "lef1": "LEF1",
+          "csl": "CSL", "err": "ERR", "nfat": "NFAT",
+          "runx": "RUNX", "dux4": "DUX4", "hsf": "HSF"}
+# cool-pastel: BioEmu = teal (focal, the diverse one), AF3 = slate/lavender
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(BASE))
+from palette import TEAL as C_BIO, AF3 as C_AF3
+
+
+
+def main():
+    pw = pd.read_csv(os.path.join(DATA, "ensemble_diversity_pairwise.csv"))
+    summ = pd.read_csv(os.path.join(DATA, "ensemble_diversity.csv"))
+    smed = {(r.pilot, r.source): r.median_pairwise for r in summ.itertuples()}
+
+    fig, ax = plt.subplots(figsize=(9, 7.2))
+    n = len(ORDER)
+    xpos = np.arange(n)          # ets1 leftmost
+    off = 0.19
+    YMAX = 13.0  # readable cap; rare long-tail pairs beyond this noted via max in CSV
+    half = 0.10  # half-width of the median line
+
+    for i, pilot in enumerate(ORDER):
+        x = xpos[i]
+        meds = {}
+        for src, col, dx in [("bioemu", C_BIO, +off), ("af3", C_AF3, -off)]:
+            vals = pw[(pw.pilot == pilot) & (pw.source == src)]["pairwise_ca_rmsd"].values
+            if len(vals) == 0:
+                continue
+            parts = ax.violinplot([vals], positions=[x + dx], vert=True,
+                                  widths=0.34, showextrema=False)
+            for b in parts["bodies"]:
+                b.set_facecolor(col); b.set_edgecolor("black")
+                b.set_linewidth(0.5); b.set_alpha(0.45)
+            med = smed[(pilot, src)]; meds[src] = med
+            # median as a black horizontal line across the violin
+            ax.plot([x + dx - half, x + dx + half], [med, med],
+                    color="black", lw=1.3, zorder=5)
+            # median value ABOVE the violin body (top ~= 96th pct), white bbox
+            
+            txt_col = C_BIO if src == "bioemu" else C_AF3
+            ax.text(x + dx, med + 0.05, f"{med:.2f}", va="bottom", ha="center",
+                    fontsize=6.5, color=txt_col, zorder=6)
+        # fold-ratio callout in a dedicated row above the axes
+        if "bioemu" in meds and "af3" in meds:
+            ratio = meds["bioemu"] / meds["af3"]
+            ax.text(x, YMAX + 0.35, f"{ratio:.0f}×", va="bottom", ha="center",
+                    fontsize=8, fontweight="bold", color="#333",
+                    clip_on=False, zorder=6)
+
+    ax.set_xticks(xpos)
+    ax.set_xticklabels([LABELS[p] for p in ORDER])
+    ax.set_ylabel("Pairwise Cα-RMSD within ensemble (Å)")
+    ax.set_ylim(-0.3, YMAX)
+    fig.suptitle("BioEmu samples broad conformational ensembles; AF3 collapses to one pose",
+                 fontsize=9, y=0.965)
+    # label for the ratio row (left of the first pilot, same height as the × values)
+    ax.text(-0.62, YMAX + 0.35, "BioEmu / AF3\nmedian ratio →", va="bottom",
+            ha="right", fontsize=6, style="italic", color="#333", clip_on=False)
+
+    # legend (frameless, in empty upper-left region above the low-RMSD pilots)
+    import matplotlib.patches as mpatches
+    handles = [mpatches.Patch(facecolor=C_BIO, edgecolor="black", lw=0.5, label="BioEmu (≈90 frames)"),
+               mpatches.Patch(facecolor=C_AF3, edgecolor="black", lw=0.5, label="AF3 (10 samples)")]
+    ax.legend(handles=handles, frameon=False, fontsize=7, loc="upper left")
+
+    for sp in ["top", "right"]:
+        ax.spines[sp].set_visible(False)
+    ax.margins(x=0.04)
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    os.makedirs(FIGS, exist_ok=True)
+    out = os.path.join(FIGS, "D1_diversity.png")
+    fig.savefig(out, dpi=200, bbox_inches="tight")
+    print("wrote", out)
+
+
+if __name__ == "__main__":
+    main()

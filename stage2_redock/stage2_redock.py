@@ -93,6 +93,12 @@ def parse_args():
                    help="Skip the monomer guard (B3). By default Stage 2 refuses an "
                         "assembly with >1 protein chain contacting the DNA, to avoid "
                         "silently docking one chain's ensemble against a complex site.")
+    p.add_argument("--monomer-assembly", action="store_true",
+                   help="Treat the configured --protein-chain as the sole biological "
+                        "monomer: exclude OTHER protein chains from the monomer guard "
+                        "(config-declared crystal-packing partner or second assembly). "
+                        "Unlike --allow-multimer this asserts a genuine monomer rather "
+                        "than bypassing the check; the docked/scored site is unchanged.")
     return p.parse_args()
 
 
@@ -297,6 +303,13 @@ def main():
     # --- Monomer guard (B3) ---
     contacting = dna_contacting_protein_chains(ref, ref_dna_idx, args.iface_cutoff)
     print(f"Protein chains contacting DNA (within {args.iface_cutoff} Å): {contacting}")
+    if args.monomer_assembly:
+        excluded = [c for c in contacting if c != protein_chain]
+        if excluded:
+            print(f"[monomer-assembly] excluding config-declared non-biological protein "
+                  f"chain(s) {excluded} from the monomer guard; keeping configured "
+                  f"chain {protein_chain} as the sole binder.")
+        contacting = [c for c in contacting if c == protein_chain]
     if len(contacting) > 1 and not args.allow_multimer:
         print(f"\nERROR: not a functional monomer — {len(contacting)} protein chains "
               f"contact the DNA site (chainids {contacting}).", file=sys.stderr)

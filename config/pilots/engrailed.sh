@@ -33,6 +33,12 @@ export BINDING_CHAIN="A"
 # Stage 2 chain layout (0-based cif chainids). PROTEIN_CHAIN=2 is chain A.
 export PROTEIN_CHAIN=2
 export DNA_CHAINS="0,1"
+# 3HDD holds two homeodomain copies on the SAME duplex. Chain 2 (label C, auth A)
+# binds the DNA interior (specific recognition); chain 3 (label D, auth B) only
+# grazes the DNA termini (resid 217-220 / 322-323) = crystal packing, not a second
+# biological binder. Declare chain 2 as the sole monomer so the B3 guard excludes
+# the packing contact rather than mislabeling via --allow-multimer.
+export MONOMER_ASSEMBLY=1
 
 # Stage 3 minimization parameters (match the other pilots).
 export RAMP_STAGES="0.1,0.3,0.5,0.7,1.0"

@@ -74,8 +74,39 @@ def rmsd(R, M):
     s = SVDSuperimposer(); s.set(np.array(R), np.array(M)); s.run()
     return float(s.get_rms())
 
+def _select_bound_monomer(rp, rseq, rd, iface_cut, contact_cut):
+    """When the reference holds >1 protein chain (a second biological assembly
+    or a crystal-packing partner), keep only the best-bound monomer: the protein
+    chain making the most DNA contacts, plus the DNA chains that chain contacts.
+    Single-protein-chain references return unchanged (byte-identical path)."""
+    prot_ids = []
+    for r in rp:
+        cid = r.get_parent().id
+        if cid not in prot_ids: prot_ids.append(cid)
+    if len(prot_ids) <= 1:
+        return rp, rseq, rd
+    best_id, best_n, best_dna = prot_ids[0], -1, set()
+    for pid in prot_ids:
+        chain_res = [r for r in rp if r.get_parent().id == pid]
+        n = 0; dna_hit = set()
+        for pr in chain_res:
+            for nr in rd:
+                if min_dist(pr, nr) <= iface_cut:
+                    n += 1; dna_hit.add(nr.get_parent().id)
+        if n > best_n:
+            best_id, best_n, best_dna = pid, n, dna_hit
+    rp2 = [r for r in rp if r.get_parent().id == best_id]
+    rd2 = [r for r in rd if r.get_parent().id in best_dna]
+    seq2 = "".join(AA3TO1[r.get_resname().strip()] for r in rp2)
+    sys.stderr.write(f"[fnat] multi-assembly reference: kept protein chain {best_id} "
+                     f"+ DNA {sorted(best_dna)} ({len(rp2)} prot res, {len(rd2)} DNA res) "
+                     f"of {len(prot_ids)} protein chains\n")
+    return rp2, seq2, rd2
+
+
 def ref_side(model, iface_cut, contact_cut, gap):
     rp, rseq, rd = ordered(model)
+    rp, rseq, rd = _select_bound_monomer(rp, rseq, rd, iface_cut, contact_cut)
     iface = [i for i,pr in enumerate(rp) if any(min_dist(pr,nr)<=iface_cut for nr in rd)]
     segs, cur = [], []
     for i in iface:

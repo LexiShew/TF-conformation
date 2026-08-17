@@ -27,6 +27,15 @@ source "${TFCONF_DIR}/lib/common.sh"
 TF_NAME="${1:?Usage: $0 <tf_name> [n_seeds]}"
 N_SEEDS="${2:-5}"
 
+# Optional partition override for the GPU train/eval jobs. When set (e.g.
+# BENCH_PARTITION=qcbgpu), it is passed as --partition to every sbatch below,
+# overriding the wrapper's #SBATCH --partition default. Leave unset to use the
+# wrapper default (rohs). Reroute idiom: BENCH_PARTITION=qcbgpu <this script>.
+PART_ARG=()
+if [ -n "${BENCH_PARTITION:-}" ]; then
+    PART_ARG=( --partition="${BENCH_PARTITION}" )
+fi
+
 load_pilot_config "${TF_NAME}"
 require_var TF_NAME
 require_var FOLD
@@ -38,7 +47,11 @@ if [ ! -d "${COMBINED_ASSEMBLY_DIR}" ]; then
     echo "Run stages 1-5 first via ./scripts/pipeline/run_pilot.sh ${TF_NAME} 1 5" >&2
     exit 1
 fi
-AUG_TRAIN="${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt"
+# Condition suffix (e.g. "_dnarelax") set by common.sh; empty for frozen runs.
+# Use the suffix-aware augmented train file so the DNA-relaxed pipeline validates
+# against ITS data (train${FOLD}_aug_dnarelax_${TF_NAME}.txt), not the frozen one.
+COND="${CONDITION_NAME_SUFFIX:-}"
+AUG_TRAIN="${AUG_TRAIN_FOLD:-${FOLDS_AUG_DIR}/train${FOLD}_aug_${TF_NAME}.txt}"
 if [ ! -f "${AUG_TRAIN}" ]; then
     echo "ERROR: augmented train file not found: ${AUG_TRAIN}" >&2
     exit 1
@@ -58,7 +71,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
         --fold "${FOLD}" \
         --seed "${s}" \
-        --seed-suffix "_s${s}" \
+        --seed-suffix "${COND}_s${s}" \
         --output-dir "${OUTPUTS_DIR}"
 done
 
@@ -73,6 +86,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --output="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.out" \
         --error="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.err" \
         --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}" \
+        "${PART_ARG[@]}" \
         "${WRAPPERS_DIR}/train_compare.sh")
     TRAIN_JOB_IDS+=( "${JOB_ID}" )
     echo "  seed ${s}: train job ${JOB_ID}"
@@ -83,6 +97,7 @@ DEPEND_STR=$(IFS=':'; echo "${TRAIN_JOB_IDS[*]}")
 EVAL_JOB=$(sbatch --parsable \
     --dependency="afterok:${DEPEND_STR}" \
     --export=ALL,TF_NAME="${TF_NAME}" \
+    "${PART_ARG[@]}" \
     "${WRAPPERS_DIR}/eval_benchmark.sh")
 echo "[multiseed/${TF_NAME}] eval job ${EVAL_JOB} depends on training jobs"
 

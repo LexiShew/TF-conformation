@@ -1,0 +1,54 @@
+"""fig6_within_family_transfer — regenerates fig6_within_family_transfer.png
+Run from this directory after placing perentry_condition.csv and perseed_perentry.csv here.
+"""
+from _common import *
+
+apply_figure_style()
+
+wq = pe.pivot_table(index=['tf','dna','entry','family'], columns='arm', values='mean_pearsonr').reset_index()
+wq['dAug'] = wq['augmented'] - wq['baseline']
+wq = wq.dropna(subset=['dAug'])
+wq['selffam'] = [f==pilot_entryfam.get(t) for t,f in zip(wq.tf, wq.family)]
+
+plt.close('all')
+YL=(-0.16,0.20)
+def vpanel6(ax,dna,col,title):
+    xs=np.arange(len(order9)); rng=np.random.default_rng(1)
+    for xi,tf in zip(xs,order9):
+        if dna=='relax' and tf=='csl':
+            ax.text(xi,0.0,'n.d.\n(no relaxed\nDNA run)',color=C_RELAX,fontsize=6,va='center',ha='center',style='italic'); continue
+        bg=entry_delta(tf,dna,False); sf=entry_delta(tf,dna,True)
+        bp=ax.boxplot([bg],positions=[xi-0.20],widths=0.34,patch_artist=True,showfliers=False,manage_ticks=False,zorder=2)
+        for p in bp['boxes']: p.set_facecolor(C_BG);p.set_edgecolor('#9AA3AF');p.set_linewidth(0.7)
+        for el in ['whiskers','caps']:
+            for ln in bp[el]: ln.set_color('#9AA3AF');ln.set_linewidth(0.7)
+        for md in bp['medians']: md.set_color('white');md.set_linewidth(1.0)
+        bp2=ax.boxplot([sf],positions=[xi+0.20],widths=0.34,patch_artist=True,showfliers=False,manage_ticks=False,zorder=3)
+        for p in bp2['boxes']: p.set_facecolor(col);p.set_alpha(0.45);p.set_edgecolor(col);p.set_linewidth(0.9)
+        for el in ['whiskers','caps']:
+            for ln in bp2[el]: ln.set_color(col);ln.set_linewidth(0.9)
+        for md in bp2['medians']: md.set_color('white');md.set_linewidth(1.2)
+        xj=xi+0.20+(rng.random(len(sf))-0.5)*0.14
+        inside=(sf>=YL[0])&(sf<=YL[1])
+        ax.scatter(xj[inside],sf[inside],s=13,color=col,alpha=0.9,edgecolor='white',lw=0.3,zorder=4)
+        for val,xx in zip(sf[~inside],xj[~inside]):
+            yend=YL[1]-0.004 if val>YL[1] else YL[0]+0.004
+            ax.annotate('',xy=(xx,YL[1] if val>YL[1] else YL[0]),xytext=(xx,yend),arrowprops=dict(arrowstyle='-|>',color=col,lw=1.1))
+    ax.axhline(0,color='0.35',lw=1.0,zorder=1)
+    ax.set_xticks(xs); ax.set_title(title,loc='left',fontsize=9)
+    ax.set_ylim(*YL); ax.set_xlim(-0.6,len(order9)-0.4); set_frame(ax)
+
+fig,axes=plt.subplots(2,1,figsize=(10.0,8.6),sharex=True)
+vpanel6(axes[0],'frozen',C_FROZ,'Frozen DNA')
+vpanel6(axes[1],'relax',C_RELAX,'Relaxed DNA')
+axes[0].tick_params(labelbottom=False)
+for ax in axes: ax.set_ylabel('ΔPearson = aug − base'); ax.yaxis.labelpad=8
+axes[1].set_xticks(np.arange(len(order9))); axes[1].set_xticklabels([lab2[t] for t in order9],rotation=0,ha='center',fontsize=7.5)
+fig.suptitle("Augmentation is family-specific: the pilot's own Pfam family (colored) shifts\nmore positive than the other-family background (grey)",fontsize=10,y=0.985,x=0.02,ha='left')
+handles=[mpl.patches.Patch(facecolor=C_FROZ,alpha=0.45,edgecolor=C_FROZ,label='same-family (frozen)'),
+         mpl.patches.Patch(facecolor=C_RELAX,alpha=0.45,edgecolor=C_RELAX,label='same-family (relaxed)'),
+         mpl.patches.Patch(facecolor=C_BG,edgecolor='#9AA3AF',label='other-family background')]
+fig.legend(handles=handles,loc='upper right',bbox_to_anchor=(0.99,0.97),ncol=1,frameon=False,fontsize=7.5)
+fig.tight_layout(rect=[0,0,1,0.94])
+fig.savefig('fig6_within_family_transfer.png',dpi=300,bbox_inches='tight')
+print("fig6 rebuilt with csl n.d. marker")

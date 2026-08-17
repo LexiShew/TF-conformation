@@ -1,0 +1,234 @@
+[
+ {
+  "layout": "title",
+  "title": "Conformational augmentation of DeepPBS",
+  "subtitle": "Do BioEmu structure ensembles teach a structure\u2192specificity model new biology?\nSix-pilot study \u00b7 Rohs Lab \u00b7 group meeting",
+  "notes": "This is a work-in-progress talk. The one-sentence version: DeepPBS predicts a binding-specificity PWM from a single crystal structure \u2014 I'm testing whether augmenting training with a conformational ensemble (many plausible structures per complex) helps or hurts, and when. The honest headline is that the effect ranges from significantly harmful to significantly beneficial depending on the TF, and I'll show you the one case that's genuinely encouraging (ETS1) alongside the cautionary counter-case (TBP). Nothing here is proven yet \u2014 the decisive controls are running now."
+ },
+ {
+  "layout": "bullets",
+  "title": "Why protein conformation makes this hard",
+  "bullets": [
+   "A crystal structure is ONE snapshot \u2014 a single low-energy pose, frozen, often at non-physiological conditions.",
+   "But TF\u2013DNA recognition is dynamic: the bound state is an ensemble, and specificity comes partly from which conformations a sequence can be read out by.",
+   "DeepPBS learns structure \u2192 PWM from that single snapshot. It never sees the conformational flexibility that underlies binding.",
+   "Hypothesis: feeding the model a realistic ensemble of bound-state conformers should expose information a single structure can't \u2014 IF the ensemble stays near the true bound state."
+  ],
+  "notes": "Set up the core tension. Crystallography gives us one structure, but the physics of recognition is about an ensemble and about deformability. A model trained on one snapshot is essentially assuming the bound state is rigid. The pilot study asks: if we generate many plausible conformations of each complex and train on all of them, does the model learn something more transferable? The crucial caveat \u2014 which becomes the whole story later \u2014 is 'if the ensemble stays near the true bound state.' When it doesn't, augmentation injects noise."
+ },
+ {
+  "layout": "bullets",
+  "title": "The theory: shape readout and why an ensemble should help",
+  "bullets": [
+   "Indirect (shape) readout: specificity depends on DNA shape and on the deformation energetics of the protein\u2013DNA interface \u2014 not just base contacts.",
+   "A single structure captures one point on that energy landscape; an ensemble samples the local basin around the bound state.",
+   "If augmentation frames are faithful, the model sees the range of conformations consistent with binding \u2192 better-calibrated specificity.",
+   "This is the Rohs-lab shape framework applied to the protein side: conformational tolerance IS part of what defines specificity."
+  ],
+  "notes": "This is the theoretical motivation grounded in the lab's own framework. Shape readout says specificity isn't only about which bases contact which residues \u2014 it's about the shape and deformability of the interface. A conformational ensemble is a direct sampling of that deformability. The bet is that showing the model the basin of bound-state conformations teaches it the tolerance envelope. Emphasize: this predicts augmentation helps only when the sampled conformations are genuinely near the bound state \u2014 which foreshadows why rigid recognition modules behave differently from floppy ones."
+ },
+ {
+  "layout": "bullets",
+  "title": "The other half: DNA is not rigid either",
+  "bullets": [
+   "Our pipeline currently carries crystal DNA RIGIDLY through docking and minimization \u2014 every augmented frame of a TF shares ONE DNA conformation.",
+   "But DNA deformability is sequence-dependent, and shape readout is precisely about which sequences bend into the bound geometry cheaply.",
+   "hexABC (2080 hexamers, ~0.25 PB of MD) characterizes free-DNA stiffness \u2014 best accessed distilled via cgDNA+/cgNA+, not as raw trajectories.",
+   "Deep DNAshape (Li/Chiu/Rohs, in-house) predicts shape AND fluctuations from k-mer context \u2014 lowest-friction way to add per-bp flexibility channels to DeepPBS.",
+   "Caveat: free-DNA MD won't reach protein-induced bends (TBP ~80\u201390\u00b0, LEF-1 ~110\u2013120\u00b0) \u2014 use stiffness as a PRIOR in joint relaxation, not as a conformer source."
+  ],
+  "notes": "This is the next scientific direction and directly addresses a gap: we've been treating the DNA as a rigid template. That's a confound and an opportunity. hexABC is the big MD trove but the usable form is the distilled elastic model cgDNA+, which gives sequence-dependent stiffness cheaply. Deep DNAshape is the in-house, low-friction option \u2014 it already predicts shape and fluctuations, so we could add flexibility features to the DNA representation and see if the model even responds before investing in physics. The key intellectual point: free-DNA sampling won't reach the strongly bent bound states of TBP or LEF-1, so flexibility should enter as a stiffness prior during joint protein\u2013DNA relaxation, not as a bag of pre-bent conformers."
+ },
+ {
+  "layout": "bullets",
+  "title": "DeepPBS in one slide",
+  "bullets": [
+   "Input: a protein\u2013DNA complex structure (geometry + chemical features of the interface).",
+   "Output: a predicted position weight matrix (PWM) \u2014 the binding specificity.",
+   "Trained across a large set of TF\u2013DNA crystal structures (our general set \u2248 130 held-out entries).",
+   "We evaluate predicted vs. experimental PWMs: Pearson/Spearman, AUROC, IC-weighted PCC, Brier, MAE."
+  ],
+  "notes": "Quick recap so everyone's calibrated. DeepPBS maps a complex structure to a PWM. We measure success by comparing the predicted PWM to the experimental one across several complementary metrics \u2014 correlation, ranking, discrimination (AUROC), and calibration (Brier). The augmentation question is whether adding conformers to the training set moves these metrics, measured on held-out entries the model never trained on."
+ },
+ {
+  "layout": "image",
+  "title": "The augmentation pipeline (Stage 1 \u2192 7)",
+  "image": "deck_img/pipeline_dag.png",
+  "notes": "Here's the whole pipeline. Stage 1: BioEmu samples protein conformations, HPacker rebuilds sidechains. Stage 2: each conformer is redocked onto the crystal DNA by Kabsch superposition. Stage 3: OpenMM ramped minimization relaxes each complex, with a recovery pass (3r) for frames that hit NaNs or clashes. Then the fnat gate \u2014 the key quality checkpoint \u2014 keeps only frames whose interface contacts still match the crystal (fraction of native contacts \u2265 0.5). Passing frames go through preprocessing to npz (Stage 4), get built into augmented training folds (Stage 5), train paired baseline-vs-augmented models (Stage 6), and are evaluated with paired bootstrap CIs and t-tests (Stage 7). The single most important design decision is where that gate sits \u2014 which is the next slide."
+ },
+ {
+  "layout": "image",
+  "title": "How the pipeline evolved",
+  "image": "deck_img/pipeline_evolution.png",
+  "notes": "Two fixes reshaped the results. Fix 1: originally the fnat gate scored un-minimized poses (after Stage 2). That was wrong \u2014 it judged frames on a pose the model never trains on, letting clashy frames through and rejecting good ones. Moving the gate to after Stage 3 (commit 93fbbaf) means we score the actual minimized pose. Fix 2: the assembly auto-select patch. Two pilots (ets1, engrailed) have crystal structures with multiple assemblies \u2014 ets1 has two biological assemblies, engrailed has a crystal-packing second copy grazing the DNA. The original gate scored against the wrong reference and rejected everything. The patch detects and scores against the bound biological assembly. Both fixes are provably no-ops on the clean single-assembly pilots. We're now running fixed-seed controls."
+ },
+ {
+  "layout": "bullets",
+  "title": "Stage detail \u2014 sampling, docking, minimization",
+  "bullets": [
+   "Stage 1 \u2014 BioEmu generates ~100 conformers of the ISOLATED protein monomer; HPacker rebuilds sidechains.",
+   "Stage 2 \u2014 each conformer is Kabsch-superposed back onto the crystal DNA (interface-atom alignment).",
+   "Stage 3 \u2014 OpenMM minimization with a restraint ramp (0.1\u21921.0); recovery pass rescues NaN/clash frames.",
+   "Design tension: BioEmu samples the FREE protein \u2014 so rigid modules stay near the bound pose, flexible ones drift."
+  ],
+  "notes": "Walk through the front half. BioEmu is a generative model of protein conformational ensembles, but it samples the free (unbound) protein. That's the crux: for a rigid recognition module the free-state ensemble stays near the bound pose, so the frames are faithful; for a floppy module the free ensemble wanders far from the bound geometry. HPacker fixes sidechains after backbone sampling. Stage 2 docks by superposing interface atoms onto the crystal DNA \u2014 note this is where the rigid-DNA assumption enters. Stage 3 minimization with a ramped restraint prevents blow-ups, and the recovery pass re-does frames that fail."
+ },
+ {
+  "layout": "bullets",
+  "title": "Stage detail \u2014 the fnat gate, folds, and eval",
+  "bullets": [
+   "fnat gate \u2014 fraction of native interface contacts vs. crystal; floor 0.5. Frames below it never reach training.",
+   "Stage 4/5 \u2014 passing frames \u2192 npz features \u2192 augmented training folds (baseline fold + conformers).",
+   "Stage 6 \u2014 paired training: baseline and augmented models share initialization per seed.",
+   "Stage 7 \u2014 held-out evaluation: paired bootstrap CIs + t-tests on TF-specific test entries.",
+   "fnat pass-rate measures docking faithfulness \u2014 NOT whether the augmentation helps (see results)."
+  ],
+  "notes": "The back half. The fnat gate is the quality filter: it asks whether a minimized frame still makes the crystal's interface contacts. This is the checkpoint that makes the whole thing defensible \u2014 it keeps physically implausible frames out. Stage 5 builds the augmented folds. Stage 6 trains baseline and augmented in pairs sharing a seed, so the only difference is the augmentation. Stage 7 evaluates on held-out entries with proper paired statistics. Critical point I'll hammer on the results slides: a high fnat pass-rate tells you frames docked faithfully, NOT that they help the model. TBP passes at 100% and every metric gets worse."
+ },
+ {
+  "layout": "image",
+  "title": "Where the drift lives \u2014 per-residue mobility",
+  "image": "deck_img/R2_per_residue_profiles.png",
+  "notes": "A per-residue decomposition of the backbone drift, averaged over each pilot's Stage-3 frames. The universal signature is rigid cores and floppy termini: every pilot has low, flat RMSD through its recognition region and sharp peaks at the N- and C-termini. But the magnitude scales with module type. TBP's beta-saddle is essentially flat at ~1 Angstrom across all 180 residues \u2014 extraordinarily rigid. ETS1 and EGR1 cores stay near 1\u20132 Angstrom. The mobile pilots blow out at the ends: FOXA reaches 17 Angstrom and LEF1 20 Angstrom at their C-terminal tails, which are outside the folded recognition domain. The takeaway for the method: the drift that fails frames is concentrated in disordered terminal regions, not in the DNA-reading core \u2014 which is reassuring, because it means the frames that DO pass have faithful recognition geometry."
+ },
+ {
+  "layout": "bullets",
+  "title": "The PWM-label problem (a core confound)",
+  "bullets": [
+   "Each TF has ONE experimental PWM. All ~95 augmented frames of that TF share that SAME single label.",
+   "So augmentation diversifies the INPUT (structures) but not the TARGET \u2014 the model sees many structures mapped to one answer.",
+   "Good framing: this teaches the 'deformability envelope' consistent with one specificity \u2014 conformational tolerance.",
+   "Bad framing: if sampled frames don't correspond to the labeled specificity, we inject pure label noise.",
+   "Interacts with imbalance: fanning ~95 frames per TF up-weights that TF ~95\u00d7 in the loss.",
+   "Decisive fix (pending): per-frame PWMs \u2014 let each conformer carry its own predicted-shape-consistent label."
+  ],
+  "notes": "This is the confound I most want feedback on. We have one PWM per TF, but we're now showing the model ~95 structures per TF all pointing at that one PWM. Two interpretations: optimistically, we're teaching the model the envelope of conformations compatible with a given specificity \u2014 which is exactly what shape-readout tolerance means. Pessimistically, if the conformers don't actually correspond to that specificity, we're just adding label noise and up-weighting that TF 95-fold. The decisive experiment \u2014 not yet coded \u2014 is per-frame PWMs: give each conformer a label consistent with its own shape, so input diversity is matched by target diversity. That single change determines whether the ETS1 gain is real signal or an artifact."
+ },
+ {
+  "layout": "bullets",
+  "title": "Confounds we're controlling for",
+  "bullets": [
+   "#1 Rigid DNA / single label \u2014 crystal DNA carried unchanged; one PWM per TF (previous slide + dynamic-DNA plan).",
+   "#2 GBSA over-stabilization \u2014 implicit solvent can over-compact the interface during minimization.",
+   "#3 / #5 Random seed \u2014 original configs didn't fix a seed; 5-seed paired re-run now in flight to control this.",
+   "Scope: functionally MONOMERIC TF\u2013DNA complexes only (dimers are out of scope \u2014 see dux4)."
+  ],
+  "notes": "The honest limitations slide. Three confounds. First, rigid DNA and the single-label issue we just discussed. Second, GBSA implicit solvent can over-stabilize and artificially compact the interface \u2014 a physics concern in Stage 3. Third, the original runs didn't fix a random seed, so baseline-vs-augmented differences could partly be seed noise; the 5-seed paired re-run now running directly controls this. And a scope boundary: the method is defined for functionally monomeric complexes. Dimers break an assumption, which is exactly why the dux4 case is instructive."
+ },
+ {
+  "layout": "image_grid",
+  "title": "Result 1 \u2014 conformer drift tracks recognition-module rigidity",
+  "images": [
+   "deck_img/tbp_ensemble.png",
+   "deck_img/ets1_ensemble.png",
+   "deck_img/egr1_ensemble.png",
+   "deck_img/lef1_ensemble.png"
+  ],
+  "notes": "These overlays show, per pilot, the crystal bound pose (dark red) with 10 Stage-2 docked (blue) and 10 Stage-3 minimized (green) conformers, on the crystal DNA (orange). The mean C\u03b1 deviation from crystal ranks the pilots by rigidity: TBP 1.33 \u00c5 and ETS1 1.50 \u00c5 are tightest \u2014 their recognition modules (the TATA-binding saddle, the ETS winged-HTH) barely move. EGR1 (zinc-finger) sits at 2.75 \u00c5. LEF-1 (HMG-box) is the extreme at 5.97 \u00c5 with outliers past 18 \u00c5 \u2014 the HMG box is intrinsically mobile in the free state, so BioEmu wanders. This drift ranking cleanly explains the fnat pass-rates: rigid modules keep frames near the bound pose so they pass the gate; floppy ones don't. But \u2014 and this is the pivotal caveat \u2014 drift does NOT predict whether augmentation helps."
+ },
+ {
+  "layout": "image",
+  "title": "Gate behaviour \u2014 how many frames survive, per pilot",
+  "image": "deck_img/F1_fnat_distributions.png",
+  "notes": "This quantifies the fnat gate across all six pilots on real per-state data. Each violin is the distribution of fraction-of-native-contacts for that pilot's minimized frames; points are colored green if they pass the 0.5 floor, rose if they fail; the percentage is the pass-rate. The ordering is the rigidity gradient again: ETS1 and TBP sit entirely above the floor (100% pass), EGR1 and engrailed at 91%, FOXA at 75%, and LEF1 collapses \u2014 median below the floor, only 19% pass. This is the front-line evidence that the gate is doing real work: it's keeping essentially all of the rigid-module frames and rejecting most of the floppy HMG-box frames. Pair this with the interface-RMSD analysis \u2014 fnat and iRMSD co-vary at Spearman \u22120.84, so the two criteria agree on which frames are faithful."
+ },
+ {
+  "layout": "image",
+  "title": "What a passing vs failing frame actually looks like",
+  "image": "deck_img/S1_bestworst_combined.png",
+  "notes": "This is the structural intuition behind the gate. Both panels overlay the crystal bound pose (grey) on the DNA (orange), with each pilot's best-fnat frame in teal and worst-fnat frame in rose. Left, ETS1: even the worst frame (fnat 0.61) hugs the crystal \u2014 the winged-HTH recognition module is rigid, so every BioEmu frame lands near the bound pose, and all of them pass. Right, LEF1: the best frame (teal, fnat 0.71) tracks the crystal reasonably, but the worst frame (rose, fnat 0.12) has its entire N-terminal helix swung up and off the DNA. That's what an 81%-rejection pilot looks like: the HMG-box is intrinsically mobile in the free state, so BioEmu samples conformations that simply don't sit in the minor groove anymore. The gate catches exactly these. This is the picture to keep in mind when we say 'drift tracks fnat yield.'"
+ },
+ {
+  "layout": "image",
+  "title": "Result 2 \u2014 the on-target effect is not what drift predicts",
+  "image": "deck_img/on_target_three_pilots.png",
+  "notes": "This is the central result. Three pilots have TF-specific held-out PWM tests: TBP, EGR1, ETS1. Bars are the augmentation effect on 5 held-out entries, oriented so positive always means augmentation improved that metric; stars mark significance. ETS1 (blue): uniformly positive, all significant \u2014 augmentation genuinely helps. TBP (red): uniformly negative, all significant \u2014 augmentation genuinely hurts. EGR1 (amber): mixed \u2014 AUROC and Pearson up, but rank-based ICs down. Now the punchline: TBP and ETS1 are the TWO most rigid pilots, near-identical drift (1.33 vs 1.50 \u00c5), both 100% fnat pass \u2014 yet OPPOSITE outcomes. So the thing that determines benefit is NOT how faithfully the frames dock. My earlier hypothesis that drift predicts the sign was wrong; I retracted it. What actually distinguishes helpful from harmful augmentation is the open question this project now turns on."
+ },
+ {
+  "layout": "image_caption",
+  "title": "Result 3a \u2014 ETS1: augmentation recovers the correct motif",
+  "image": "deck_img/pwm_logos_ets1.png",
+  "caption": "Experimental ETS core (\u2026cTTCC\u2026) vs baseline (mis-registered) vs augmented (recovers TTCC). r: +0.64 \u2192 +0.89.",
+  "notes": "Now the most biologically legible view \u2014 predicted PWM logos, experimental truth on top, baseline model middle, augmented bottom. ETS1: the experimental motif has the canonical ETS core with the TTCC. The baseline model predicts a mis-registered, over-flat motif (CACAT\u2026). The augmented model recovers the correct C-C\u2026TTCC core and sharpens it \u2014 Pearson to the experimental PWM jumps from +0.64 to +0.89. This is the single most encouraging piece of evidence: the conformational ensemble taught the model the right biology for a case where the recognition helix is rigid and the frames are faithful."
+ },
+ {
+  "layout": "image_caption",
+  "title": "Result 3b \u2014 TBP: augmentation degrades a motif the baseline nailed",
+  "image": "deck_img/pwm_logos_tbp.png",
+  "caption": "Experimental TATA A-tract (CACAAAA) \u2014 baseline recovers it (r +0.94); augmented corrupts it (r +0.54).",
+  "notes": "The cautionary counter-case. TBP's experimental motif is the TATA-box A-tract. The baseline model already predicts it almost perfectly, r +0.94. Augmentation makes it WORSE \u2014 the augmented logo introduces spurious T's and drops to r +0.54. Same rigidity as ETS1, same 100% fnat pass-rate, opposite result. Why? My working hypothesis: TBP's baseline is already near-perfect, so there's no headroom \u2014 and TBP deforms its DNA enormously (an ~80\u201390\u00b0 kink) while our pipeline carries the DNA rigidly, so the augmented frames may encode DNA geometry inconsistent with the specificity label. This is the case that keeps me honest about the method."
+ },
+ {
+  "layout": "image_caption",
+  "title": "Result 3c \u2014 EGR1: a genuinely mixed signal",
+  "image": "deck_img/pwm_logos_egr1.png",
+  "caption": "Zinc-finger GC-box: augmented raises correlation (r +0.74 \u2192 +0.81) and mildly reshuffles position weights.",
+  "notes": "EGR1 is the honest middle. The zinc-finger GC-rich site: augmentation raises the correlation to experiment (+0.74 to +0.81 on this entry) and the AUROC improves significantly, but the rank-based IC metrics degrade \u2014 the position ordering gets reshuffled. So it 'helps' on discrimination and calibration but 'hurts' on fine rank structure. This is why I'm presenting a gradient, not a verdict: the effect is real but metric-dependent, and understanding why EGR1 splits this way is part of the open question."
+ },
+ {
+  "layout": "image",
+  "title": "The six pilots span six DNA-binding families",
+  "image": "deck_img/P1_family_table.png",
+  "notes": "Before the key result, orientation on where the pilots sit in TF sequence space. Each pilot is a different Pfam DNA-binding-domain family \u2014 ETS, TBP's beta-saddle, C2H2 zinc-finger, homeodomain, forkhead, HMG-box \u2014 spanning the major structural modes of DNA recognition: major-groove helical readout, minor-groove insertion, and minor-groove bending. The table ties together everything: family, recognition mode, drift, fnat pass-rate, and augmentation effect. The pattern to notice is that the augmentation effect does NOT line up with drift or pass-rate \u2014 TBP and ETS1 are both rigid, 100%-pass, but one is helped and one hurt. Family assignments come from RCSB PDB Pfam annotations, which lets us extend this beyond the six pilots to the whole benchmark, on the next slides."
+ },
+ {
+  "layout": "image",
+  "title": "DeepPBS baseline accuracy varies by family",
+  "image": "deck_img/P2_baseline_by_family.png",
+  "notes": "Now we go beyond the six pilots to the full general-130 benchmark, annotated by family via RCSB Pfam. This shows the BASELINE model's accuracy \u2014 before any augmentation \u2014 grouped by family, averaged over the pilot models. It's a characterization of which families DeepPBS already reads well from a single structure. p53-like and homeodomain are easiest, around 0.72 Pearson; the C2H2 zinc-fingers are middling and highly variable; ETS and bZIP are the hardest, down around 0.48\u20130.54. This matters for interpreting the augmentation effect: a family with a weak baseline has headroom to improve, while a family the model already nails has little room and more risk of being disturbed. Keep ETS's low baseline in mind for the next slide."
+ },
+ {
+  "layout": "image_caption",
+  "title": "Family signal \u2014 ETS is where augmentation helps most",
+  "image": "deck_img/P3_augeffect_by_family.png",
+  "caption": "Across the general-130 (motif-level family assignment): ETS (n=10, median \u0394Pearson +0.042, 60% of entries up) and IRF (n=4, +0.039) are the only net-positive families; all others net-negative. Single-seed.",
+  "notes": "This is the family-level view of the augmentation effect, and it needs an honest caveat up front: family is assigned at the MOTIF level (each benchmark entry inherits the family of the TF whose PWM it evaluates), which matters because several ETS1 benchmark entries come from ETS1\u2013RUNX1 co-crystals \u2014 assigning family from the crystal's first chain would misfile them as Runt. With that fixed: for each family I computed augmented-minus-baseline per entry, averaged over pilot models. ETS has the strongest positive median (+0.042 Pearson, n=10) and is the best-represented positive family, with 60% of its entries improving and the largest gains on the low-baseline ERG paralogs (0.35\u21920.51). IRF is also net-positive but only n=4. Every other family is net-negative \u2014 TBP (correctly in its own bucket now) and bHLH worst. So the honest statement is NOT 'ETS is the only family helped' \u2014 it's 'ETS is the family augmentation helps most, and the ETS1 pilot's gain is echoed by its ETS paralogs rather than being one structure.' Both positive families are small-n and single-seed, so this is a lead to test, not a settled result. The mechanistic reading the user raised \u2014 induced-fit vs conformational-selection families \u2014 is exactly the right frame for WHY ETS behaves differently."
+ },
+ {
+  "layout": "bullets",
+  "title": "Scope boundary \u2014 the dux4 dimer trial",
+  "bullets": [
+   "DUX4 (5z6z) is a cooperative homeodomain DIMER \u2014 two subunits bind the site together.",
+   "Our pipeline extracts and samples ONE monomer: BioEmu sees the isolated subunit, far from its partner-stabilized bound state.",
+   "Prediction: single-chain frames dock poorly against the dimeric site \u2192 many fail the fnat gate, and any augmentation should HURT.",
+   "Deliberately run as a negative control / scope probe (full Stage 1\u21927 launched; result folding in).",
+   "Lesson: the method's domain of validity is functionally monomeric recognition \u2014 dimers need a fundamentally different sampling model."
+  ],
+  "notes": "dux4 is the intentional failure case \u2014 a scope probe. DUX4 binds as a cooperative dimer, but our sampling generates a single isolated monomer, which BioEmu samples far from the partner-stabilized bound conformation. So we expect the docked frames to be poor and augmentation to hurt, or the fnat gate to reject most of them outright. I launched the full pipeline as an explicit negative control; the numbers are folding in. The value isn't a bad bar chart \u2014 it's that this defines where the method applies. A cooperative dimer needs a sampling model that includes the partner, which is a different project. NOTE: update this slide with the actual dux4 eval outcome once the job lands."
+ },
+ {
+  "layout": "bullets",
+  "title": "What's pending \u2014 and the decisive tests",
+  "bullets": [
+   "5-seed paired re-run (all six monomeric pilots) \u2014 retires the seed confound; results landing now.",
+   "Per-frame PWM labels \u2014 the decisive test of whether the ETS1 gain is real signal or label-noise artifact.",
+   "DNA flexibility \u2014 cgDNA+ stiffness prior in joint relaxation + Deep DNAshape fluctuation channels.",
+   "Cheap first probe: project each pilot's crystal DNA onto the cgDNA+ ground state to quantify how far bound \u2260 free."
+  ],
+  "notes": "Where this goes next, in priority order. First, the 5-seed re-run finishes the seed control \u2014 it's running now and will tell us how much of each effect survives seed averaging. Second, and most important, per-frame PWMs: this is the experiment that decides whether ETS1's gain is genuine. Third, DNA flexibility via cgDNA+ as a stiffness prior and Deep DNAshape features \u2014 with a cheap upfront analysis projecting each crystal DNA onto the free-DNA ground state to quantify how far the bound state sits from equilibrium, which tells us which pilots even need flexible DNA. These are concrete, mostly scoped, and the first two are close."
+ },
+ {
+  "layout": "bullets",
+  "title": "Planned: AF3 complex predictions as a comparator",
+  "bullets": [
+   "Generate the 5 AlphaFold3 predictions per complex for the pilot structures.",
+   "Compare AF3 conformational spread vs. BioEmu ensembles vs. crystal \u2014 do they agree on the bound basin?",
+   "Use AF3 as an orthogonal check on whether our augmented frames are physically reasonable.",
+   "Status: planned, not yet run."
+  ],
+  "notes": "A planned comparison, not yet run. AF3 gives 5 ranked predictions per complex. Two uses: first, compare the conformational spread \u2014 does AF3's uncertainty over the complex agree with BioEmu's ensemble and with where the crystal sits? Second, an orthogonal reasonableness check on our augmented frames. If AF3 and BioEmu agree on the bound basin for the rigid pilots but diverge for the floppy ones, that's independent support for the drift story. Flagging clearly: this is future work."
+ },
+ {
+  "layout": "bullets",
+  "title": "Summary",
+  "bullets": [
+   "Built a 7-stage pipeline turning BioEmu ensembles into DeepPBS training augmentation, gated on interface fidelity.",
+   "Six monomeric pilots: effect spans significantly harmful (TBP) \u2192 mixed (EGR1) \u2192 significantly beneficial (ETS1).",
+   "Conformer drift explains fnat yield but NOT benefit sign \u2014 TBP & ETS1 are equally rigid, opposite outcomes.",
+   "Family view: ETS is the family augmentation helps most (ETS1's gain echoed by ERG/FLI1 paralogs); most families net-harmed \u2014 single-seed, small-n.",
+   "PWM logos make it concrete: ETS1 recovers the TTCC core; TBP corrupts a motif it already knew.",
+   "Decisive tests in flight: 5-seed control + per-frame PWMs; DNA flexibility is the next scientific frontier."
+  ],
+  "notes": "To wrap up. We have a working, quality-gated augmentation pipeline. Across six monomeric pilots the effect is genuinely mixed \u2014 significantly harmful for TBP, mixed for EGR1, significantly beneficial for ETS1. A family-level view (motif-level assignment) sharpens the story: ETS is the family augmentation helps most \u2014 its gain is echoed by ERG/FLI1 paralogs, not confined to one structure \u2014 while most families are net-harmed. Both net-positive families (ETS, IRF) are small-n and single-seed, so this is a lead to test. The clean negative finding is that conformer drift, which we can measure, explains how many frames pass the gate but not whether augmentation helps \u2014 the two most rigid pilots have opposite outcomes. The PWM logos make the biology concrete. And the project now turns on two decisive controls that are running or scoped: the 5-seed seed-control and per-frame PWMs. The DNA-flexibility direction is the bigger scientific opportunity beyond that. I'd especially like feedback on the per-frame-PWM design and whether the ETS1 gain will survive it."
+ }
+]
