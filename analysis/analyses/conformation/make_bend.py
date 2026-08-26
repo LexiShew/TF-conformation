@@ -28,7 +28,7 @@ except Exception:
     pass
 import pandas as pd
 
-DR_DATA = os.path.join(os.path.dirname(DATA_DIR), "dna_relax", "data")
+DR_DATA = os.path.join(os.path.dirname(DATA_DIR), "analyses", "dna_relax", "data")
 b = pd.read_csv(os.path.join(DR_DATA, "bend_delta_bootstrap.csv")).sort_values("delta")
 b = b.reset_index(drop=True)
 x = np.arange(len(b))

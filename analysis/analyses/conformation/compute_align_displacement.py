@@ -73,7 +73,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tfs", nargs="+", default=["ets1", "tbp", "lef1"])
     ap.add_argument("--nstates", type=int, default=100)
-    ap.add_argument("--out", default=f"{BASE}/analysis/align_compare")
+    ap.add_argument("--out", default=f"{BASE}/analysis/analyses/align_compare")
     a = ap.parse_args()
     work = os.path.join(a.out, "_work")
     rows = []

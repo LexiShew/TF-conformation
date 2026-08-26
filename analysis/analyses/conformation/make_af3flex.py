@@ -27,7 +27,7 @@ except Exception:
 import pandas as pd
 
 # dna_relax data dir is a sibling of the standard analysis/data
-DR_DATA = os.path.join(os.path.dirname(DATA_DIR), "dna_relax", "data")
+DR_DATA = os.path.join(os.path.dirname(DATA_DIR), "analyses", "dna_relax", "data")
 a = pd.read_csv(os.path.join(DR_DATA, "af3_vs_ensemble_mgwfl.csv")).sort_values("ens_mean")
 x = np.arange(len(a))
 

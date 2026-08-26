@@ -34,7 +34,7 @@ import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirnam
 from fig_common import DATA_DIR, TEAL, GREY, ALARM, savefig
 import pandas as pd
 
-CSV = os.path.join(os.path.dirname(DATA_DIR), "align_compare",
+CSV = os.path.join(os.path.dirname(DATA_DIR), "analyses", "align_compare",
                    "dna_displacement_interface_vs_global.csv")
 df = pd.read_csv(CSV)
 
