@@ -16,6 +16,7 @@ Figures (all ordered by descending fnat pass-rate unless noted):
   F4_interface_size.png     : n_iface_res (x) vs pass-rate (y), one point per pilot;
       Spearman rho annotated; TBP and LEF1 labeled.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import *
 import matplotlib.pyplot as plt
 import numpy as np

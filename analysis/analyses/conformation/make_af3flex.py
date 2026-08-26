@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import DATA_DIR, TEAL, GREEN, AF3, short_of, savefig
 try:
     from fig_common import apply_style; apply_style()

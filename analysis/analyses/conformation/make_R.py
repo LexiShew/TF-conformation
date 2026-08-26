@@ -37,6 +37,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import (
     TFCONF, DATA_DIR, discover_pilots, order_by_passrate, pilot_color_ordered,
     label_of, short_of, savefig, apply_style,

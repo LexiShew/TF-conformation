@@ -17,6 +17,7 @@ Figures:
   current perstate_metrics.csv (only stage3 rows exist), so the stage2-vs-stage3
   comparison that I3 would show has no data. Noted here and in the run report.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import *
 import matplotlib.pyplot as plt
 import numpy as np

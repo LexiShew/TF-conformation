@@ -28,6 +28,7 @@ Eval JSON: results[<ckpt>][<entry.npz>] = {pearsonr,spearmanr,auroc,
 import os, glob, json, argparse
 import numpy as np
 import pandas as pd
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import (TFCONF, DATA_DIR, STAGE3_DIR, EVAL_DIR, discover_pilots,
                         parse_pilot_config, family_of, dna_deform_of)
 

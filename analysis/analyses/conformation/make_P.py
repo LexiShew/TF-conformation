@@ -17,6 +17,7 @@ Figures:
       n per family in caption. Uses MOTIF-level family (family_annotation), not
       per-pilot family.
 """
+import os as _os, sys as _sys; _sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "..", "common"))
 from fig_common import *
 import matplotlib.pyplot as plt
 import numpy as np
