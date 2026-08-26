@@ -18,7 +18,7 @@ export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_TH
 
 # Run interpret
 cd /project2/rohs_102/shewchuk/TF-conformation
-python analysis/interpret_tfconf.py \
+python analysis/analyses/importance/interpret_tfconf.py \
   --pilot ets1 \
   --out output/interpret_results \
   --arms baseline_ets1_fold0 augmented_ets1_fold0 augmented_ets1_fold0_dnarelax_s1

@@ -12,5 +12,5 @@ source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
 conda activate /project2/rohs_102/shewchuk/conda/envs/deeppbs
 
 cd /project2/rohs_102/shewchuk/TF-conformation
-python analysis/make_importance_figures.py
+python analysis/analyses/importance/make_importance_figures.py
 echo "Figure generation complete"

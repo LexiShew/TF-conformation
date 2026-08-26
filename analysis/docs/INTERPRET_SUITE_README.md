@@ -13,7 +13,7 @@ Computes **occlusion-based attribution** for DeepPBS: measures how much each pro
 
 ### 1. Run All 12 Pilots
 ```bash
-bash /project2/rohs_102/shewchuk/TF-conformation/run_all_interpretations.sh
+bash /project2/rohs_102/shewchuk/TF-conformation/analysis/analyses/importance/run_all_interpretations.sh
 ```
 
 This submits 12 GPU jobs (one per pilot) and waits for completion (~12-24 hours), then compiles results.

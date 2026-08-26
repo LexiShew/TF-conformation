@@ -21,7 +21,7 @@ conda activate /project2/rohs_102/shewchuk/conda/envs/deeppbs
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1
 
 cd PROJDIR
-python analysis/interpret_tfconf_all.py --pilot PILOT --out output/interpret_results_all
+python analysis/analyses/importance/interpret_tfconf_all.py --pilot PILOT --out output/interpret_results_all
 echo "Complete: PILOT"
 EOFJOB
   

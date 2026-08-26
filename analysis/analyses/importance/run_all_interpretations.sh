@@ -12,7 +12,7 @@ echo "  3. Compile cross-pilot comparison table"
 echo ""
 
 echo "Step 1: Submit attribution jobs..."
-bash $R/batch_interpret_all.sh
+bash $R/analysis/analyses/importance/batch_interpret_all.sh
 
 echo ""
 echo "Step 2: Waiting for GPU jobs to complete..."
@@ -28,7 +28,7 @@ source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
 conda activate /project2/rohs_102/shewchuk/conda/envs/deeppbs
 
 cd $R
-python analysis/compare_importance_all.py
+python analysis/analyses/importance/compare_importance_all.py
 
 echo ""
 echo "=== Complete ==="
