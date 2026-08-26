@@ -54,7 +54,7 @@ from scipy import stats
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "data"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -116,7 +116,7 @@ def p2_selffam():
     selffam) and differencing arms gives a seed-paired own-family delta. LEF1 has no
     other HMG-box benchmark entries and drops out.
     """
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv")
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv")
     g = (pe.groupby(["tf", "arm", "dna", "seed", "selffam"])
            .agg(m_pearsonr=("m_pearsonr", "mean"), m_mae=("m_mae", "mean"),
                 n=("entry", "size")).reset_index())
@@ -182,7 +182,7 @@ def p3_family_shape():
 
     # pilot -> benchmark family label, taken from the annotation actually used by the
     # figure scripts (motif-level assignment).
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv",
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv",
                      usecols=["tf", "family", "selffam"])
     own = (pe[pe.selffam].groupby("tf")["family"]
            .agg(lambda s: s.mode().iat[0]).rename("family").reset_index())

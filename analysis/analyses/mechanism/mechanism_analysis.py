@@ -22,7 +22,7 @@ What it does
      DNA side      : analysis/dna_relax/data/pycurves_all_perstructure.csv  (crystal + ensemble geometry)
                      analysis/dna_relax/data/mgw_fl_summary.csv             (minor-groove-width fluctuation)
                      analysis/dna_relax/data/iface_mgwfl_vs_accuracy.csv    (interface-restricted MGW-FL)
-     outcome       : analysis/figure_scripts/perseed_summary.csv            (seed-paired dPearson)
+     outcome       : analysis/data/perseed_summary.csv            (seed-paired dPearson)
 2. Defines a MEASURED induced-fit index from crystal DNA geometry (deviation of the
    bound duplex from canonical B-DNA), replacing the curated dna_deform labels.
 3. Correlates every protein-side and DNA-side axis against the seed-paired
@@ -64,7 +64,7 @@ from scipy import stats
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent
 (OUT / "data").mkdir(parents=True, exist_ok=True)
 
@@ -89,7 +89,7 @@ def load_protein_axes():
 
 def load_dna_geometry():
     """Measured DNA shape, per pilot, split by condition (crystal / frozen / relaxed)."""
-    ps = pd.read_csv(ROOT / "analysis/dna_relax/data/pycurves_all_perstructure.csv")
+    ps = pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/pycurves_all_perstructure.csv")
 
     cry = (ps[ps.cond == "crystal"]
            .set_index("tf")[["bend_uu", "bend_pp", "minor_w", "major_w", "shortening"]]
@@ -113,12 +113,12 @@ def load_dna_geometry():
 
 def load_mgwfl():
     """Minor-groove-width fluctuation: whole-molecule and interface-restricted."""
-    whole = (pd.read_csv(ROOT / "analysis/dna_relax/data/mgw_fl_summary.csv")
+    whole = (pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/mgw_fl_summary.csv")
              .rename(columns={"pilot": "tf",
                               "mgw_fl_frozen_mean": "mgwfl_froz",
                               "mgw_fl_relaxed_mean": "mgwfl_relax"})
              [["tf", "mgwfl_froz", "mgwfl_relax"]])
-    iface = (pd.read_csv(ROOT / "analysis/dna_relax/data/iface_mgwfl_vs_accuracy.csv")
+    iface = (pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/iface_mgwfl_vs_accuracy.csv")
              .rename(columns={"pilot": "tf"})
              [["tf", "iface_mgwfl_af3", "iface_mgwfl_froz", "iface_mgwfl_relax", "n_iface"]])
     return whole.merge(iface, on="tf", how="outer")
@@ -126,7 +126,7 @@ def load_mgwfl():
 
 def load_seed_effects():
     """Seed-paired augmentation effect. The seed is the unit of replication."""
-    ss = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_summary.csv")
+    ss = pd.read_csv(ROOT / "analysis/data/perseed_summary.csv")
     wide = ss.pivot_table(index=["tf", "dna", "seed"], columns="arm",
                           values=["mean_pearsonr", "mean_mae"])
     wide.columns = [f"{a}_{b}" for a, b in wide.columns]
@@ -262,7 +262,7 @@ def family_effects_seedlevel():
     within the family, then form the seed-paired augmented-minus-baseline delta. The
     test across seeds within a family is therefore on n = seeds, not n = entries.
     """
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv")
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv")
     g = (pe.groupby(["tf", "arm", "dna", "seed", "family"])
            .agg(m_pearsonr=("m_pearsonr", "mean"),
                 m_mae=("m_mae", "mean"),

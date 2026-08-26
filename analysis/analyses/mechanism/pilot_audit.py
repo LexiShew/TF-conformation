@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "data"
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -55,18 +55,18 @@ def main():
         "reachability.csv (protein axis)",
         pd.read_csv(ROOT / "analysis/data/reachability.csv").pilot)
 
-    ps = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_summary.csv")
+    ps = pd.read_csv(ROOT / "analysis/data/perseed_summary.csv")
     stages["perseed_summary frozen"] = show(
         "perseed_summary frozen", ps.query("dna=='frozen'").tf)
     stages["perseed_summary relaxed"] = show(
         "perseed_summary relaxed", ps.query("dna=='relaxed'").tf)
 
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv",
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv",
                      usecols=["tf", "selffam"])
     stages["perseed_perentry: has own-family entries"] = show(
         "perseed_perentry: has own-family entries", pe.query("selffam").tf)
 
-    pc = pd.read_csv(ROOT / "analysis/dna_relax/data/pycurves_all_perstructure.csv")
+    pc = pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/pycurves_all_perstructure.csv")
     stages["pycurves: crystal DNA geometry"] = show(
         "pycurves: crystal DNA geometry", pc.query("cond=='crystal'").tf)
     stages["pycurves: frozen ensemble"] = show(
@@ -74,10 +74,10 @@ def main():
 
     stages["mgw_fl_summary (whole molecule)"] = show(
         "mgw_fl_summary (whole molecule)",
-        pd.read_csv(ROOT / "analysis/dna_relax/data/mgw_fl_summary.csv").pilot)
+        pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/mgw_fl_summary.csv").pilot)
     stages["iface_mgwfl (interface restricted)"] = show(
         "iface_mgwfl (interface restricted)",
-        pd.read_csv(ROOT / "analysis/dna_relax/data/iface_mgwfl_vs_accuracy.csv").pilot)
+        pd.read_csv(ROOT / "analysis/analyses/dna_relax/data/iface_mgwfl_vs_accuracy.csv").pilot)
 
     m = pd.read_csv(OUT / "mechanism_table.csv")
     stages["mechanism_table: all rows"] = show("mechanism_table: all rows", m.tf)

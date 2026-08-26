@@ -55,14 +55,14 @@ from scipy import stats
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent / "data"
 RNG = np.random.default_rng(0)
 
 
 def own_family_baseline():
     """Baseline (un-augmented) accuracy on each pilot's own family -- the headroom axis."""
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv")
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv")
     b = pe[(pe.arm == "baseline") & (pe.dna == "frozen") & (pe.selffam)]
     return (b.groupby("tf")
              .agg(base_selffam_P=("m_pearsonr", "mean"),
@@ -160,7 +160,7 @@ def dose_response():
     same-vs-other contrast tested at the seed level -- the test REVIEW_figure_scripts.md
     asked for and fig6 never performed.
     """
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv")
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv")
     pe = pe[pe.dna == "frozen"]
     g = (pe.groupby(["tf", "arm", "seed", "selffam"])
            .agg(m_pearsonr=("m_pearsonr", "mean")).reset_index())

@@ -63,7 +63,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 from palette import GREY, TEAL, GREEN, apply_style  # noqa: E402
 
@@ -143,9 +143,52 @@ def panel(ax, df, xcol, xlabel, title, rows):
     ax.margins(0.12)
 
 
+TF_LABEL = {
+    "csl": "CSL", "dux4": "DUX4", "egr1": "EGR1", "engrailed": "engrailed",
+    "err": "ERR", "ets1": "ETS1", "foxa": "FOXA", "hsf": "HSF", "irf": "IRF",
+    "lef1": "LEF1", "nfat": "NFAT", "runx": "RUNX", "tbp": "TBP",
+}
+
+
+def labeled_bend_panel(df):
+    """Standalone bend-IQR vs own-family ΔPearson scatter with per-TF labels."""
+    fig, ax = plt.subplots(figsize=(7.2, 5.0))
+    ax.axhline(0, color=GREY, lw=0.8, zorder=1)
+    xcol = "froz_bend_iqr"
+    for dna in (COND_FROZEN, COND_RELAX):
+        ycol = f"own_dP_{dna}"
+        sub = df[[xcol, ycol]].dropna()            # index = tf, preserved
+        if len(sub) < 4:
+            continue
+        x, y = sub[xcol].to_numpy(), sub[ycol].to_numpy()
+        rho, lo, hi, frac = boot_rho(x, y)
+        ax.scatter(x, y, s=70, color=ARM_COLOR[dna], edgecolor="white",
+                   linewidth=0.6, zorder=3,
+                   label=f"{ARM_LABEL[dna]}   ρ = {rho:+.2f}")
+        m, b = np.polyfit(x, y, 1)
+        xs = np.linspace(x.min(), x.max(), 50)
+        ax.plot(xs, m * xs + b, color=ARM_COLOR[dna], lw=1.2, alpha=0.5, zorder=2)
+        # label each point with its TF (offset to reduce overlap; frozen above, relaxed below)
+        dy = 6 if dna == COND_FROZEN else -10
+        for tf, xv, yv in zip(sub.index, x, y):
+            ax.annotate(TF_LABEL.get(tf, tf), (xv, yv),
+                        xytext=(0, dy), textcoords="offset points",
+                        ha="center", fontsize=6.5, color=ARM_COLOR[dna], zorder=4)
+    ax.set_xlabel("Ensemble DNA-bend IQR (deg)")
+    ax.set_ylabel("Own-family ΔPearson")
+    ax.legend(frameon=False, loc="upper right", handletextpad=0.4)
+    ax.margins(0.14)
+    fig.tight_layout()
+    p = OUT_F / "M4b_bend_iqr_labeled.png"
+    fig.savefig(p, dpi=300, bbox_inches="tight")
+    print(f"wrote {p}")
+    return fig
+
+
 def main():
     apply_style()
     df = load()
+    labeled_bend_panel(df)
     rows = []
     fig, axes = plt.subplots(1, 3, figsize=(11.4, 3.6))
     for ax, (col, xlab, title, _) in zip(axes, AXES):

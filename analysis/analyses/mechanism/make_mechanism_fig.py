@@ -41,7 +41,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 DATA = Path(__file__).resolve().parent / "data"
 FIGS = Path(__file__).resolve().parent / "figures"
 FIGS.mkdir(parents=True, exist_ok=True)
@@ -74,7 +74,7 @@ def load():
     mech = pd.read_csv(DATA / "mechanism_table.csv").set_index("tf")
     conf = pd.read_csv(DATA / "confound_tests.csv")
 
-    pe = pd.read_csv(ROOT / "analysis/figure_scripts/perseed_perentry.csv")
+    pe = pd.read_csv(ROOT / "analysis/data/perseed_perentry.csv")
     base = (pe[(pe.arm == "baseline") & (pe.dna == "frozen") & pe.selffam]
             .groupby("tf").m_pearsonr.mean().rename("base_self_P"))
 

@@ -69,7 +69,7 @@ import pandas as pd
 from matplotlib.patches import Patch
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 from palette import GREY, TEAL, GREEN, ALARM, apply_style  # noqa: E402
 
@@ -78,7 +78,7 @@ OUT_F = Path(__file__).resolve().parent / "figures"
 OUT_D.mkdir(parents=True, exist_ok=True)
 OUT_F.mkdir(parents=True, exist_ok=True)
 
-PERSEED = ROOT / "analysis/figure_scripts/perseed_perentry.csv"
+PERSEED = ROOT / "analysis/data/perseed_perentry.csv"
 
 # The benchmark CSVs label the DNA conditions "frozen" and "relax" (NOT "relaxed").
 # Asserted at load time: filtering on a wrong label silently drops an entire arm.
