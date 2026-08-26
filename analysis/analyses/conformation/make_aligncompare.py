@@ -18,7 +18,7 @@ mobile one (LEF1 HMG box, ~3 Å median, up to 25 Å) — global alignment averag
 placement error across the whole chain, swinging the DNA off the binding site.
 That is the justification for interface alignment as the safe default.
 
-Data: analysis/align_compare/dna_displacement_interface_vs_global.csv
+Data: analysis/analyses/align_compare/dna_displacement_interface_vs_global.csv
       (cols: pilot, state, dna_disp) — built by compute_align_displacement.py,
       which docks each Stage-1 frame both ways (stage2_redock.py --align-mode
       interface|all) and measures the per-state DNA-P displacement between modes.

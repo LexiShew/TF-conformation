@@ -4,9 +4,9 @@ make_dnaflex.py — DNA-shape flexibility vs the augmentation effect, both arms,
 
 WHY THIS SCRIPT EXISTS
 ----------------------
-analysis/dna_relax/iface_mgwfl.py already correlates interface minor-groove-width
+analysis/analyses/dna_relax/iface_mgwfl.py already correlates interface minor-groove-width
 fluctuation (MGW-FL) against the CROSS-BENCHMARK ΔPearson for the FROZEN arm only
-(figure: analysis/dna_relax/figures/iface_mgwfl_vs_accuracy.png, ρ = -0.55, p = 0.08).
+(figure: analysis/analyses/dna_relax/figures/iface_mgwfl_vs_accuracy.png, ρ = -0.55, p = 0.08).
 This script EXTENDS that analysis rather than duplicating it, on two axes the original
 does not cover:
 
@@ -47,11 +47,11 @@ relaxed DNA, GREY = reference/zero line. ALARM is annotation only, never a serie
 
 Env: deeppbs.  Usage:
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/make_dnaflex.py
+    python analysis/analyses/mechanism/make_dnaflex.py
 
 Outputs
-    analysis/mechanism/figures/M4_dnaflex_vs_effect.png
-    analysis/mechanism/data/dnaflex_correlations.csv
+    analysis/analyses/mechanism/figures/M4_dnaflex_vs_effect.png
+    analysis/analyses/mechanism/data/dnaflex_correlations.csv
 """
 import sys
 from pathlib import Path

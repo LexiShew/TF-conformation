@@ -12,7 +12,7 @@ record, and emits:
 """
 import glob, re, os, sys, csv, statistics as st
 SO   = "/project2/rohs_102/shewchuk/TF-conformation/slurm_output"
-OUT  = "/project2/rohs_102/shewchuk/TF-conformation/analysis/stage3_figs/data"
+OUT  = "/project2/rohs_102/shewchuk/TF-conformation/analysis/analyses/stage3/data"
 os.makedirs(OUT, exist_ok=True)
 
 re_pilot = re.compile(r"Loaded pilot config: (\w+)")

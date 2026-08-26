@@ -38,9 +38,9 @@ Usage
     source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh && conda activate deeppbs
     export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/mechanism_confound.py
+    python analysis/analyses/mechanism/mechanism_confound.py
 
-Outputs (analysis/mechanism/data/)
+Outputs (analysis/analyses/mechanism/data/)
     confound_tests.csv       headroom / subset-size correlations
     partial_model.csv        OLS of own-family effect on DNA axis + headroom + size
     bootstrap_ci.json        bootstrap CI for the headline correlation

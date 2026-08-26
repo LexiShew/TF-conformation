@@ -26,11 +26,11 @@ Usage
     source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh && conda activate deeppbs
     export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/make_mechanism_fig.py
+    python analysis/analyses/mechanism/make_mechanism_fig.py
 
 Output
 ------
-    analysis/mechanism/figures/M2_where_the_signal_lives.png
+    analysis/analyses/mechanism/figures/M2_where_the_signal_lives.png
 """
 from pathlib import Path
 

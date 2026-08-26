@@ -9,7 +9,7 @@ Features:
   - minor_width   (legacy groove: data[level].sub_levels[0].minor_width)
   - inclin, tip, xdisp, ydisp  (curvesplus_base_pair_axis per base pair)
 
-Output: analysis/dna_relax/data/pycurves_perposition.csv
+Output: analysis/analyses/dna_relax/data/pycurves_perposition.csv
   columns: tf, cond, feature, position, n_states, median, q25, q75
 Position is the pyCurves level/bp index (1-based along the duplex).
 """
@@ -18,8 +18,8 @@ from collections import defaultdict
 import statistics as st
 
 BASE = "/project2/rohs_102/shewchuk/TF-conformation"
-PYC  = f"{BASE}/analysis/dna_relax/pycurves"
-OUT  = f"{BASE}/analysis/dna_relax/data/pycurves_perposition.csv"
+PYC  = f"{BASE}/analysis/analyses/dna_relax/pycurves"
+OUT  = f"{BASE}/analysis/analyses/dna_relax/data/pycurves_perposition.csv"
 TFS  = ["tbp","lef1","engrailed","egr1","ets1","foxa","dux4"]
 
 def legacy_minorwidth_by_level(js):

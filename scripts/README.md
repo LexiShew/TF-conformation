@@ -9,7 +9,7 @@ Scripts that live outside the per-stage directories. Grouped by purpose:
 | `classification/` | `classify_pfam.py`, `classify_DBDs.py` | Assign Pfam families / DNA-binding-domain classes to structures. |
 | `pdb_prep/` | `process_pdb_chains.py`, `find_monomers.sh` | Split raw PDBs into protein/DNA chains; identify monomers. |
 | `maintenance/` | `finish_cleanup.sh` | One-off repo-maintenance utility (gitignore/LFS hygiene); hardcodes its repo path. |
-| `deprecated/` | `run_conf.sh`, `submit_all.sh` | **Superseded by `stage1_bioemu/`.** These called the old single-chain `generate_monomer_confs.py` (now moved into `stage1_bioemu/` and generalized to all chains via `--all-chains`). Kept for reference only; do not use. |
+| `_deprecated/` | `run_conf.sh`, `submit_all.sh`, `migrate_deeppbs_to_tfconformation.sh` | **Superseded / one-off provenance.** These called the old single-chain `generate_monomer_confs.py` (now moved into `stage1_bioemu/` and generalized to all chains via `--all-chains`). Kept for reference only; do not use. |
 
 RMSD / interface / Pfam analysis lives in the `analysis/analyses/rmsd_analysis/`
 workspace (scripts + their CSV outputs), not here.

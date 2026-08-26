@@ -12,6 +12,6 @@ source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh; conda activate pym
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 cd /project2/rohs_102/shewchuk/TF-conformation
 echo "start $(date +%s)"
-pymol -cq analysis/scripts/render_ensembles.py -- ets1
+pymol -cq analysis/analyses/diversity/render_ensembles.py -- ets1
 echo "end $(date +%s)"
 ls -la analysis/figures/pymol/ets1_stack.png

@@ -284,3 +284,7 @@ analysis/figures/pymol/_viewtest/
 # pycurves batch jobs; results are distilled into the tracked *_dna_*.csv summaries.
 analysis/dna_relax/pycurves/**/*_state_*_legacy.json
 analysis/dna_relax/pycurves/**/*_state_*_curvesplus.json
+
+# AlphaFold3 DNA predictions (large, regenerable model output). Inputs in af3/input/
+# and the run scripts stay tracked; the per-seed/sample PDB+JSON do not.
+af3/af3_dna/

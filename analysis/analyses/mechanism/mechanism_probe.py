@@ -37,9 +37,9 @@ Usage
     source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh && conda activate deeppbs
     export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/mechanism_probe.py
+    python analysis/analyses/mechanism/mechanism_probe.py
 
-Outputs (analysis/mechanism/data/)
+Outputs (analysis/analyses/mechanism/data/)
     static_vs_dynamic.csv     both axis families vs dPearson, side by side
     selffam_effects.csv       seed-level own-family augmentation effect per pilot
     selffam_vs_shape.csv      own-family effect vs measured DNA shape

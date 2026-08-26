@@ -9,7 +9,7 @@ RMSD between the two docked outputs. Because both modes keep the BioEmu protein
 in the same coordinate frame (only the carried reference DNA is transformed by
 the mode-specific Kabsch fit), this displacement IS the alignment-induced DNA
 misplacement — no crystal superposition, so it is immune to chain-mapping
-ambiguity. Writes analysis/align_compare/dna_displacement_interface_vs_global.csv
+ambiguity. Writes analysis/analyses/align_compare/dna_displacement_interface_vs_global.csv
 (cols: pilot, state, dna_disp), consumed by make_aligncompare.py.
 
 Docking is cheap (~seconds/pilot, CPU); no minimization is needed for this

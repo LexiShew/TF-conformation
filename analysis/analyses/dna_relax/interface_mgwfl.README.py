@@ -24,17 +24,17 @@ Pipeline:
 Inputs (on endeavour, under /project2/rohs_102/shewchuk/TF-conformation):
   - structures/source_chains/<pid>_chains/<pid>.cif        crystal reference
   - config/pilots/<tf>.sh                                  PROTEIN_CHAIN/DNA_CHAINS
-  - analysis/dna_relax/pycurves/<tf>/{crystal,frozen_state_*,relaxed_state_*}_legacy.json
+  - analysis/analyses/dna_relax/pycurves/<tf>/{crystal,frozen_state_*,relaxed_state_*}_legacy.json
   - af3/af3_dna/<tf>_<pid>/*_legacy.json                   AF3-sample groove
   - output/stage7_eval/id_benchmark_<tf>.json              accuracy metrics
 
-Outputs (analysis/dna_relax/):
+Outputs (analysis/analyses/dna_relax/):
   - data/iface_mgwfl_vs_accuracy.csv    per-pilot interface MGW-FL + ΔP/ΔMAE
   - data/mgwfl_vs_accuracy.csv          whole-molecule version
   - figures/iface_mgwfl_vs_accuracy.png ΔPearson & ΔMAE vs interface MGW-FL
 
 Run under the `deeppbs` conda env (needs biopython); pyCurves JSONs must
-already exist (built by analysis/dna_relax/pycurves_batch/). See the Notion
+already exist (built by analysis/analyses/dna_relax/pycurves_batch/). See the Notion
 research log 2026-07-23 for the interpretation.
 """
 # Implementation lives in the session handoff; this header documents the method

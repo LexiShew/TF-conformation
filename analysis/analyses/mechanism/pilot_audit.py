@@ -11,11 +11,11 @@ Usage
 -----
     source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh && conda activate deeppbs
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/pilot_audit.py
+    python analysis/analyses/mechanism/pilot_audit.py
 
 Output
 ------
-    analysis/mechanism/data/pilot_coverage.csv   pilot x stage presence matrix
+    analysis/analyses/mechanism/data/pilot_coverage.csv   pilot x stage presence matrix
 """
 from pathlib import Path
 

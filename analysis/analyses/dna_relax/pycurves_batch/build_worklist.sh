@@ -4,8 +4,8 @@
 # COND in {crystal,frozen,relaxed}. Crystal is one row per TF (the source DNA).
 set -eo pipefail
 BASE="/project2/rohs_102/shewchuk/TF-conformation"
-OUTROOT="${BASE}/analysis/dna_relax/pycurves"
-WL="${BASE}/analysis/dna_relax/pycurves_worklist.tsv"
+OUTROOT="${BASE}/analysis/analyses/dna_relax/pycurves"
+WL="${BASE}/analysis/analyses/dna_relax/pycurves_worklist.tsv"
 declare -A PID=( [tbp]=1tgh [dux4]=5z6z [egr1]=1aay [engrailed]=3hdd [ets1]=1k79 [foxa]=1vtn [lef1]=2lef [csl]=3brg [err]=1lo1 [nfat]=1a66 [runx]=1hjc [hsf]=5d5u [irf]=1if1 )
 : > "${WL}"
 for tf in "${!PID[@]}"; do

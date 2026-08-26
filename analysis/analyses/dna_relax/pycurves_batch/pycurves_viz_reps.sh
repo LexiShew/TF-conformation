@@ -17,8 +17,8 @@ source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
 conda activate /project2/rohs_102/shewchuk/conda/envs/pycurves
 
 BASE=/project2/rohs_102/shewchuk/TF-conformation
-WL="$BASE/analysis/dna_relax/pycurves_viz/viz_worklist.tsv"
-OUT="$BASE/analysis/dna_relax/pycurves_viz"
+WL="$BASE/analysis/analyses/dna_relax/pycurves_viz/viz_worklist.tsv"
+OUT="$BASE/analysis/analyses/dna_relax/pycurves_viz"
 mkdir -p "$OUT"
 cd "$OUT"
 

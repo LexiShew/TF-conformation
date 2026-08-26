@@ -2,8 +2,8 @@
 """
 make_af3flex.py — AF3-vs-ensemble DNA-flexibility figure (pilots on x).
 
-Rebuilds analysis/dna_relax/figures/af3_vs_ensemble_mgwfl.png from
-analysis/dna_relax/data/af3_vs_ensemble_mgwfl.csv (cols: pilot, af3, frozen,
+Rebuilds analysis/analyses/dna_relax/figures/af3_vs_ensemble_mgwfl.png from
+analysis/analyses/dna_relax/data/af3_vs_ensemble_mgwfl.csv (cols: pilot, af3, frozen,
 relaxed, ens_mean, ...). Pilots on the x-axis (ordered rigid→flexible by
 ens_mean), mean minor-groove-width fluctuation on y; AF3 (diamond) sits near the
 floor while the physical frozen/relaxed ensembles spread wide — the DNA-side

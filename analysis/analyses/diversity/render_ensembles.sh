@@ -20,6 +20,6 @@ export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 
 cd "$RUN_DIR"
 echo "host=$(hostname) start=$(date)"
-pymol -cq analysis/scripts/render_ensembles.py -- all
+pymol -cq analysis/analyses/diversity/render_ensembles.py -- all
 echo "done=$(date)"
 ls -la analysis/figures/pymol/*.png

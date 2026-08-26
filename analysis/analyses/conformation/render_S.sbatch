@@ -31,7 +31,7 @@ cd "$RUN_DIR"
 echo "host=$(hostname) start=$(date)"
 echo "args: $@"
 
-pymol -cq analysis/figscripts/make_S.py -- "$@"
+pymol -cq analysis/analyses/conformation/make_S.py -- "$@"
 
 echo "done=$(date)"
 ls -la analysis/figures/pymol/S*_*.png 2>/dev/null || echo "no S PNGs found"

@@ -6,14 +6,14 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=03:00:00
-#SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/analysis/align_compare/aligncmp_%j.out
+#SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/analysis/analyses/align_compare/aligncmp_%j.out
 set -eo pipefail
 
 cd /project2/rohs_102/shewchuk/TF-conformation
 source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
 
 BASE=/project2/rohs_102/shewchuk/TF-conformation
-WORK=$BASE/analysis/align_compare/_work
+WORK=$BASE/analysis/analyses/align_compare/_work
 NSTATES=25          # subsample per mode to bound minimization time (both arms fresh, identical settings)
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
 echo "GPU: ${CUDA_VISIBLE_DEVICES:-none}"; nvidia-smi -L 2>/dev/null | head -1
@@ -63,7 +63,7 @@ import sys, glob, os, csv
 sys.path.insert(0, "fnat_gate")
 import interface_rmsd as ir
 BASE="/project2/rohs_102/shewchuk/TF-conformation"
-WORK=f"{BASE}/analysis/align_compare/_work"
+WORK=f"{BASE}/analysis/analyses/align_compare/_work"
 PILOTS={"ets1":"1k79","tbp":"1tgh","lef1":"2lef"}
 rows=[]
 for name,pdb in PILOTS.items():
@@ -78,7 +78,7 @@ for name,pdb in PILOTS.items():
                                  "fnat":round(m["fnat"],4),"iRMSD_global":round(m["g"],4)})
             except Exception as e:
                 pass
-out=f"{BASE}/analysis/align_compare/fnat_by_alignmode.csv"
+out=f"{BASE}/analysis/analyses/align_compare/fnat_by_alignmode.csv"
 with open(out,"w",newline="") as fh:
     w=csv.DictWriter(fh, fieldnames=["pilot","mode","state","fnat","iRMSD_global"]); w.writeheader()
     for r in rows: w.writerow(r)

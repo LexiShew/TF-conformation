@@ -4,7 +4,7 @@ make_samefamily.py — same-family vs other-family augmentation effect, both DNA
 
 WHY THIS SCRIPT EXISTS
 ----------------------
-analysis/dna_relax/figures/samefamily_augmentation_effect.png and
+analysis/analyses/dna_relax/figures/samefamily_augmentation_effect.png and
 crossfamily_augmentation_effect.png were delivered as PNGs with NO generating script
 anywhere in the repo (verified by grep across analysis/ and scripts/). They therefore
 could not be regenerated, extended to new pilots, or checked. They also covered only
@@ -52,11 +52,11 @@ annotation ONLY (never a data series).
 
 Env: deeppbs.  Usage:
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/make_samefamily.py
+    python analysis/analyses/mechanism/make_samefamily.py
 
 Outputs
-    analysis/mechanism/figures/M3_samefamily_both_arms.png
-    analysis/mechanism/data/samefamily_both_arms.csv
+    analysis/analyses/mechanism/figures/M3_samefamily_both_arms.png
+    analysis/analyses/mechanism/data/samefamily_both_arms.csv
 """
 import sys
 from pathlib import Path

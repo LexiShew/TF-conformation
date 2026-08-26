@@ -2,8 +2,8 @@
 """
 make_bend.py — DNA-bend change under relaxation, per pilot (pilots on x).
 
-Rebuilds analysis/dna_relax/figures/crossfamily_bend.png from
-analysis/dna_relax/data/bend_delta_bootstrap.csv (cols: tf, family, delta, lo,
+Rebuilds analysis/analyses/dna_relax/figures/crossfamily_bend.png from
+analysis/analyses/dna_relax/data/bend_delta_bootstrap.csv (cols: tf, family, delta, lo,
 hi, abs_delta). Pilots on the x-axis (ordered by Δbend), Δ overall axis bend
 (relaxed − frozen, °) on y, bootstrap 95% CI error bars, bars coloured by
 induced-fit vs rigid family. Most CIs cross zero — the honest reading is that

@@ -19,9 +19,9 @@ What it does
 ------------
 1. Builds one per-pilot mechanism table from:
      protein side  : analysis/data/reachability.csv          (d_min, spread, rmsf, reach_ratio)
-     DNA side      : analysis/dna_relax/data/pycurves_all_perstructure.csv  (crystal + ensemble geometry)
-                     analysis/dna_relax/data/mgw_fl_summary.csv             (minor-groove-width fluctuation)
-                     analysis/dna_relax/data/iface_mgwfl_vs_accuracy.csv    (interface-restricted MGW-FL)
+     DNA side      : analysis/analyses/dna_relax/data/pycurves_all_perstructure.csv  (crystal + ensemble geometry)
+                     analysis/analyses/dna_relax/data/mgw_fl_summary.csv             (minor-groove-width fluctuation)
+                     analysis/analyses/dna_relax/data/iface_mgwfl_vs_accuracy.csv    (interface-restricted MGW-FL)
      outcome       : analysis/data/perseed_summary.csv            (seed-paired dPearson)
 2. Defines a MEASURED induced-fit index from crystal DNA geometry (deviation of the
    bound duplex from canonical B-DNA), replacing the curated dna_deform labels.
@@ -34,7 +34,7 @@ Statistics
 The unit of replication for an augmentation effect is the SEED (augmentation is applied
 once per retraining), not the benchmark entry. All per-pilot effects are seed-level
 means with seed-level CIs; family effects use seed-level paired tests. This follows the
-correction in analysis/figure_scripts/REVIEW_figure_scripts.md, which found that treating
+correction in analysis/_deprecated/figure_scripts/REVIEW_figure_scripts.md, which found that treating
 entry x seed rows as independent replicates shrinks the standard error ~2x.
 
 Correlations across pilots are Spearman with n = 11-13 pilots. At that n almost nothing
@@ -46,9 +46,9 @@ Usage
     source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh && conda activate deeppbs
     export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
     cd /project2/rohs_102/shewchuk/TF-conformation
-    python analysis/mechanism/mechanism_analysis.py
+    python analysis/analyses/mechanism/mechanism_analysis.py
 
-Outputs (analysis/mechanism/)
+Outputs (analysis/analyses/mechanism/)
     data/mechanism_table.csv        one row per pilot, every axis + outcome
     data/axis_correlations.csv      each axis vs dPearson: rho, p, n
     data/family_effects_seedlevel.csv  per-family seed-level augmentation effect
@@ -70,7 +70,7 @@ OUT = Path(__file__).resolve().parent
 
 # Canonical B-DNA reference values (Curves+ convention), used to express how far a
 # bound duplex is deformed from ideal B-form. Minor-groove width 5.7 A is the value the
-# project already uses in analysis/dna_relax/README.md; bend 0 deg is ideal straight B-DNA.
+# project already uses in analysis/analyses/dna_relax/README.md; bend 0 deg is ideal straight B-DNA.
 B_DNA_MINOR_W = 5.7
 B_DNA_BEND = 0.0
 

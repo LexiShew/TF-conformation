@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=4G
 #SBATCH --time=00:05:00
-#SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/analysis/align_compare/omm_probe_%j.out
+#SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/analysis/analyses/align_compare/omm_probe_%j.out
 source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh; conda activate bioemu
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L

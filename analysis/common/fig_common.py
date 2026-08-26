@@ -16,7 +16,7 @@ import pandas as pd
 
 # ---------------------------------------------------------------------------
 # Paths — override with env vars; defaults assume this file sits in the repo
-# under analysis/figscripts/ (…/TF-conformation/analysis/figscripts/fig_common.py).
+# under analysis/analyses/conformation/ (…/TF-conformation/analysis/analyses/conformation/fig_common.py).
 # ---------------------------------------------------------------------------
 _HERE = os.path.dirname(os.path.abspath(__file__))
 TFCONF   = os.environ.get("TFCONF_DIR",   os.path.abspath(os.path.join(_HERE, "..", "..")))
