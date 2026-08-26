@@ -279,3 +279,8 @@ analysis/figures/pymol/_viewtest/
 
 # Scratch structure dumps
 *.tmp.pdb
+
+# Bulk per-state pyCurves output (raw JSON, ~331 MB). Regenerate with the
+# pycurves batch jobs; results are distilled into the tracked *_dna_*.csv summaries.
+analysis/dna_relax/pycurves/**/*_state_*_legacy.json
+analysis/dna_relax/pycurves/**/*_state_*_curvesplus.json
