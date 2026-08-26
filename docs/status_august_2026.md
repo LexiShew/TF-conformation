@@ -66,7 +66,7 @@ Three acts:
   minor-groove width + Arg insertion). Hand-drawn/BioRender style, cool palette.
 - **N1.2** "One frame vs the ensemble" conceptual figure: crystal pose (grey) with a faded
   BioEmu ensemble behind it — a real render from `output/stage1_bioemu/`, used as the book's
-  visual motif. *Source: `analysis/scripts/render_ensembles.py`.*
+  visual motif. *Source: `analysis/analyses/diversity/render_ensembles.py`.*
 
 ---
 
@@ -194,7 +194,7 @@ sampling, docking, minimization", "Stage detail — the fnat gate, folds, and ev
 **Figures to create:**
 - **N5.1** ⭐ **The pilot plate** — 13 small structural renders in a grid, uniform orientation
   and palette, each labelled family + gate pass-rate. Build from
-  `analysis/scripts/render_ensembles.py` / `scripts/viz/_render_ensemble.py`.
+  `analysis/analyses/diversity/render_ensembles.py` / `scripts/structure_viz/_render_ensemble.py`.
 - **N5.2** Table-figure: pilot × (PDB, family, motif, n frames, gate %, seeds, dnarelax?, AF3?).
   Merge `RESULTS_INVENTORY.md`, `CONDITIONS_INVENTORY.md` §B, and `results_inventory.csv`.
 
