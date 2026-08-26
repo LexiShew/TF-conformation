@@ -8,7 +8,7 @@
 # the apo-sampled ensemble drifts from the crystallographic binding mode.
 #
 # Usage:
-#   scripts/viz/render_ensemble.sh <tf_name> [n_states] [seed] [out_dir]
+#   scripts/structure_viz/render_ensemble.sh <tf_name> [n_states] [seed] [out_dir]
 #     n_states  number of Stage-3 states to sample (default 10)
 #     seed      RNG seed for the sample (default 42; change for a different draw)
 #

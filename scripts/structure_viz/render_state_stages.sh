@@ -6,7 +6,7 @@
 # a Stage2-vs-Stage3 overlay annotated with all-atom RMSD.
 #
 # Usage:
-#   scripts/viz/render_state_stages.sh <tf_name> [state_number] [out_dir]
+#   scripts/structure_viz/render_state_stages.sh <tf_name> [state_number] [out_dir]
 #
 #   tf_name       one of the pilot configs (tbp, egr1, foxa, lef1, engrailed, ets1, dux4)
 #   state_number  1-based state index (default 1). state N == Stage-1 frame N-1.
@@ -20,7 +20,7 @@ TF="${1:?Usage: $0 <tf_name> [state] [out_dir]}"
 STATE="${2:-1}"
 STATE3=$(printf "%03d" "$STATE")
 
-# resolve repo root (this script lives in scripts/viz/)
+# resolve repo root (this script lives in scripts/structure_viz/)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
