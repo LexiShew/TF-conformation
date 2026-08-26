@@ -9,8 +9,7 @@
 # One array task = one chunk of the worklist. pyCurves' XLA thread pool needs a
 # compute node (login-node RLIMIT_NPROC crashes it); CPU-only JAX is sufficient.
 set -eo pipefail
-BASE="/project2/rohs_102/shewchuk/TF-conformation"
-WL="${BASE}/analysis/analyses/dna_relax/pycurves_worklist.tsv"
+WL="${1:?usage: sbatch pycurves_array.sh <worklist.tsv>  (tab cols: TF COND STATE INPUT_PDB OUT_PREFIX)}"
 PYC_ENV="/project2/rohs_102/shewchuk/conda/envs/pycurves"
 CHUNK="${CHUNK:-20}"                     # rows per array task
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1

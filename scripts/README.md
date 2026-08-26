@@ -6,6 +6,7 @@ Scripts that live outside the per-stage directories. Grouped by purpose:
 |---|---|---|
 | `pipeline/` | `run_pilot.sh`, `run_multiseed_pilot.sh`, `run_legacy_ab.sh` | **Pipeline launchers.** Submit the per-TF SLURM DAG (Stage 1 → 7) via `wrappers/`. Self-locate `TFCONF_DIR`; run from anywhere, e.g. `./scripts/pipeline/run_pilot.sh egr1`. |
 | `structure_viz/` | `pymol_lib.py` + `render_ensemble.sh`/`render_state_stages.sh` (+ `_*.py`, `render_all.sbatch`) | **PyMOL structure rendering toolkit.** Shared colouring primitives (`pymol_lib.py`) plus general render drivers (crystal-vs-ensemble, state-across-stages). See `structure_viz/README.md`. |
+| `pycurves/` | `run_pycurves.sh`, `pycurves_array.sh`, `aggregate_pycurves.py`, `parse_pycurves_grooves.py` | **pyCurves DNA-shape toolkit.** Worklist-driven runners + reducers for Curves+/legacy analysis; used by `analysis/analyses/dna_relax/` and `af3/`. See `pycurves/README.md`. |
 | `classification/` | `classify_pfam.py`, `classify_DBDs.py` | Assign Pfam families / DNA-binding-domain classes to structures. |
 | `pdb_prep/` | `process_pdb_chains.py`, `find_monomers.sh` | Split raw PDBs into protein/DNA chains; identify monomers. |
 | `maintenance/` | `finish_cleanup.sh` | One-off repo-maintenance utility (gitignore/LFS hygiene); hardcodes its repo path. |

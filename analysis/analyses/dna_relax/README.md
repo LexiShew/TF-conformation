@@ -12,8 +12,8 @@ the frozen-DNA baseline (`output/stage3_min/<tf>`) against the relaxed pipeline
 scripts/
   batch_dna_shape.py        numpy geometry over a full state ensemble (RMSD, bend,
                             P-P fraying, per-residue disp, per-bp C1'-C1' width)
-  run_pycurves.sh           run pyCurves on one PDB (MUST run on a compute node)
-  parse_pycurves_grooves.py parse groove widths + overall bend from pyCurves .txt
+  (pyCurves tools moved to the shared toolkit: scripts/pycurves/ — run_pycurves.sh,
+   parse_pycurves_grooves.py, pycurves_array.sh, aggregate_pycurves.py)
 figures/
   tbp_dna_shape.png         4-panel TBP ensemble figure (frozen vs relaxed)
 data/
@@ -42,8 +42,8 @@ TATA duplex (chain B 101-112 <-> chain C 124-113). Edit REG for other constructs
 The login node's per-user thread limit crashes XLA's thread pool; run via srun/sbatch:
 ```bash
 srun -p rohs -A rohs_102 -c 4 -t 00:05:00 \
-  bash scripts/run_pycurves.sh ../../output/stage3_min_dnarelax/tbp/1tgh_state_002.pdb pycurves/tbp/tbp_state_002_relax
-python scripts/parse_pycurves_grooves.py pycurves/tbp
+  bash ../../../scripts/pycurves/run_pycurves.sh ../../output/stage3_min_dnarelax/tbp/1tgh_state_002.pdb pycurves/tbp/tbp_state_002_relax
+python ../../../scripts/pycurves/parse_pycurves_grooves.py pycurves/tbp
 ```
 
 ## Key findings (TBP, 1tgh, state ensemble)
