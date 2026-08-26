@@ -24,6 +24,8 @@ analysis-specific paths**. Each consumer builds its own worklist and keeps its o
   `sbatch scripts/pycurves/pycurves_array.sh analysis/analyses/dna_relax/pycurves_worklist.tsv`.
   Its dna_relax-specific reduction (`aggregate_perposition.py`) and representative-viz decks
   (`pycurves_viz_reps.sh`) stay under `pycurves_batch/`.
-- **af3** — `af3/af3_pycurves.sh` runs pyCurves over the AF3 prediction dirs. It predates this
-  toolkit and still carries its own inline `pycurves` call; migrating it to build a worklist and
-  call `pycurves_array.sh` is a straightforward follow-up.
+- **af3** — `af3/build_af3_worklist.sh` writes `af3/af3_pycurves_worklist.tsv` from the AF3
+  prediction dirs, then `CONVENTIONS=legacy sbatch --array=… scripts/pycurves/pycurves_array.sh
+  af3/af3_pycurves_worklist.tsv` (see the builder's header for the exact submit line).
+  `CONVENTIONS=legacy` preserves af3's legacy-only output; the outputs land next to each PDB,
+  unchanged. (This replaced the old standalone `af3_pycurves.sh`.)

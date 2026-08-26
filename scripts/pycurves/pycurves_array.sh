@@ -27,7 +27,7 @@ sed -n "${start},${end}p" "${WL}" | while IFS=$'\t' read -r tf cond state inpdb 
     # strands and errors out on the many asymmetric/overhang duplexes here (dux4,
     # egr1, ...). Groove coverage is fine without it.
     # No --visualization here (aggregation batch); viz is a separate representatives run.
-    for conv in legacy curvesplus; do
+    for conv in ${CONVENTIONS:-legacy curvesplus}; do
         out="${outpref}_${conv}.json"
         if [ -f "$out" ]; then echo "SKIP ${tf}/${cond}_${state} ${conv} (done)"; continue; fi
         echo "RUN ${tf}/${cond}_${state} ${conv} <- ${inpdb}"
