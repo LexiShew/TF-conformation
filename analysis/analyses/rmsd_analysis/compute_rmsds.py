@@ -68,7 +68,7 @@ def import_mdtraj():
 #                 (topology.pdb, samples.xtc, samples_sidechain_rec.{pdb,xtc})
 #   CONF_ROOT   — pipeline output: <root>/<stage>/<tf>/<pdb>_state_NNN.pdb
 #   PILOTS_DIR  — pilot configs:   <root>/<tf>.sh
-_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_TFCONF = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 BIOEMU_ROOT = os.environ.get("DEEPPBS_BIOEMU_ROOT", f"{_TFCONF}/structures/source_chains")
 STAGE1_OUT  = os.environ.get("DEEPPBS_STAGE1_OUT",  f"{_TFCONF}/output/stage1_bioemu")
 CONF_ROOT   = os.environ.get("DEEPPBS_CONF_ROOT",   f"{_TFCONF}/output")

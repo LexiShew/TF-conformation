@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 
 BASE = "/project2/rohs_102/shewchuk/TF-conformation"
-sys.path.insert(0, os.path.join(BASE, "rmsd_analysis"))
+sys.path.insert(0, os.path.join(BASE, "analysis", "analyses", "rmsd_analysis"))
 import compute_rmsds as cr      # repo module
 cr.import_mdtraj()              # binds cr.md
 md = cr.md

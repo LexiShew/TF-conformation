@@ -52,7 +52,7 @@ DNA_RESNAMES = {"DA", "DC", "DG", "DT", "DU", "A", "C", "G", "T", "U",
                 "DA3", "DA5", "DC3", "DC5", "DG3", "DG5", "DT3", "DT5"}
 
 # Defaults match compute_rmsds.py — current repo layout, self-located, env-overridable.
-_TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_TFCONF = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 BIOEMU_ROOT = os.environ.get("DEEPPBS_BIOEMU_ROOT", f"{_TFCONF}/structures/source_chains")
 PILOTS_DIR  = os.environ.get("DEEPPBS_PILOTS_DIR",  f"{_TFCONF}/config/pilots")
 

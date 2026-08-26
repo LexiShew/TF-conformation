@@ -21,7 +21,9 @@ analysis/
 │   ├── dna_relax/     #   DNA relaxation / pyCurves (bulk per-state JSON is gitignored)
 │   ├── align_compare/ #   interface-vs-global alignment (data + sbatch)
 │   ├── stage3/        #   stage-3 minimization figures
-│   └── diversity/     #   ensemble diversity + PyMOL render utilities
+│   ├── diversity/     #   ensemble diversity + PyMOL render utilities
+│   └── rmsd_analysis/ #   RMSD / interface / Pfam workspace; compute_rmsds.py is shared
+│                      #   machinery imported by diversity/ and conformation/
 └── _deprecated/       # superseded three-arm figure_scripts suite (kept for provenance)
 ```
 

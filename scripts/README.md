@@ -11,7 +11,7 @@ Scripts that live outside the per-stage directories. Grouped by purpose:
 | `maintenance/` | `finish_cleanup.sh` | One-off repo-maintenance utility (gitignore/LFS hygiene); hardcodes its repo path. |
 | `deprecated/` | `run_conf.sh`, `submit_all.sh` | **Superseded by `stage1_bioemu/`.** These called the old single-chain `generate_monomer_confs.py` (now moved into `stage1_bioemu/` and generalized to all chains via `--all-chains`). Kept for reference only; do not use. |
 
-RMSD / interface / Pfam analysis lives in the top-level `rmsd_analysis/`
+RMSD / interface / Pfam analysis lives in the `analysis/analyses/rmsd_analysis/`
 workspace (scripts + their CSV outputs), not here.
 
 The launchers in `pipeline/` ARE the pipeline entry points; everything else

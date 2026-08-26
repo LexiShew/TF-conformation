@@ -40,7 +40,7 @@ import argparse, os, sys, glob
 import numpy as np
 
 # import compute_rmsds as a library (it guards __main__), reusing its loaders
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "rmsd_analysis"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "rmsd_analysis"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import compute_rmsds as cr
 

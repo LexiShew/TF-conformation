@@ -44,7 +44,7 @@ from fig_common import (
     GREY, TEAL, GREEN, ALARM,
 )
 
-RMSD_CSV = os.path.join(TFCONF, "rmsd_analysis", "per_state_rmsds.csv")
+RMSD_CSV = os.path.join(TFCONF, "analysis", "analyses", "rmsd_analysis", "per_state_rmsds.csv")
 PERRES_CSV = os.path.join(DATA_DIR, "ca_rmsd_perresidue.csv")
 PERSTATE_CSV = os.path.join(DATA_DIR, "perstate_metrics.csv")
 
