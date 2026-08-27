@@ -13,3 +13,8 @@
 # If a genuinely large binary is ever added, set up git-lfs properly
 # (install it on EVERY machine that commits, and push the objects) rather
 # than re-adding filter lines here.
+
+# Normalize line endings for text data/docs (CRLF crept in via laptop edits).
+*.csv text=auto
+*.md  text=auto
+*.tsv text=auto
