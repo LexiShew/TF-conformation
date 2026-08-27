@@ -1,28 +1,15 @@
-# LFS patterns — store all large binary/structural blobs out of the regular pack.
-# Code, configs, and tabular data (CSV/TSV/JSON) stay in normal git so diffs work.
-
-# Protein/DNA structures
-*.pdb     filter=lfs diff=lfs merge=lfs -text
-*.cif     filter=lfs diff=lfs merge=lfs -text
-*.cif.gz  filter=lfs diff=lfs merge=lfs -text
-*.pqr     filter=lfs diff=lfs merge=lfs -text
-*.psw     filter=lfs diff=lfs merge=lfs -text
-*.pse     filter=lfs diff=lfs merge=lfs -text
-
-# Trajectories
-*.xtc     filter=lfs diff=lfs merge=lfs -text
-*.dcd     filter=lfs diff=lfs merge=lfs -text
-
-# Numerical / serialized arrays
-*.npy     filter=lfs diff=lfs merge=lfs -text
-*.npz     filter=lfs diff=lfs merge=lfs -text
-*.pickle  filter=lfs diff=lfs merge=lfs -text
-*.pkl     filter=lfs diff=lfs merge=lfs -text
-
-# Bundles
-*.tar     filter=lfs diff=lfs merge=lfs -text
-*.tar.gz  filter=lfs diff=lfs merge=lfs -text
-*.zip     filter=lfs diff=lfs merge=lfs -text
-
-# Reports / large docs
-*.pdf     filter=lfs diff=lfs merge=lfs -text
+# Line-ending and diff policy.
+#
+# NOTE: this repo previously declared git-lfs filters for *.pdb/*.cif/*.npy/
+# *.pickle/*.pdf and others. They were removed 2026-08-27: LFS was never
+# actually in use (210 of 211 matching files were stored as ordinary git
+# blobs, and there was no LFS remote), so the declaration did nothing on
+# hosts without git-lfs and silently replaced file contents with pointer
+# text on hosts that had it. That is how
+# stage4_preprocess/jaspar_h11mo_cluster_wise_dna_containing_dataset.npy
+# was truncated to a 130-byte pointer. The largest file in the repo is
+# ~7 MB, well under GitHub's 100 MB limit, so LFS is not needed.
+#
+# If a genuinely large binary is ever added, set up git-lfs properly
+# (install it on EVERY machine that commits, and push the objects) rather
+# than re-adding filter lines here.
