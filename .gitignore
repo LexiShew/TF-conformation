@@ -288,3 +288,12 @@ analysis/dna_relax/pycurves/**/*_state_*_curvesplus.json
 # AlphaFold3 DNA predictions (large, regenerable model output). Inputs in af3/input/
 # and the run scripts stay tracked; the per-seed/sample PDB+JSON do not.
 af3/af3_dna/
+
+# Raw pyCurves JSON not caught by the patterns above: the per-pilot summary
+# dumps and the ~10 MB viewer payloads behind pycurves_viz/*.viewer.html.
+# The small data/*_register.json and stiffness_prior/*.json ARE tracked.
+analysis/dna_relax/pycurves/**/*.json
+analysis/dna_relax/pycurves_viz/**/*.json
+
+# Generated pyCurves worklists (rebuilt by the batch submit scripts).
+analysis/dna_relax/**/*.tsv
