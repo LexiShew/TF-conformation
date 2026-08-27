@@ -249,7 +249,7 @@ data/assembly2024/
 *_auto_1.inp
 *_auto_2.inp
 # ...except the 20 hand-picked visualization decks already tracked:
-!analysis/dna_relax/pycurves_viz/*_auto.inp
+!analysis/analyses/dna_relax/pycurves_viz/*_auto.inp
 
 # Rollback snapshots taken by hand before an edit (.bak_precolor, .bak_10pilot,
 # .bak_pre12, .bak_csl_nd, ...). Git history is the rollback mechanism.
@@ -282,8 +282,8 @@ analysis/figures/pymol/_viewtest/
 
 # Bulk per-state pyCurves output (raw JSON, ~331 MB). Regenerate with the
 # pycurves batch jobs; results are distilled into the tracked *_dna_*.csv summaries.
-analysis/dna_relax/pycurves/**/*_state_*_legacy.json
-analysis/dna_relax/pycurves/**/*_state_*_curvesplus.json
+analysis/analyses/dna_relax/pycurves/**/*_state_*_legacy.json
+analysis/analyses/dna_relax/pycurves/**/*_state_*_curvesplus.json
 
 # AlphaFold3 DNA predictions (large, regenerable model output). Inputs in af3/input/
 # and the run scripts stay tracked; the per-seed/sample PDB+JSON do not.
@@ -292,8 +292,8 @@ af3/af3_dna/
 # Raw pyCurves JSON not caught by the patterns above: the per-pilot summary
 # dumps and the ~10 MB viewer payloads behind pycurves_viz/*.viewer.html.
 # The small data/*_register.json and stiffness_prior/*.json ARE tracked.
-analysis/dna_relax/pycurves/**/*.json
-analysis/dna_relax/pycurves_viz/**/*.json
+analysis/analyses/dna_relax/pycurves/**/*.json
+analysis/analyses/dna_relax/pycurves_viz/**/*.json
 
 # Generated pyCurves worklists (rebuilt by the batch submit scripts).
-analysis/dna_relax/**/*.tsv
+analysis/analyses/dna_relax/**/*.tsv
