@@ -70,3 +70,4 @@ cmd.extend("gradient_protein_split",
                            name_fmt="{obj}_{s:03d}", sele=sele))
 cmd.extend("spectrum_states",
            lambda obj="topology", n=97: gradient_states(obj, n, BLUE_PURPLE_PINK))
+

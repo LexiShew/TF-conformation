@@ -1,4 +1,4 @@
-# scripts/structure_viz — PyMOL structure rendering toolkit
+git push origin main# scripts/structure_viz — PyMOL structure rendering toolkit
 
 The single home for PyMOL rendering: a shared primitive library plus the general,
 pipeline-level render drivers. (Absorbs the former `scripts/pymol/` and `scripts/viz/`.)
