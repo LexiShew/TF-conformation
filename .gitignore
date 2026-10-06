@@ -297,3 +297,31 @@ analysis/analyses/dna_relax/pycurves_viz/**/*.json
 
 # Generated pyCurves worklists (rebuilt by the batch submit scripts).
 analysis/analyses/dna_relax/**/*.tsv
+
+# ---------------------------------------------------------------------------
+# Added 2026-10-06 -- nmr_rmsd structural working copies, and runtime caches
+# ---------------------------------------------------------------------------
+
+# Re-docked and re-scored structure sets written by fnat_on_pairs.py and
+# fnat_on_pilots.py: 4,808 PDBs + 76 trajectories + 21 mmCIF, 511 MB total.
+# Regenerate with those two scripts. The per-pair and per-pilot *_fnat*.csv
+# summaries at each tree's root ARE tracked -- make_talk_figs.py reads only
+# those, so the figures rebuild without the structures.
+analysis/analyses/nmr_rmsd/fnat/apo_states/
+analysis/analyses/nmr_rmsd/fnat/bioemu/
+analysis/analyses/nmr_rmsd/fnat/control/
+analysis/analyses/nmr_rmsd/fnat/docked/
+analysis/analyses/nmr_rmsd/fnat/holo_states/
+analysis/analyses/nmr_rmsd/fnat/refs/
+analysis/analyses/nmr_rmsd/fnat_pilots/cif/
+analysis/analyses/nmr_rmsd/fnat_pilots/docked/
+analysis/analyses/nmr_rmsd/fnat_pilots/refs/
+
+# Hand-taken rollback copies. *.bak_* was already covered; plain .bak was not
+# (analysis/analyses/nmr_rmsd/README.md.bak).
+*.bak
+
+# e3nn Wigner-3j cache, written into whatever directory launched the run.
+# The copy the code actually loads is lib/cg_coefficients/ (version 0.6.0);
+# this root-level one is a stray 0.5.0 from a run started here.
+/cg_coefficients/
