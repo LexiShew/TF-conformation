@@ -76,8 +76,49 @@ basename = os.path.basename(args.input_pdb).replace(".pdb", "")
 os.makedirs(args.scratch_dir, exist_ok=True)
 os.makedirs(os.path.dirname(args.output_pdb), exist_ok=True)
 
+# ---------- Step 0: strip 5'-terminal DNA phosphate ----------
+# Amber14 provides no template for a 5'-terminal nucleotide bearing a
+# phosphate: DG5/DC5 have no phosphate, and internal DG/DC require a bond
+# to a preceding residue. Depositions that include a 5'-phosphate (e.g.
+# 2EUV / NDT80) therefore fail template matching with 'No template found
+# for residue N (DG). The set of atoms matches DG3, but the bonds are
+# different.' Stripping it yields the 5'-OH form matching DG5/DC5.
+# Verified a no-op for all 13 pilots predating this patch (none of their
+# 5' termini carry a phosphate), so earlier results are unaffected.
+_STRIP_5P = {"P", "OP1", "OP2", "OP3"}
+
+
+def _is_dna_resname(rn):
+    rn = rn.strip()
+    return len(rn) == 2 and rn[0] == "D" and rn[1] in "ACGT"
+
+
+_fixer_input = args.input_pdb
+_first_dna = {}
+with open(args.input_pdb) as _fh:
+    for _line in _fh:
+        if _line[:4] in ("ATOM", "HETA") and _is_dna_resname(_line[17:20]):
+            _ch, _num = _line[21], int(_line[22:26])
+            if _ch not in _first_dna or _num < _first_dna[_ch]:
+                _first_dna[_ch] = _num
+_kept, _stripped = [], []
+with open(args.input_pdb) as _fh:
+    for _line in _fh:
+        if _line[:4] in ("ATOM", "HETA") and _is_dna_resname(_line[17:20]):
+            if (_first_dna.get(_line[21]) == int(_line[22:26])
+                    and _line[12:16].strip() in _STRIP_5P):
+                _stripped.append((_line[21], int(_line[22:26]), _line[12:16].strip()))
+                continue
+        _kept.append(_line)
+if _stripped:
+    _fixer_input = os.path.join(args.scratch_dir, basename + "_no5p.pdb")
+    with open(_fixer_input, "w") as _fh:
+        _fh.writelines(_kept)
+    print("[%s] Stripped 5-prime terminal DNA phosphate atoms: %s"
+          % (basename, ", ".join("%s/%s/%s" % t for t in _stripped)))
+
 # ---------- Step 1: PDBFixer + identify metal coordination ----------
-fixer = PDBFixer(filename=args.input_pdb)
+fixer = PDBFixer(filename=_fixer_input)
 fixer.findMissingResidues(); fixer.missingResidues = {}
 fixer.findNonstandardResidues(); fixer.replaceNonstandardResidues()
 fixer.findMissingAtoms(); fixer.addMissingAtoms()
