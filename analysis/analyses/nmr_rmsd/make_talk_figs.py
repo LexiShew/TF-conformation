@@ -4,7 +4,17 @@
 Reads only tracked tables under analysis/analyses/nmr_rmsd/ and
 analysis/analyses/conf_vs_crystal_pwm/. No structure files, no GPU, no network.
 
-  python make_talk_figs.py [--out plots/talk] [--tables data/talk]
+Run from this directory. On an endeavour login node the BLAS thread limit must
+be pinned or numpy fails to import (pthread_create "Resource temporarily
+unavailable", which surfaces as a misleading "do not import numpy from its
+source directory"):
+
+  export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+  /project2/rohs_102/shewchuk/conda/envs/deeppbs/bin/python make_talk_figs.py \
+      [--out plots/talk] [--tables data/talk]
+
+Writes eight PNGs to --out and the four tables behind them to --tables, so every
+number on a slide can be traced without re-running the figure code.
 
 Conventions fixed here on purpose, because getting them wrong changed what a
 slide said during review:
@@ -32,8 +42,27 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PWM = os.path.normpath(os.path.join(HERE, "..", "conf_vs_crystal_pwm"))
+TFCONF = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 
-MG, HOLO, APO, BIO, ALARM = "#7a8288", "#1b6b7a", "#5f8fa6", "#b3452c", "#b3452c"
+import sys
+sys.path.insert(0, HERE)
+sys.path.insert(0, TFCONF)
+from palette import GREY, GREY_R, TEAL, TEAL_R, ALARM   # noqa: E402
+
+# Entity colors come from the repo-root palette.py (the single source) and keep
+# its semantics, same as plot_pair_pca.py in this theme:
+#   grey ramp  = deposited reference structures (the fixed experimental anchor);
+#                two lightness steps separate the holo bundle from the apo bundle
+#   teal       = BioEmu / the augmented-frozen thread -- the thing under test
+#   ALARM      = excluded or "augmentation hurts" ANNOTATION only, never a series
+# The earlier hardcoded set drew BioEmu in the alarm hue (BIO == ALARM) and used
+# a warm YlOrBr ramp, which inverted the house mapping in N1/N4/N6/N7.
+MG = GREY
+HOLO = GREY_R[2]        # deposited holo bundle -- darkest grey
+APO = GREY_R[1]         # deposited apo bundle  -- mid grey
+BIO = TEAL              # BioEmu ensemble (focal)
+RATIO_CMAP = mpl.colors.LinearSegmentedColormap.from_list(
+    "teal_ratio", ["#EAF3F8", TEAL_R[0], TEAL_R[1], TEAL_R[2], "#17455C"])
 
 # Protein names. Taken from pair_core_summary_ca.csv 'family' where the
 # deposited entry title is generic (c09 is "PROTEIN (TRANSCRIPTION FACTOR)").
@@ -67,6 +96,7 @@ def load():
                      ("core", "pair_core_summary_ca.csv"),
                      ("pca", "pair_pca_ca.csv"),
                      ("trim", "trim_sweep_ca.csv"),
+                     ("proj", "pair_projection_ca.csv"),
                      ("three_way", "fnat/fnat_three_way.csv"),
                      ("pilots_summary", "fnat_pilots/fnat_pilots_summary.csv")]:
         d[key] = pd.read_csv(os.path.join(HERE, rel))
@@ -198,7 +228,7 @@ def fig_N2(d, AC, out):
             "14 informative pairs (black) + 2 gated out (red; their apo–holo separation is inside\n"
             "bundle noise, so % across is undefined) · 22 further pairs staged in pairs.csv",
             fontsize=6, color=MG, transform=ax.transAxes, va="top")
-    ax.set_title("The pair set: 16 apo/holo solution-NMR pairs, 16 deposited family annotations")
+    ax.set_title("The pair set: 16 apo/holo solution-NMR pairs, 14 of them informative")
     fig.savefig(os.path.join(out, "N2_pair_roster.png"), bbox_inches="tight")
     plt.close(fig)
 
@@ -262,7 +292,7 @@ def fig_N4(AC, out):
     for i, r in inf.iterrows():
         ax.plot([0, r.pct_across], [i, i], color=MG, lw=.8, zorder=1)
     sc = ax.scatter(inf.pct_across, y, s=62, c=inf.resid_ratio,
-                    cmap=mpl.colormaps["YlOrBr"], norm=norm,
+                    cmap=RATIO_CMAP, norm=norm,
                     edgecolor="black", lw=.5, zorder=3)
     ax.set_yticks(y); ax.set_yticklabels([SHORT[p] for p in inf.pair_id], fontsize=6.4)
     ax.set_xlabel("position along the apo→holo axis (%)")
@@ -410,9 +440,9 @@ def fig_N8(d, out, tabdir):
     P = pv[["baseline", "aug_frozen"]].dropna()
     w = stats.wilcoxon(P.baseline, P.aug_frozen)
     CP = d["crosspilot"]; X = CP[~CP.same_pilot]
-    bars = [("vs the crystal's own\nprediction\n(consistency)",
+    bars = [("consistency\nvs own crystal\nprediction",
              X.d_r_state_crystal.mean(), X.d_r_state_crystal.sem(), X.d_r_state_crystal.notna().sum()),
-            ("vs the experimental\nmotif\n(accuracy)",
+            ("accuracy\nvs experimental\nmotif",
              X.d_r_state_exp.mean(), X.d_r_state_exp.sem(), X.d_r_state_exp.notna().sum())]
     fig = plt.figure(figsize=(7.2, 3.8))
     gs = fig.add_gridspec(1, 2, wspace=.44, width_ratios=[1.25, 1])
@@ -423,16 +453,16 @@ def fig_N8(d, out, tabdir):
                 lw=1.1, marker="o", ms=3.2, zorder=3 if up else 2, alpha=.95 if up else .7)
         if up:
             a1.text(1.04, r.aug_frozen, tf, fontsize=5.8, va="center", color=ALARM)
-    a1.plot([0, 1], [P.baseline.mean(), P.aug_frozen.mean()], color=HOLO,
+    a1.plot([0, 1], [P.baseline.mean(), P.aug_frozen.mean()], color=TEAL,
             lw=2.6, marker="o", ms=5, zorder=5)
     a1.text(1.04, P.aug_frozen.mean(), "mean", fontsize=6.2, va="center",
-            color=HOLO, fontweight="bold")
+            color=TEAL, fontweight="bold")
     a1.set_xticks([0, 1]); a1.set_xticklabels(["baseline", "augmented\n(frozen DNA)"], fontsize=6.4)
     a1.set_xlim(-.18, 1.42)
     a1.set_ylabel("spread of PWM agreement\nacross conformations (SD)")
     a1.text(.02, .04, "lower in %d of %d pilots\nWilcoxon p = %.3f"
             % ((P.aug_frozen < P.baseline).sum(), len(P), w.pvalue),
-            transform=a1.transAxes, fontsize=6.2, color=HOLO)
+            transform=a1.transAxes, fontsize=6.2, color=TEAL)
     a1.text(1.015, .5, "lower = more consistent", transform=a1.transAxes,
             rotation=90, va="center", fontsize=6, color=MG)
     a1.set_title("Augmentation made predictions more consistent\n"
@@ -440,7 +470,7 @@ def fig_N8(d, out, tabdir):
     a2 = fig.add_subplot(gs[0, 1])
     xb = np.arange(2)
     a2.bar(xb, [b[1] for b in bars], yerr=[1.96 * b[2] for b in bars],
-           color=[APO, HOLO], width=.6, capsize=3, error_kw=dict(lw=.9), zorder=3)
+           color=[TEAL_R[0], TEAL], width=.6, capsize=3, error_kw=dict(lw=.9), zorder=3)
     a2.axhline(0, color="black", lw=.9)
     for i, b in enumerate(bars):
         a2.text(i, b[1] + 1.96 * b[2] + .0015, "%+.3f" % b[1],
@@ -491,6 +521,100 @@ def tables(d, AC, tabdir):
        .to_csv(os.path.join(tabdir, "v5_pair_table.csv"), index=False))
 
 
+def fig_N9(d, out):
+    """S7 -- the design of the three-way comparison, with its own numbers on it.
+
+    Drawn rather than photographed so it regenerates: the three medians and pass
+    rates are read from the same tables N1 uses, so the schematic cannot drift
+    away from the result it introduces.
+    """
+    ok = set(d["three_way"].query("ok").pair)
+    F = d["fnat_states"][d["fnat_states"].pair.isin(ok)]
+    lanes = [("holo_states", "holo bundle, DNA stripped", "positive control --\nconformation is already right"),
+             ("apo_states", "deposited apo bundle", "the free state, as\nexperiment actually finds it"),
+             ("bioemu", "BioEmu ensemble", "the free state, as\nthe generator imagines it")]
+    fig, ax = plt.subplots(figsize=(7.2, 3.6))
+    ax.set_xlim(0, 10.6); ax.set_ylim(-0.1, 4.0); ax.axis("off")
+    for i, (src, name, why) in enumerate(lanes):
+        y = 3.05 - i * 1.00          # lane pitch 1.00 against a 0.46 box half-height
+        c = COL[src]
+        ax.add_patch(mpl.patches.FancyBboxPatch(
+            (0.15, y - .46), 3.25, .92, boxstyle="round,pad=0.04",
+            facecolor=c, alpha=.22, edgecolor=c, lw=1.0))
+        ax.text(1.78, y + .26, name, ha="center", va="center",
+                fontsize=6.4, fontweight="bold", color=c)
+        ax.text(1.78, y + .02, "n = %d states" % (F.source == src).sum(),
+                ha="center", va="center", fontsize=5.4, color=MG)
+        ax.text(1.78, y - .26, why.replace("\n", " "), ha="center", va="center",
+                fontsize=5.0, color=MG, style="italic")
+        ax.annotate("", xy=(5.15, y), xytext=(3.50, y),
+                    arrowprops=dict(arrowstyle="-|>", lw=1.0, color=MG))
+        ax.text(4.32, y + .20, "dock onto the\nbound DNA", ha="center", va="center",
+                fontsize=5.2, color=MG, linespacing=1.25)
+        ax.add_patch(mpl.patches.FancyBboxPatch(
+            (5.25, y - .26), 1.6, .52, boxstyle="round,pad=0.04",
+            facecolor="none", edgecolor=MG, lw=0.8, ls="--"))
+        ax.text(6.05, y, "score fnat", ha="center", va="center",
+                fontsize=5.8, color=MG)
+        ax.annotate("", xy=(7.55, y), xytext=(6.95, y),
+                    arrowprops=dict(arrowstyle="-|>", lw=1.0, color=MG))
+        v = F[F.source == src].fnat.values
+        ax.text(7.70, y + .12, "median %.3f" % np.median(v), ha="left", va="center",
+                fontsize=7.0, fontweight="bold", color=c)
+        ax.text(7.70, y - .16, "%.0f%% clear the gate" % (100 * (v >= .5).mean()),
+                ha="left", va="center", fontsize=5.6, color=MG)
+    ax.text(0.15, 3.92, "Same protein, same bound DNA, same scoring — three sources of conformation",
+            fontsize=7.2, fontweight="bold", va="top")
+    ax.text(0.15, -0.02, "13 pairs whose holo control clears the gate · no model, no training, "
+                         "no DeepPBS anywhere in this measurement",
+            fontsize=5.6, color=MG, va="bottom")
+    fig.savefig(os.path.join(out, "N9_three_way_design.png"), bbox_inches="tight")
+    plt.close(fig)
+
+
+def fig_N10(d, out):
+    """S18 -- the construct control: two pairs whose apo and holo BioEmu inputs
+    are byte-identical sequences, so any disagreement is sampling noise.
+
+    KS is computed here rather than quoted, and the axis is the same apo->holo
+    coordinate as N4 (projection column `t`, 0 = apo bundle, 1 = holo bundle).
+    """
+    PJ = d["proj"]; PS = d["pca_summary"]
+    pairs = [("nhp6a", "NHP6A — 93-residue input, identical both sides"),
+             ("vnd", "VND/NK-2 — 77-residue input, identical both sides")]
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.4))
+    for ax, (pid, head) in zip(axes, pairs):
+        for grp, lab, shade in [("apo_ens", "from the apo-side sequence", TEAL_R[0]),
+                                ("holo_ens", "from the holo-side sequence", TEAL_R[2])]:
+            v = 100 * PJ[(PJ.pair_id == pid) & (PJ.group == grp)].t.values
+            ax.hist(v, bins=np.linspace(-20, 120, 29), density=True, histtype="stepfilled",
+                    facecolor=shade, alpha=.5, edgecolor=shade, lw=1.1, label=lab)
+            ax.axvline(np.median(v), color=shade, lw=1.4, ls="-")
+        a = 100 * PJ[(PJ.pair_id == pid) & (PJ.group == "apo_ens")].t.values
+        b = 100 * PJ[(PJ.pair_id == pid) & (PJ.group == "holo_ens")].t.values
+        ks = stats.ks_2samp(a, b)
+        mp = PS[PS.pair_id == pid].set_index("group").median_pc1_A
+        dA = abs(mp.get("apo_ens", np.nan) - mp.get("holo_ens", np.nan))
+        ax.axvline(0, color=MG, lw=0.9); ax.axvline(100, color=MG, lw=0.9)
+        ax.set_title(head, fontsize=6.6)
+        ax.set_xlabel("position along the apo→holo axis (%)")
+        ax.set_ylim(0, ax.get_ylim()[1] * 1.42)   # headroom for the annotation
+        ax.text(.02, .99, "medians %.0f%% vs %.0f%%  (Δ = %.2f Å)\nKS p = %.2f — not separable"
+                % (np.median(a), np.median(b), dA, ks.pvalue),
+                transform=ax.transAxes, va="top", fontsize=5.6, color=MG, linespacing=1.4)
+        ax.set_yticks([])
+        for sp in ("left", "right", "top"):
+            ax.spines[sp].set_visible(False)
+    axes[0].set_ylabel("ensemble density")
+    axes[0].legend(loc="upper left", bbox_to_anchor=(.02, .74), frameon=False,
+                   fontsize=5.6, handlelength=1.2)
+    fig.suptitle("The construct control: identical input sequence both sides, so this spread is "
+                 "sampling noise", fontsize=7.4, x=.07, ha="left")
+    fig.tight_layout(rect=(0, 0, 1, .93))
+    fig.savefig(os.path.join(out, "N10_construct_control.png"), bbox_inches="tight")
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "plots", "talk"))
@@ -503,8 +627,9 @@ def main():
     assert set(SHORT) == set(d["core"].pair_id), "SHORT name map is out of sync with pairs"
     fig_N1(d, a.out); fig_N2(d, AC, a.out); fig_N3(d, a.out); fig_N4(AC, a.out)
     fig_N5(AC, a.out); fig_N6(AC, a.out); fig_N7(d, a.out); fig_N8(d, a.out, a.tables)
+    fig_N9(d, a.out); fig_N10(d, a.out)
     tables(d, AC, a.tables)
-    print("wrote 8 figures to %s and 4 tables to %s" % (a.out, a.tables))
+    print("wrote 10 figures to %s and 4 tables to %s" % (a.out, a.tables))
 
 
 if __name__ == "__main__":
