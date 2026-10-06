@@ -1,0 +1,56 @@
+# apo/holo NMR pairs.
+#
+# status = ready            both members have a <pdb>_chain<X>_conformations/ BioEmu
+#                           ensemble under structures/nmr/ -- analysed by default.
+#          needs_ensembles  pair identified by PDB search but BioEmu has not been run on
+#                           one or both constructs yet. Skipped unless named with --pair-ids.
+#                           Generate with tools/bioemu_from_pdb.sh, then flip to ready.
+#
+# The needs_ensembles rows came from a search of solution-NMR entries containing protein+DNA
+# matched against protein-only solution-NMR entries in the same 95% sequence cluster. They are
+# NOT structurally vetted: 'apo' means the entry holds no nucleic acid, but it may still carry a
+# peptide or ligand, differ in oligomeric state, or cover different domain boundaries. Some share
+# an apo member (1lqc appears 4x) -- pick one holo before generating anything.
+#
+# seq_id   difflib identity between the two construct sequences (penalises length differences)
+# coverage fraction of the SHORTER sequence matched -- 1.00 means full containment
+# interior_diffs  non-flanking differences; 0 means the constructs differ only at the termini
+pair_id,status,label,family,apo_pdb,apo_chain,holo_pdb,holo_chain,seq_id,coverage,interior_diffs,n_apo_models,n_holo_models,len_apo,len_holo,overlaps_existing,notes
+trf1,ready,TRF1 DBD,Telobox/Myb,1ity,A,1iv6,A,0.92,,,,,,,,
+nhp6a,ready,NHP6A,HMG-box,1lwm,A,1j5n,A,1.00,,,,,,,,identical construct in both members
+vnd,ready,VND/NK-2,Homeodomain,1vnd,A,1nk2,P,1.00,,,,,,,,identical construct; holo protein is chain P
+maze,ready,EcMazE (trunc.),AbrB/MazE,2mrn,A,2mru,A,0.85,,,,,,,,apo carries an N-term NHKVHHHHHHMSDDDDK tag
+rok,ready,Rok C-term DBD,Rok,5zuz,A,5zux,A,0.94,,,,,,,,both members His-tagged at the C-term
+c01,ready,REPRESSOR PROTEIN C,HTH / phage repressor,1qpm,A,1g4d,A,1.00,1.00,0,26,25,69,69,,NMR STRUCTURE OF THE MU BACTERIOPHAGE REPRESSOR DNA-BINDING 
+c02,needs_ensembles,ETS1,ETS,1r36,A,2stt,A,0.81,1.00,0,25,25,140,96,ets1 pilot,NMR-based structure of autoinhibited murine Ets-1 deltaN301
+c03,ready,C-Myb DNA-Binding Domain,MYB/SANT (c-Myb),1mbh,A,1msf,C,0.65,0.96,1,50,25,53,105,,MOUSE C-MYB DNA-BINDING DOMAIN REPEAT 2
+c04,ready,Methyl-CpG Binding Protein,MBD (methyl-CpG),1d9n,A,1ig4,A,1.00,1.00,0,25,20,75,75,,SOLUTION STRUCTURE OF THE METHYL-CPG-BINDING DOMAIN OF THE M
+c05,ready,Probable WRKY transcription factor 4,WRKY zinc finger,1wj2,A,2lex,A,1.00,1.00,0,20,20,78,78,,Solution Structure of the C-terminal WRKY Domain of AtWRKY4
+c06,needs_ensembles,MvaT,H-NS-like (MvaT),2mxe,A,2mxf,A,1.00,1.00,0,20,20,55,55,,Solution structure of the C-terminal domain of MvaT
+c07,needs_ensembles,Putative uncharacterized protein ydbC,uncharacterised (YdbC),2ltd,A,2ltt,A,1.00,1.00,0,20,20,80,80,,Solution NMR Structure of apo YdbC from Lactococcus lactis; 
+c08,needs_ensembles,Telomeric repeat binding factor 2,Telobox/Myb (TRF2),1vf9,A,1vfc,A,0.99,1.00,0,25,20,64,63,trf1 pair,Solution Structure Of Human Trf2
+c09,ready,PROTEIN (TRANSCRIPTION FACTOR),Forkhead (FOXD3/Genesis),2hfh,A,2hdc,A,0.94,1.00,0,20,20,109,97,foxa pilot,THE NMR STRUCTURES OF A WINGED HELIX PROTEIN: GENESIS; 20 ST
+c10,ready,Transcriptional regulator SarA,MarR/winged helix (SarA),9ilk,A,9ill,A,0.99,0.99,1,20,20,114,114,,monomeric SarA; truncation of residue 20-124
+c11,ready,DEAD RINGER PROTEIN,ARID (Dead ringer),1c20,A,1kqq,A,0.95,0.99,1,21,20,128,139,,SOLUTION STRUCTURE OF THE DNA-BINDING DOMAIN FROM THE DEAD R
+c12,needs_ensembles,High mobility group protein D,HMG-box (HMG-D),1hma,A,8r1x,A,0.78,0.99,1,20,20,73,112,lef1 pilot + nhp6a pair,THE SOLUTION STRUCTURE AND DYNAMICS OF THE DNA BINDING DOMAI
+c13,ready,Lactose operon repressor,HTH (Lac repressor),1lqc,A,1osl,A,0.93,0.98,1,32,20,56,62,,LAC REPRESSOR HEADPIECE (RESIDUES 1-56); NMR; 32 STRUCTURES
+c14,needs_ensembles,Lactose operon repressor,HTH (Lac repressor),1lqc,A,2kej,A,0.93,0.98,1,32,20,56,62,,LAC REPRESSOR HEADPIECE (RESIDUES 1-56); NMR; 32 STRUCTURES
+c15,needs_ensembles,Lactose operon repressor,HTH (Lac repressor),1lqc,A,2kei,A,0.93,0.98,1,32,20,56,62,,LAC REPRESSOR HEADPIECE (RESIDUES 1-56); NMR; 32 STRUCTURES
+c16,needs_ensembles,RNA polymerase sigma factor RpoN,Sigma-54 (RpoN),2ahq,A,2o8k,A,0.88,0.97,0,20,20,76,63,,Solution Structure of the C-terminal RpoN Domain of Sigma-54
+c17,ready,Y-box-binding protein 1,Cold shock (YB-1),6lms,A,6lmr,A,0.92,0.95,4,20,20,106,113,,Solution NMR structure cold shock domain of YB1 from Homo sa
+c18,needs_ensembles,RNA polymerase sigma factor RpoN,Sigma-54 (RpoN),2ahq,A,2o9l,A,0.88,0.97,0,20,19,76,63,,Solution Structure of the C-terminal RpoN Domain of Sigma-54
+c19,needs_ensembles,Pituitary homeobox 3,Homeodomain (Pitx2),2l7f,P,2lkx,A,1.00,1.00,0,20,17,68,68,vnd pair,Solution Structure of the Pitx2 Homeodomain
+c20,ready,THAP domain-containing protein 1,THAP zinc finger,2jtg,A,2l1g,A,0.98,0.98,2,20,17,87,87,,Solution structure of the THAP-zinc finger of THAP1
+c21,needs_ensembles,Homeotic protein antennapedia,Homeodomain (Antp),2hoa,A,1ahd,P,1.00,1.00,0,20,16,68,68,vnd pair,STRUCTURE DETERMINATION OF THE ANTP(C39->S) HOMEODOMAIN FROM
+c22,ready,TRP REPRESSOR,HTH repressor (TrpR),1wrt,R,1rcs,A,1.00,1.00,0,15,15,105,105,,NMR STUDY OF APO TRP REPRESSOR
+c23,needs_ensembles,THAP domain-containing protein 1,THAP zinc finger,2jtg,A,2ko0,A,0.98,0.98,2,20,15,87,87,,Solution structure of the THAP-zinc finger of THAP1
+c24,needs_ensembles,Chromosomal protein MC1,Archaeal MC1,2khl,A,2nbj,A,1.00,1.00,0,15,12,93,93,,Refined solution structure of Methanosarcina thermophila pro
+c25,needs_ensembles,AT-rich interactive domain-containing ,ARID (MRF-2),1ig6,A,2oeh,A,1.00,1.00,0,11,17,107,107,,HUMAN MRF-2 DOMAIN; NMR; 11 STRUCTURES
+c26,needs_ensembles,MYB24,MYB/SANT (R2R3),2k9n,A,2kdz,A,1.00,1.00,0,20,10,107,107,,Solution NMR structure of the R2R3 DNA binding domain of Myb
+c27,needs_ensembles,ETHANOL REGULON TRANSCRIPTIONAL FACTOR,Zn2Cys6 (AlcR),3alc,A,1f4s,P,1.00,1.00,0,17,10,65,65,,ETHANOL REGULON TRANSCRIPTIONAL ACTIVATOR DNA-BINDING DOMAIN
+c28,needs_ensembles,Penicillinase repressor,Winged helix (BlaI),1p6r,A,2p7c,B,1.00,1.00,0,19,10,82,82,,Solution structure of the DNA binding domain of the represso
+c29,needs_ensembles,Homeobox protein Hox-A13,Homeodomain (HoxA13),2l7z,A,2ld5,A,0.99,1.00,0,15,10,73,71,vnd pair,NMR Structure of A13 homedomain
+c30,needs_ensembles,AbrB family transcriptional regulator,AbrB,2ro4,A,2k1n,A,0.98,1.00,0,10,10,53,55,maze pair,RDC-refined Solution Structure of the N-terminal DNA Recogni
+c31,needs_ensembles,Myelin transcription factor 1,CCHC ZF (Myt1),2jyd,A,2jx1,A,0.81,1.00,0,20,10,46,31,,Structure of the fifth zinc finger of Myelin Transcription F
+c32,needs_ensembles,CORE NFATC1,Rel/NFAT,1nfa,A,1a66,A,0.99,0.99,1,10,18,178,178,nfat pilot,HUMAN TRANSCRIPTION FACTOR NFATC DNA BINDING DOMAIN; NMR; 10
+c33,needs_ensembles,Lactose operon repressor,HTH (Lac repressor),1lqc,A,2kek,A,0.93,0.98,1,32,10,56,62,,LAC REPRESSOR HEADPIECE (RESIDUES 1-56); NMR; 32 STRUCTURES
