@@ -105,8 +105,9 @@ bound DNA, reconstitutes something like the native interface. We never tested it
 **S7 — The test, and three things to compare** [1.5]
 **Say:** Take solution-NMR structures of the _same protein_ with and without DNA, dock each state onto the
 bound DNA, and score fnat. No BioEmu, no DeepPBS, no training anywhere in this measurement.
-**Figure:** `NEW` — schematic, three rows: holo bundle with DNA stripped and re-docked (positive control) ·
-deposited apo bundle · BioEmu ensemble. Hand-drawn is fine.
+**Figure:** `plots/talk/N9_three_way_design.png` — three lanes: holo bundle with DNA stripped and
+re-docked (positive control) · deposited apo bundle · BioEmu ensemble, each with its own median and pass
+rate read from the same tables N1 uses, so the schematic cannot drift from the result it introduces.
 **Notes:**
 
 - The holo re-dock control is what makes the other two readable: it measures what the docking procedure
@@ -117,22 +118,24 @@ deposited apo bundle · BioEmu ensemble. Hand-drawn is fine.
 **S8 — The three-way comparison** ⭐ [3]
 **Say:** Re-docked holo states clear the gate almost always, deposited apo states clear it about two-thirds
 of the time, BioEmu frames clear it about a fifth of the time.
-**Figure:** `NEW` **N1** — violin or strip per source with the 0.5 floor drawn. Source:
-`analysis/analyses/nmr_rmsd/fnat/*_fnat_{holo_states,apo_states,bioemu}.csv`.
+**Figure:** `plots/talk/N1_three_way_fnat.png`.
 
-| source                               | pooled median fnat | pass ≥ 0.5 | n states |
-| ------------------------------------ | ------------------ | ---------- | -------- |
-| holo bundle, DNA stripped, re-docked | 0.844 ✓            | 90% ✓      | 309      |
-| deposited apo bundle                 | 0.636 ✓            | 71% ✓      | 384      |
-| BioEmu ensemble                      | 0.393 ✓            | 23% ✓      | 1528     |
+| source                               | median fnat | pass ≥ 0.5 | n states |
+| ------------------------------------ | ----------- | ---------- | -------- |
+| holo bundle, DNA stripped, re-docked | 0.859 ✓     | 98% ✓      | 257      |
+| deposited apo bundle                 | 0.553 ✓     | 62% ✓      | 289      |
+| BioEmu ensemble                      | 0.381 ✓     | 18% ✓      | 1242     |
 
-Restricted to the 13 pairs whose holo control itself passes: 0.859 / 98%, 0.553 / 62%, 0.381 / 18% ✓.
+**Aggregation, settled: the 13 pairs whose holo control clears the gate, pooled over states.** Say that
+clause on the slide. The reason it is the right choice: switching between pooled-states and
+mean-of-per-pair-medians moves nothing (0.859/0.553/0.381 vs 0.851/0.537/0.377), but including the 3
+pairs whose control fails moves apo by 0.08 and its pass rate by 9 points — and S7 has already said
+those pairs are not interpretable. All four variants are tabulated in `docs/v5_filled_in.md` A1.
 
 **Notes:**
 
-- **?** v4's S10 quoted 0.839 / 0.629 / 0.396 and 100% / 92% / 11.5%. Those do not reproduce from the
-  saved per-state tables under either pooling or per-pair medians. Re-derive and pick one aggregation
-  before this slide goes in — it is the number the room will remember.
+- v4's S10 quoted 0.839 / 0.629 / 0.396 and 100% / 92% / 11.5%, which reproduces under no aggregation of
+  the saved per-state tables. Those numbers are retired; use the table above.
 - Say what each row buys: row 1 = the dock is not the problem; row 2 = the gate is not rejecting
   free-state conformations as a class; row 3 = so the gap is specific to the generated ensembles.
 - End forward, not down: "that is a measurement about ensembles, and it is also a measurement about
@@ -147,8 +150,8 @@ makes Act 3 believable. Invite interruptions here explicitly.
 
 **S9 — The pair set** [2]
 **Say:** 16 apo/holo pairs mined from the PDB — solution-NMR protein+DNA entries matched to protein-only
-solution-NMR entries in the same 95% sequence cluster — plus 33 more already identified and queued.
-**Figure:** `NEW` **N2** — pair roster table from `analysis/analyses/nmr_rmsd/pairs.csv` +
+solution-NMR entries in the same 95% sequence cluster — plus 22 more already identified and staged ✓.
+**Figure:** `plots/talk/N2_pair_roster.png` — roster from `analysis/analyses/nmr_rmsd/pairs.csv` +
 `fnat/fnat_three_way.csv`: pair id, protein, family, apo/holo PDB, #states each side.
 **Notes:**
 
@@ -166,13 +169,20 @@ different atom sets and a histogram of them measures construct length as much as
 `plots/rmsd_apo_holo_ca_core.png` (shared core) — the before/after of the fix.
 **Notes:**
 
-- One pair reads 9.47 Å untrimmed and 0.81 Å on its core ○. That single comparison is the argument.
+- **NHP6A is the argument, in one comparison** ✓: its apo-holo bundles sit a median **13.32 Å** apart on
+  the untrimmed intersection and **1.56 Å** apart on the shared core — an 8.6× shrink, because the
+  untrimmed number is mostly disordered tail. In separation terms (between minus within) that is 9.87 Å
+  to 1.05 Å, and the core keeps 54 of the 93 intersected positions.
+  Source: `trim_sweep_ca.csv` rows `spread_cutoff_A = none` vs `3`.
+- v4's "9.47 Å untrimmed / 0.81 Å on its core" is **retired** — it appears in no table in the repo and no
+  quantity I can compute reproduces the pair. Use the NHP6A numbers above.
+- Scope honestly if asked: the trim sweep covers the original five pairs, not all 16.
 - This is the methods slide that earns the rest; do not cut it.
 
 **S11 — Building one honest atom set per pair** ⭐ [3]
 **Say:** One core per pair, shared by all four members — apo bundle, holo bundle, and both BioEmu
 ensembles — defined by the deposited structures only.
-**Figure:** `NEW` **N3** — three-step schematic: (1) four-way sequence intersection via difflib,
+**Figure:** `plots/talk/N3_shared_core.png` — three-step schematic: (1) four-way sequence intersection via difflib,
 (2) minus expression tags matched by regex, (3) minus disordered termini trimmed inward while either
 bundle's intra-bundle spread exceeds 3.0 Å. Annotate with core sizes from
 `pair_core_summary_ca.csv`.
@@ -187,20 +197,24 @@ bundle's intra-bundle spread exceeds 3.0 Å. Annotate with core sizes from
 **S12 — Does the pair separate its own states? (the gate)** [2]
 **Say:** A pair earns its place only if the apo–holo separation clears the bundles' own internal
 heterogeneity — NMR spread is precision as much as it is dynamics.
-**Figure:** `NEW` **N5** — within vs between bundle RMSD per pair with bootstrap CIs and the
+**Figure:** `plots/talk/N5_gate.png` — within vs between bundle RMSD per pair with bootstrap CIs and the
 ratio threshold. Source: `pair_bundle_summary_ca.csv`.
 
 | pair  | within | between | separation [95% CI]  | ratio | verdict       |
 | ----- | ------ | ------- | -------------------- | ----- | ------------- |
-| nhp6a | 0.50   | 1.55    | +1.05 [+0.96, +1.12] | 3.08  | informative ○ |
-| vnd   | 0.41   | 1.15    | +0.75 [+0.68, +0.81] | 2.83  | informative ○ |
-| rok   | 0.75   | 1.75    | +1.00 [+0.89, +1.11] | 2.33  | informative ○ |
-| trf1  | 1.11   | 1.28    | +0.17 [+0.09, +0.23] | 1.15  | gated out ○   |
-| maze  | 0.90   | 1.07    | +0.17 [−0.03, +0.31] | 1.19  | gated out ○   |
+| nhp6a | 0.50   | 1.55    | +1.05 [+0.96, +1.12] | 3.08  | informative ✓ |
+| vnd   | 0.41   | 1.15    | +0.75 [+0.68, +0.81] | 2.83  | informative ✓ |
+| rok   | 0.75   | 1.75    | +1.00 [+0.89, +1.11] | 2.33  | informative ✓ |
+| trf1  | 1.11   | 1.28    | +0.17 [+0.09, +0.23] | 1.15  | gated out ✓   |
+| maze  | 0.90   | 1.07    | +0.17 [−0.03, +0.31] | 1.19  | gated out ✓   |
 
 **Notes:**
 
-- 14 of 16 pass. trf1's CI excludes zero only because n is large — 0.17 Å on a 1.1 Å noise floor.
+- 14 of 16 pass, and every value in the table above was checked against `pair_bundle_summary_ca.csv` ✓.
+- **The gate is decided by the ratio, not by the CI** ✓ — trf1's CI excludes zero and it is still out.
+  0.17 Å on a 1.1 Å noise floor. Lowest informative ratio is 1.355 (c-Myb), highest gated-out is 1.189
+  (maze), so any threshold in (1.19, 1.36] reproduces the split; the script uses 1.25. Never describe
+  the rule as "ratio ≥ 2".
 - Bootstrap unit is states, not state-pairs; self-comparisons from resampling are dropped, not scored 0.
 - The new pairs widen the dynamic range a lot: THAP1 and TrpR separate their bundles by 4.3–4.4 Å against
   1.1–1.8 Å for the original three ○. That range is what was missing for asking whether BioEmu tracks a
@@ -251,7 +265,7 @@ over the bundles' own LOO residual — how far outside the observed subspace the
 **S16 — Position along the apo→holo axis, all 14 informative pairs** ⭐ [3]
 **Say:** It spans 2% to 94%, median 55%. BioEmu is not systematically apo-biased — where its ensemble
 lands varies by system across the entire range.
-**Figure:** `NEW` **N4** — lollipop/dot plot, pairs sorted by `%across`, marker shaded by residual ratio,
+**Figure:** `plots/talk/N4_pct_across.png` — lollipop, pairs sorted by `%across`, marker shaded by residual ratio,
 0% and 100% anchored. Source: `pair_pca_summary_ca.csv` + `pair_projection_ca.csv`.
 
 | pair  | protein            | %across ○ | resid ratio ○ |
@@ -275,7 +289,7 @@ lands varies by system across the entire range.
 
 - **This is the slide that supersedes what I would have told you at n=3.** On nhp6a, rok and vnd alone the
   reading was "BioEmu reaches neither basin and never gets to holo". At n=14 that does not survive. Say it
-  as a lesson about small n, cheerfully — it is the best argument for the 33 queued pairs.
+  as a lesson about small n, cheerfully — it is the best argument for the 22 staged pairs.
 - Restricting to the 8 pairs whose ensembles stay near the subspace (ratio < 4) changes nothing: median
   60%, same 2–94% range ○.
 - Two pairs at the apo end, three at the holo end, nine in between.
@@ -284,7 +298,7 @@ lands varies by system across the entire range.
 **S17 — What _does_ reproduce: the ensembles are wider** ⭐ [2.5]
 **Say:** In every informative pair, the ensemble sits further outside the deposited subspace than the
 bundles do — 1.9× to 10.2× the bundles' own leave-one-out residual.
-**Figure:** `NEW` **N6** — per-pair bar of ensemble residual / bundle LOO residual, ordered, with 1× line.
+**Figure:** `plots/talk/N6_residual_ratio.png` — per-pair bar of ensemble residual / bundle LOO residual, with 1× line.
 Source: `pair_pca_summary_ca.csv` (recomputed ratios ✓: c03 1.9 · c04 2.5 · c22 2.9 · nhp6a 3.0 ·
 c05 3.0 · c13 3.1 · vnd 3.5 · rok 3.7 · c09 4.3 · c01 4.4 · c11 5.5 · c17 6.9 · c20 9.1 · c10 10.2).
 **Notes:**
@@ -299,14 +313,18 @@ c05 3.0 · c13 3.1 · vnd 3.5 · rok 3.7 · c09 4.3 · c01 4.4 · c11 5.5 · c17
 **S18 — The control that makes this trustworthy** [2]
 **Say:** Two pairs give BioEmu byte-identical input sequences on the apo and holo sides, so their
 disagreement is pure sampling noise — and it is about 2–3% of the apo→holo axis.
-**Figure:** `NEW` — small two-panel PC1 density overlay for nhp6a and vnd (apo-seq vs holo-seq). Source:
-`pair_projection_ca.csv`.
+**Figure:** `plots/talk/N10_construct_control.png` — two panels, apo-seq vs holo-seq ensemble density
+along the apo→holo axis, with the KS test computed in-figure rather than quoted.
 **Notes:**
 
-- nhp6a and vnd: identical 93- and 77-residue inputs; PC1 medians differ by 0.17 and 0.19 Å; KS cannot
-  separate them (p = 0.64, 0.33); IQRs match ○.
-- So nhp6a's and vnd's failure to reach holo is 15–25× the sampling noise ○, and rok parking at apo is
-  within ~1 noise unit of the bundle.
+- nhp6a and vnd: identical 93- and 77-residue inputs; PC1 medians differ by **0.17 and 0.19 Å** ✓, which
+  is 2–3% of their apo→holo axis.
+- KS cannot separate the two ensembles of either pair ✓ — **p = 0.61 and 0.15** on the axis coordinate,
+  which is what N10 computes and prints. (v4's "0.64, 0.33" was KS on a different quantity and is not
+  reproducible from `pair_projection_ca.csv`; quote the figure, not v4.) vnd at 0.15 is the weaker of the
+  two — say "not separable", not "identical".
+- So the distance nhp6a and vnd still have to travel to reach holo is **13–36× that noise** ✓, and rok
+  parking at apo is within ~1 noise unit of its bundle.
 - Every other construct difference in the set is flanking-only; no pair has an interior substitution ○.
 - One real caution: a tag can be dropped from the measurement core but not from the _generation_. maze's
   two ensembles differ 1.7× in residual and the worse one is the **untagged** 50-mer — truncation, not the
@@ -325,10 +343,9 @@ every pair and the default 3.0 Å sits in it.
 
 **S20 — And on our own pilots** [2]
 **Say:** Same measurement, our 13 pilots, using whatever apo structures exist for them: BioEmu's single
-best frame out of ~90 is below the deposited apo median in 5 of 5 pilots that have apo entries.
-**Figure:** `NEW` **N7** — per-pilot: BioEmu fnat distribution with its max marked, versus each deposited
-apo source (NMR bundles and apo crystals shown differently). Source:
-`analysis/analyses/nmr_rmsd/fnat_pilots/fnat_pilots_summary.csv`.
+best frame out of ~90 is below the deposited apo median in 4 of the 5 pilots that have apo entries —
+clearly in 3 of them, and runx goes the other way.
+**Figure:** `plots/talk/N7_pilot_fnat.png`.
 
 | pilot     | deposited apo median ✓  | BioEmu median ✓ | BioEmu best ✓ |
 | --------- | ----------------------- | --------------- | ------------- |
@@ -340,12 +357,15 @@ apo source (NMR bundles and apo crystals shown differently). Source:
 
 **Notes:**
 
-- Not a sampling-efficiency story: the best of ~90 frames does not reach the median of 10–43 deposited
-  states. The conformations are not in the distribution.
-- **runx is the interesting exception and needs care:** its NMR apo bundles score _low_ (0.250/0.375,
-  0% pass) while its seven apo _crystal_ structures score 0.667–0.875 ✓. That is either real
-  solution-vs-lattice disagreement or an alignment problem on 1CMO. Keep it in backup; `pilot_mechanism.csv`
-  is mid-regeneration.
+- Not a sampling-efficiency story: for engrailed, ets1 and hsf the best of ~90 frames does not reach the
+  median of 20–25 deposited states. The conformations are not in the distribution.
+- **Be precise about the other two, because the figure is.** nfat is a tie, not a miss — best frame 0.500
+  against an apo median of 0.510, on a 10-state bundle. And runx **inverts**: its best frame (0.542) beats
+  both its NMR apo bundles (0.250 and 0.375) ✓.
+- **runx needs care and belongs in backup:** its NMR bundles score _low_ while its six apo _crystal_
+  structures score 0.667–0.875 ✓, so the inversion is against solution structures only. Either real
+  solution-vs-lattice disagreement or an alignment problem on 1CMO; `pilot_mechanism.csv` has not been
+  regenerated (still Sep 23).
 - ets1 also has 7 apo entries — the best-covered pilot, and the obvious next pair to generate (c02,
   1r36/2stt, needs only the apo side).
 
@@ -392,13 +412,19 @@ adds fluctuation without moving the mean.
   thing we stopped claiming — that is S29, one line, later.
 
 **S24 — AF3 vs an ensemble, on DNA flexibility** [1.5]
-**Say:** AF3 gives one structure and it reads as nearly rigid DNA; the ensembles show 4–5× more
-minor-groove fluctuation across every pilot.
+**Say:** AF3 gives one structure and it reads as nearly rigid DNA; across 12 pilots the ensembles show a
+median 4-5x more minor-groove fluctuation.
 **Figure:** `analysis/analyses/dna_relax/figures/af3_vs_ensemble_mgwfl.png` (+ `D1_diversity.png` or old
 S23 for the protein-side diversity point).
 **Notes:**
 
-- AF3 MGW-FL ~0.09–0.24 Å vs ensemble medians 4.6×/4.9× higher, paired p = 2.9e-3 / 2.2e-4 ○.
+- Ensemble ÷ AF3 MGW-FL, median over 12 pilots: **4.60×** frozen-DNA and **4.88×** relaxed-DNA ✓; paired
+  t p = **2.9e-3** and **2.2e-4** ✓ (`dna_relax/data/af3_vs_ensemble_mgwfl.csv`). v4's figures were right.
+- **But not "every pilot"** ✓ — the frozen ratio spans 0.89× to 12.33× and is above 1 in 10 of 12: ets1
+  (0.90) and TBP (0.89) read marginally *less* fluctuation than AF3. The relaxed-DNA ratio is above 1 in
+  12 of 12 (1.65-13.64×). Say "median", and if pressed name ets1 and TBP — the two pilots whose DNA the
+  gate likes best are also the two where this effect is absent, which is interesting rather than awkward.
+- AF3's own MGW-FL spans 0.09-0.47 Å (0.09-0.24 Å excluding dux4, the excluded dimer at 0.47).
 - Reproduces the lab's own Biophys J Fig 3 on our systems — good place to say the pipeline agrees with
   something external.
 - This answers "why BioEmu and not AF3?" before it is asked.
@@ -437,8 +463,10 @@ the spread across independently trained _models_.
 **Figure:** reuse **old S88** (how predictions differ) or `analysis/analyses/struct_pwm/figures/struct_pwm_context.png`.
 **Notes:**
 
-- Conformation SD 0.235 vs seed SD 0.16, n = 701 ○ **?** — re-derive from
-  `analysis/analyses/conf_vs_crystal_pwm/per_state_all_conditions.csv` before use.
+- Conformation SD **0.234** vs seed SD **0.149**, a ratio of 1.57, over 701 baseline states ✓
+  (`per_state_all_conditions.csv`; conformation SD = spread across states within one pilot and seed, seed
+  SD = spread across seeds at a fixed state). Do not pool pilots — that inflates the conformation SD to
+  0.319 ✓ by folding in between-pilot differences.
 - Exemplar logos if time: EGR1's worst state loses the poly-G signature; TBP's best is indistinguishable
   from the crystal ○ (`struct_pwm/figures/struct_pwm_*.png`).
 
@@ -446,22 +474,27 @@ the spread across independently trained _models_.
 **Say:** The model became markedly more consistent across conformations and only slightly more accurate on
 complexes it had never seen — which is exactly what we asked for when we gave every conformation the same
 label.
-**Figure:** `NEW` **N8** — paired baseline→augmented across-conformer SD per pilot (12 slopes), plus a
-single panel for the cross-pilot delta. Source: `conf_vs_crystal_pwm/per_tf_all_conditions.csv` and
-`crosspilot_deltas.csv`.
+**Figure:** `plots/talk/N8_augmentation.png` (a: 12 paired slopes · b: the two cross-pilot deltas with CIs).
 **Notes:**
 
 - Across-conformer SD 0.247 → 0.202, lower in 10 of 12 pilots, Wilcoxon p = 0.034 ✓. HSF1 is the lone
   exception (0.392 → 0.518 ✓).
-- Accuracy on a genuinely unseen complex: **+0.025** ✓ — cross-pilot design, 660 donor×target×seed rows,
-  where pilot X's conformations are scored under donor pilot Y's checkpoints.
-- Volunteer the in-sample structure rather than waiting to be asked: within-pilot the same quantity is
-  +0.283 ✓, and all states are in-sample for their own augmented checkpoint, verified per entry. But the
-  inputs are **not** near-copies — median distance to own crystal is 0.83 of the distance unrelated
-  training entries sit at, and for err (1.07) and nfat (1.34) the states are _further_ than unrelated
-  entries ✓. So this is label-side memorization with structurally distinct inputs.
-- **?** v4's S18 quoted 0.235 → 0.180, 11/12, p = 0.027 — a different aggregation unit than the per-pilot
-  table gives. Pick one before the talk.
+- **Two different quantities, and the slide now shows both.** `r_vs_crystal` is agreement with the
+  checkpoint's _own_ crystal prediction — consistency, not accuracy; the crystal row is 1.0 by
+  construction ✓. Accuracy is `r_vs_exp`, against the experimental motif. On genuinely unseen complexes
+  (cross-pilot, 638 rows): consistency **+0.025** [+0.014, +0.036] ✓ and accuracy **+0.014**
+  [+0.002, +0.026] ✓. Both are positive, both are small, and **their CIs overlap — do not claim one is
+  bigger.** v4 called +0.025 an accuracy gain; it is not.
+- Volunteer the in-sample structure rather than waiting to be asked: within-pilot the same consistency
+  quantity is mean **+0.246** / median **+0.283** ✓ — quote mean against mean, since +0.025 is a mean.
+  All states are in-sample for their own augmented checkpoint, verified per entry. But the inputs are
+  **not** near-copies — median distance to own crystal is 0.83 of the distance unrelated training entries
+  sit at, and for err (1.07) and nfat (1.34) the states are _further_ than unrelated entries ✓. So this
+  is label-side memorization with structurally distinct inputs.
+- The unit is the **pilot** (n = 12). The pilot×seed unit looks stronger — 0.232 → 0.177, 49/58,
+  p = 6.7e-6 ✓ — but seeds within a pilot share data and conformations, so that p-value is
+  pseudoreplicated; it is the same mistake as the old mixed-model figure. v4's "0.235 → 0.180, 11/12,
+  p = 0.027" mixed the two units in one sentence.
 - Close forward: the objective maps every conformation to one motif, so it cannot learn conformational
   sensitivity by construction. The fix is per-frame labels, which is a directions item.
 
@@ -475,7 +508,7 @@ the correlating quantity is and I've stopped using it.
 - One slide, 60 seconds, no defensiveness and no detail. The five-beat version and the full axis
   enumeration go to backup; pull them out only if asked.
 - The useful residue, stated positively: at n = 12 with seed noise at two-thirds of the between-pilot
-  spread, this design cannot resolve effects of this size — which is why the NMR pairs (n = 16 → 47,
+  spread, this design cannot resolve effects of this size — which is why the NMR pairs (n = 16 → 38,
   no training required) are where the effort went.
 
 ---
@@ -491,7 +524,8 @@ the correlating quantity is and I've stopped using it.
   within-family test anchors, and it exists because a label audit found TBP's PWM label pointed at an
   NDT80 matrix — so label, structure and anchors finally agree. One line on the bug, as infrastructure
   working rather than as a confession.
-- **33 more apo/holo pairs** identified and filtered; each costs two BioEmu runs.
+- **22 more apo/holo pairs** staged in `pairs.csv` (38 rows: 16 `ready` + 22 `needs_ensembles`) ✓;
+  each costs two BioEmu runs.
 - **Sox2 blind test**, half a day.
 
 **S31 — Six directions, and I want you to argue about them** ⭐ [8–10]
@@ -505,7 +539,7 @@ the correlating quantity is and I've stopped using it.
 2. **Folded vs unfolded.** The free state really does contain partially unfolded members, and NMR
    determination selects for a determinable fold. Some of the fnat gap may be BioEmu correctly sampling a
    disordered tail. How would you split "generator is wrong" from "metric measures foldedness"?
-3. **Which families should the next 33 pairs prioritize?** The set is choosable and four pairs already
+3. **Which families should the next 22 pairs prioritize?** The set is choosable and four pairs already
    overlap our pilots. Breadth across folds, or depth on families where mechanism is contested?
 4. **Cross the protein and DNA axes.** We have apo fnat (is the protein preformed?) and MGW fluctuation
    (is the DNA reshaped?) on overlapping systems and have never plotted one against the other. Is that
@@ -514,7 +548,7 @@ the correlating quantity is and I've stopped using it.
    circular; physics-based scoring and SELEX-derived labels are both expensive. A λ-blend sweep between
    the experimental PWM and each conformation's own prediction is the cheap test. Better label source?
 6. **Is "is the DBD preformed?" a paper on its own?** It needs no model and no training, it reproduces
-   known induced-fit cases, and at n = 47 it would be a survey. Or is it a methods section inside the
+   known induced-fit cases, and at n = 38 it would be a survey. Or is it a methods section inside the
    augmentation story?
 
 **S32 — Backup index** [0]
@@ -558,10 +592,19 @@ the correlating quantity is and I've stopped using it.
 | diversity                    | `analysis/figures/D1_diversity.png`                                                                                            |
 | PWM exemplars                | `analysis/analyses/struct_pwm/figures/struct_pwm_{ets1,tbp,csl}.png`, `struct_pwm_context.png`                                 |
 
-**To make** — all eight are table-driven, no new compute. Suggested home:
-`analysis/analyses/nmr_rmsd/make_talk_figs.py` (N1–N7) and
-`analysis/analyses/conf_vs_crystal_pwm/make_talk_figs.py` (N8); import `analysis/common/fig_common.py`
-and the repo-root `palette.py`, per `analysis/docs/LAYOUT.md`.
+**Built** — `analysis/analyses/nmr_rmsd/make_talk_figs.py` writes all eight to
+`analysis/analyses/nmr_rmsd/plots/talk/` plus the four tables behind them to `data/talk/`, so every
+number on a slide is traceable without re-running the figure code. Colors come from the repo-root
+`palette.py` (grey = deposited reference, teal = BioEmu / the augmented thread, rose = excluded or
+"hurts" annotations only). Regenerate with:
+
+```
+cd analysis/analyses/nmr_rmsd
+export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+/project2/rohs_102/shewchuk/conda/envs/deeppbs/bin/python make_talk_figs.py
+```
+
+(the thread pin is required on an endeavour login node — without it numpy fails to import).
 
 | id  | slide   | figure                                                 | source table                                                             |
 | --- | ------- | ------------------------------------------------------ | ------------------------------------------------------------------------ |
@@ -579,20 +622,36 @@ Plus two hand-drawn schematics (S7 three-way design, and the S30 in-flight table
 
 ---
 
-## Part 5 — Numbers to re-derive before this is presentable
+## Part 5 — Numbers: what is settled, what is still soft
 
-Three slides currently rest on numbers whose aggregation I could not reproduce. None of them changes a
-direction; all of them are the kind of thing someone writes down.
+**Settled 2026-10-06.** Every `?` this document opened with has been re-derived from the tables, and
+independently reproduced a second time; the derivations are in `docs/v5_filled_in.md` and the figures that
+carry them are built. Four things changed in the process, all folded into the slides above:
 
-| slide | quoted in v4                                                 | recomputed 2026-10-06                                           | action                                                                                                 |
-| ----- | ------------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| S8    | holo 0.839 / apo 0.629 / BioEmu 0.396; pass 100 / 92 / 11.5% | pooled over 16 pairs: 0.844 / 0.636 / 0.393; pass 90 / 71 / 23% | pick one aggregation (pooled states vs per-pair medians vs informative-only) and state it on the slide |
-| S28   | SD 0.235 → 0.180, 11/12, p = 0.027                           | per-pilot table: 0.247 → 0.202, 10/12, p = 0.034                | likely per-seed vs per-pilot unit; decide which                                                        |
-| S27   | conformation SD 0.235 vs seed SD 0.16                        | not re-derived                                                  | recompute from `per_state_all_conditions.csv`                                                          |
+| was                                        | is                                                                     | slide |
+| ------------------------------------------ | ---------------------------------------------------------------------- | ----- |
+| three-way fnat on 16 pairs                 | 13 pairs whose holo control clears the gate, pooled over states        | S8    |
+| "accuracy on an unseen complex +0.025"     | consistency +0.025; **accuracy +0.014**, CIs overlapping               | S28   |
+| +0.283 vs +0.025 (median vs mean)          | mean vs mean: +0.246 vs +0.025                                         | S28   |
+| best frame below apo median in **5 of 5**  | **4 of 5** — clearly 3, nfat a tie, runx inverts                       | S20   |
+| 33 further pairs staged                    | **22** (`pairs.csv` has 38 rows: 16 `ready` + 22 `needs_ensembles`)    | S9, S30, S31 |
 
-Also: `%across`, residual ratios and the gate CIs in the tables above are quoted from the theme README,
-which states that two of its tables predate the expansion from 5 to 16 pairs. The 14-pair `%across` table
-is current; the 2×2 / delta table is not. Regenerate before putting either on a slide.
+The last two ○ numbers on main-line slides were re-derived the same day, with opposite outcomes:
+
+| slide | v4's number                                                        | outcome                                                                                                                                  |
+| ----- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| S24   | AF3 MGW-FL 4.6×/4.9× below the ensembles, p = 2.9e-3 / 2.2e-4      | **confirmed exactly** ✓ — they are median ratios over 12 pilots with paired t-tests. One wording fix: not "every pilot" (10 of 12 frozen) |
+| S10   | 9.47 Å untrimmed vs 0.81 Å on the core                             | **retired** — in no table in the repo, and nothing computable reproduces the pair. Replaced by NHP6A 13.32 → 1.56 Å ✓ from the trim sweep |
+
+**No ○ or ? numbers remain in the main line.** Everything on a slide is now either recomputed from a
+named table in-repo or marked as external literature.
+
+**Two literature numbers to check against the papers, not the tables:** BioEmu's 85% vs 49% cryptic-pocket
+figure (S17) and Sox2's RDC Q-factors 0.76 / 0.08 (S25).
+
+Also: the theme README states that two of its tables predate the expansion from 5 to 16 pairs. The 14-pair
+`%across` table is current (and is what N4 draws); the 2×2 / delta table is not — Part 8 keeps it off the
+slides rather than regenerating it.
 
 ---
 
@@ -640,5 +699,6 @@ only S16, S17 and S31; everything else can be told in two sentences.
 - The runx apo reclassification as a result — `pilot_mechanism.csv` is mid-regeneration.
 - TBP as a decisive example of anything (label quarantined).
 - The 2×2 / delta table from the NMR README — it predates the 16-pair expansion.
-- The within-pilot +0.283 as an accuracy claim; it is in-sample and only interesting next to +0.025.
+- The within-pilot +0.246 as an accuracy claim — it is neither accuracy nor out-of-sample, and is only
+  interesting next to the cross-pilot +0.025.
 - A pilot-candidate shopping list. It competes with S31 for the same discussion time.
