@@ -41,7 +41,14 @@ arg_parser.add_argument("--weight_method", type=str, choices=['none', 'batch', '
 arg_parser.add_argument("--single_gpu", action="store_true", default=None,
                 help="Don't distribute across multiple GPUs even if available, just use one.")
 arg_parser.add_argument("--no_random", action="store_true", default=None,
-                help="Use a fixed random seed (useful for debugging).")
+                help="LEGACY: seed with the old fixed 8/0 pair. Prefer --random_seed.")
+arg_parser.add_argument("--random_seed", type=int, default=None,
+                help="Seed for python/numpy/torch/cuda RNGs. Overrides the "
+                     "config's random_seed. Paired baseline/augmented runs must "
+                     "use the SAME value to share parameter init.")
+arg_parser.add_argument("--deterministic_cudnn", action="store_true", default=None,
+                help="Force cuDNN determinism (slower; needed only for "
+                     "bit-identical reruns).")
 arg_parser.add_argument("--debug", action="store_true", default=None,
                 help="Print additonal debugging information.")
 arg_parser.add_argument("--load", type=str, default=None, 
@@ -111,6 +118,10 @@ def addWeightDecay(model, weight_decay=1e-5, skip_list=()):
 ####################################################################################################
 # Load the config file
 defaults = {
+    # random_seed=None means UNSEEDED (driver warns loudly). Set it in the
+    # config -- stage5's generated configs do -- or pass --random_seed.
+    "random_seed": None,
+    "deterministic_cudnn": False,
     "no_random": False,
     "debug": False,
     "output_path": ".",
@@ -141,10 +152,80 @@ for key, val in vars(ARGS).items():
     if val is not None:
         C[key] = val
 
-# Set random seed or not
-if C["no_random"] or C["debug"]:
-    np.random.seed(8)
+# ---------------------------------------------------------------------------
+# Random seeding.
+#
+# HISTORY (finding F6, docs/codebase_review_2026-10-15.md). This block used to
+# read:
+#
+#     if C["no_random"] or C["debug"]:
+#         np.random.seed(8)
+#         torch.manual_seed(0)
+#
+# which had two independent defects:
+#
+#   1. It ignored C["random_seed"] entirely. stage5 wrote that key into every
+#      generated config with the comment "CRITICAL: paired seed so baseline and
+#      augmented share parameter init" — but nothing ever read it. It was a
+#      dead config key.
+#   2. It was gated on no_random, which stage5 wrote as False. So the block
+#      never executed. Across all 264 training runs in output/stage6_train/,
+#      no_random was False and debug was absent, meaning torch.manual_seed was
+#      NEVER called for any run in this project.
+#
+# Consequence: every "seed" s1..s5 was an unseeded replicate, baseline_X_s1 and
+# augmented_X_s1 shared nothing, and no run was reproducible.
+#
+# NOW: if random_seed is present we seed from it, unconditionally. no_random is
+# kept only as a legacy alias for the old 8/0 debug pair. An unseeded run warns
+# loudly rather than passing silently — the silence is what let this persist.
+# ---------------------------------------------------------------------------
+def _seed_everything(seed):
+    """Seed every RNG that can affect this run, and report what was seeded."""
+    import random as _random
+    _random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        # manual_seed_all covers every visible device, which matters for the
+        # DataParallel path below.
+        torch.cuda.manual_seed_all(seed)
+    return seed
+
+
+_seed = C.get("random_seed", None)
+if _seed is not None:
+    _seed_everything(int(_seed))
+    print(f"Seeded all RNGs (python/numpy/torch/cuda) with random_seed={_seed}")
+    logging.info("Seeded all RNGs with random_seed=%s", _seed)
+elif C["no_random"] or C["debug"]:
+    # Legacy path: reproduces the pre-2026-10-15 intent of `no_random` for
+    # anyone re-running an old debug config that has no random_seed key.
+    _random_legacy = 8
+    import random as _random_mod
+    _random_mod.seed(_random_legacy)
+    np.random.seed(_random_legacy)
     torch.manual_seed(0)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(0)
+    print("Seeded with the LEGACY no_random pair (numpy=8, torch=0). "
+          "Prefer setting random_seed in the config.")
+    logging.warning("Using legacy no_random seeding; set random_seed instead.")
+else:
+    print("WARNING: no random_seed in config and no_random is False — this run "
+          "is UNSEEDED and NOT reproducible. Baseline/augmented runs will not "
+          "share parameter init. See F6 in docs/codebase_review_2026-10-15.md.",
+          file=sys.stderr)
+    logging.warning("UNSEEDED run: no random_seed set. Not reproducible.")
+
+# Optional full cuDNN determinism. Off by default because it can slow training
+# materially and is not needed for the paired comparison (what that needs is
+# identical parameter init, which the seeding above gives). Turn it on when you
+# want bit-identical reruns.
+if C.get("deterministic_cudnn", False):
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    print("cuDNN set to deterministic mode (benchmark off)")
 
 # Get run name and path
 config = '.'.join(ARGS.config_file.split('.')[:-1])

@@ -39,9 +39,25 @@ def base_config(data_dir, output_path, random_seed):
         "best_state_metric_goal": "min",
         "best_state_metric_threshold": 1.0,
         "best_state_metric_dataset": "validation",
-        # Same seeds as the existing multi-seed run so we can pair against
-        # the existing baseline checkpoints exactly.
+        # Paired seed. driver.py seeds python/numpy/torch/cuda from this key.
+        #
+        # WHAT THIS GIVES YOU: identical parameter initialisation for
+        # baseline_<tf>_s<N> and augmented_<tf>_s<N>, because both construct the
+        # same architecture from the same RNG state. That is what isolates the
+        # augmentation effect from init noise.
+        #
+        # WHAT IT DOES NOT GIVE YOU: an identical shuffle order. The augmented
+        # training set is strictly larger than the baseline's, so the sampler
+        # permutes a different-length index range. (The comment that stood here
+        # before 2026-10-15 claimed both; only the init claim is true.)
+        #
+        # Before 2026-10-15 this key was written but never read by driver.py,
+        # and no_random=False meant the seeding block never ran at all -- so all
+        # 264 runs were unseeded. See F6 in docs/codebase_review_2026-10-15.md.
         "random_seed": random_seed,
+        # Legacy flag, kept for schema compatibility. It is IGNORED whenever
+        # random_seed is set; driver.py only falls back to it for old configs
+        # that have no random_seed key.
         "no_random": False,
         "model": {"transform_args": []},
         "optimizer": {"name": "adam", "kwargs": {"lr": 0.001, "weight_decay": 0.0001}},
