@@ -99,6 +99,48 @@ load_pilot_config() {
     # shellcheck disable=SC1090
     source "${cfg}"
 
+    # ---------------- Pilot defaults ----------------
+    # These were byte-identical in all 12 hand-written pilot configs, so they
+    # live here instead of being repeated per file. A pilot that genuinely needs
+    # to differ sets the value in its config/pilots.tsv row, which the generator
+    # emits into its config — and because these use ${VAR:-default}, a config
+    # value always wins.
+    export FOLD="${FOLD:-0}"
+    export RAMP_STAGES="${RAMP_STAGES:-0.1,0.3,0.5,0.7,1.0}"
+    export STEPS_PER_STAGE="${STEPS_PER_STAGE:-500}"
+    export RECOVERY_RAMP_STAGES="${RECOVERY_RAMP_STAGES:-0.05,0.1,0.2,0.4,0.7,1.0}"
+    export RECOVERY_STEPS_PER_STAGE="${RECOVERY_STEPS_PER_STAGE:-1000}"
+
+    # ---------------- Arm selection ----------------
+    # ARM replaces the 11 *_dnarelax.sh config files, every one of which carried
+    # the same two-line delta. The downstream machinery is unchanged: the
+    # _dnarelax output suffix is still keyed on STAGE3_DNA_RESTRAINT_K being set
+    # (see below), so ARM just sets those two variables.
+    #
+    #   ARM=frozen    (default) DNA held at the crystal pose
+    #   ARM=dnarelax  soft tether + late release (the headline relaxed mode)
+    #
+    # Usage: ARM=dnarelax ./scripts/pipeline/run_pilot.sh <tf>
+    export ARM="${ARM:-frozen}"
+    case "${ARM}" in
+        frozen)
+            : # nothing to set; STAGE3_DNA_RESTRAINT_K stays unset
+            ;;
+        dnarelax)
+            # Soft tether (not fully free): a stiffness floor against GBSA-driven
+            # B-DNA melting, and the on-ramp to the Tier-2 cgDNA+ stiffness prior.
+            export STAGE3_DNA_RESTRAINT_K="${STAGE3_DNA_RESTRAINT_K:-1.5}"
+            # Keep DNA pinned at the protein k through the 4 clash-resolving
+            # vdW-ramp stages (largest forces); release only for the final ramp
+            # stage plus the full-vdW final minimization.
+            export STAGE3_DNA_RELEASE_STAGE="${STAGE3_DNA_RELEASE_STAGE:-5}"
+            ;;
+        *)
+            echo "ERROR: ARM=${ARM} is not valid. Use 'frozen' or 'dnarelax'." >&2
+            exit 1
+            ;;
+    esac
+
     # Guard the required pilot vars up front so a malformed config fails with a
     # clear message instead of a confusing downstream path error (S2). Note:
     # BINDING_CHAIN is the source-chain filename letter (the Stage 1 dir tag,
@@ -175,6 +217,62 @@ load_pilot_config() {
              "${COMBINED_ASSEMBLY_DIR%/*}"
 
     echo "[common] Loaded pilot config: ${TF_NAME} (PDB ${PDB_ID}, PWM ${PWM_LABEL})${suffix:+ [mode:${suffix#_}]}"
+}
+
+# -------------------- Timestamped SLURM log paths --------------------
+# SLURM has NO filename pattern for date/time. Its tokens are %j (job id),
+# %A/%a (array job/task), %x (job name), %u (user), %N (node) -- and a
+# "#SBATCH --output=" header is a static directive, so $(date) inside one is
+# NOT expanded. The only way to get a timestamp into the filename is to compute
+# it in the shell and pass --output/--error on the sbatch COMMAND LINE, which
+# overrides the header in the script.
+#
+# log_args <tag> [--array]
+#   Echoes the --output/--error pair for a job, prefixed with a sortable
+#   timestamp:  20261015_143022_<tag>_<jobid>.out
+#   Pass --array to use %A_%a instead of %j for array jobs.
+#
+# Usage:
+#   sbatch $(log_args redock) --export=ALL,TF_NAME=csl wrappers/stage2_redock.sh
+#   mapfile -t LOG < <(log_args_arr train --array)   # when word-splitting matters
+#
+# IMPORTANT -- the stamp is SUBMIT time, not start time. A job that queues for
+# six hours still carries its submit timestamp. That is deliberate: every job in
+# one dependency chain is submitted together, so they share a prefix and sort as
+# a group. If you need start time instead, there is no sbatch-side way to get
+# it; the job itself would have to rename its own log.
+#
+# Set TFCONF_LOG_TIMESTAMP=0 to disable and fall back to the wrappers' own
+# un-stamped headers.
+log_stamp() {
+    date +%Y%m%d_%H%M%S
+}
+
+log_args() {
+    local tag="${1:?usage: log_args <tag> [--array]}"
+    local pat="%j"
+    [ "${2:-}" = "--array" ] && pat="%A_%a"
+    if [ "${TFCONF_LOG_TIMESTAMP:-1}" = "0" ]; then
+        return 0          # emit nothing; wrapper headers apply
+    fi
+    # One stamp per *submission batch*: SUBMIT_STAMP is set once by a launcher so
+    # every stage of one pilot run shares it. Falls back to now if unset.
+    local stamp="${SUBMIT_STAMP:-$(log_stamp)}"
+    printf -- '--output=%s/%s_%s_%s.out --error=%s/%s_%s_%s.err' \
+        "${LOGS_DIR}" "${stamp}" "${tag}" "${pat}" \
+        "${LOGS_DIR}" "${stamp}" "${tag}" "${pat}"
+}
+
+# Array-safe variant: prints one argument per line so callers can read it into
+# an array without relying on word splitting.
+log_args_lines() {
+    local tag="${1:?usage: log_args_lines <tag> [--array]}"
+    local pat="%j"
+    [ "${2:-}" = "--array" ] && pat="%A_%a"
+    [ "${TFCONF_LOG_TIMESTAMP:-1}" = "0" ] && return 0
+    local stamp="${SUBMIT_STAMP:-$(log_stamp)}"
+    printf -- '--output=%s/%s_%s_%s.out\n' "${LOGS_DIR}" "${stamp}" "${tag}" "${pat}"
+    printf -- '--error=%s/%s_%s_%s.err\n'  "${LOGS_DIR}" "${stamp}" "${tag}" "${pat}"
 }
 
 # Validate that a required variable is set; bail with a helpful message if not.

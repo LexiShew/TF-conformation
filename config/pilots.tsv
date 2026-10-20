@@ -1,0 +1,60 @@
+# TF-conformation pilot registry — the single source of truth for every pilot.
+#
+# This replaces hand-written config/pilots/<tf>.sh files. Those are now GENERATED:
+#     python scripts/pipeline/gen_pilot_configs.py            # regenerate all
+#     python scripts/pipeline/gen_pilot_configs.py --check     # CI: fail if stale
+# Do not edit config/pilots/*.sh by hand; edit this file and regenerate.
+#
+# WHY THIS EXISTS. The TBP pilot shipped for months with NDT80's motif because
+# PWM_LABEL was typed by hand and never cross-checked against
+# config/deeppbs_pdb_pwms.csv (docs/tbp_label_error_downstream.md). Here the
+# label is DERIVED from the master table keyed on pdb_id, and the optional
+# pwm_label pin below is itself verified against that same table. Either way a
+# motif belonging to a different protein is rejected, so the error class is
+# blocked by construction rather than caught by review.
+#
+# Columns
+#   tf_name            pilot name; names config/pilots/<tf_name>.sh and all outputs
+#   pdb_id             source structure (must NOT be in data/folds/id.txt — leakage)
+#   binding_chain      source-chain FILENAME letter: <pdb>_chain<X>_protein.pdb
+#   protein_chain      0-based mdtraj chainid of the protein in <pdb>.cif
+#   dna_chains         0-based mdtraj chainids of the two DNA strands
+#   n_frames           frames in the BioEmu xtc (drives the Stage 3 array size)
+#   test_pwm_filter    regex selecting this pilot's eval subset from id.txt
+#   test_filter_name   human label for that subset; say "(family transfer)" if it is one
+#   on_target_usable   yes | no — "no" blocks any on-target statistic downstream
+#   on_target_n        expected match count; the validator fails on drift. blank = unchecked
+#   pwm_label          OPTIONAL pin. Leave BLANK to derive from the master table
+#                      (preferred). Set it only when the structure has several
+#                      valid motifs and the choice is historical. A pin is still
+#                      VERIFIED against the master table, so a label belonging to
+#                      another protein is rejected either way — pinning chooses
+#                      among that structure's own motifs, it does not bypass the
+#                      check. Four pilots are pinned because 1lo1/1k79/1vtn/5d5u
+#                      each carry both a HOCOMOCO and a JASPAR label and the
+#                      original runs used JASPAR; switching now would change
+#                      Y_pwm and invalidate their results.
+#   notes              free text, carried into the generated config as a comment
+#
+# Derived automatically, so NOT columns here:
+#   PWM_LABEL                  <- config/deeppbs_pdb_pwms.csv, keyed on pdb_id
+#   FOLD, RAMP_STAGES, STEPS_PER_STAGE, RECOVERY_*  <- lib/common.sh defaults
+#                                 (identical across all 12 pilots; see git log)
+#   the _dnarelax variant       <- ARM=dnarelax env var, not a second file
+#
+# Verify chain layout before adding a row:
+#   python stage2_redock/stage2_redock.py --ref structures/source_chains/<PDB>_chains/<PDB>.cif --inspect-only
+#
+tf_name	pdb_id	binding_chain	protein_chain	dna_chains	n_frames	test_pwm_filter	test_filter_name	on_target_usable	on_target_n	pwm_label	notes
+csl	3brg	C	2	0,1	100	SUH_|MA1116	CSL	yes	5		RBPJ/CSL. True monomer: Notch/MAML assemble off the DNA-reading module. 3brg chosen over 3iag because 3iag is itself an id.txt test entry.
+egr1	1aay	A	2	0,1	98	EGR1|MA0162	EGR1	yes	5		C2H2 zinc finger. Structural Zn requires the Stage 3 metal cage.
+engrailed	3hdd	A	2	0,1	100	MA0220	engrailed	no	0		Homeodomain. Own motif absent from id.txt, so NO on-target subset. A 10-entry Homeodomain family-transfer subset exists (DUX4|MEIS2|CDX2) if opted into deliberately.
+err	1lo1	A	2	0,1	100	RXRA|GCR_|NR5A|ESRR|MA0065|MA0113|MA0115|MA0114|MA0512|MA0007	Nuclear receptor (superfamily transfer)	yes	10	MA0141.3.jaspar	Filter spans much of the nuclear-receptor superfamily (RXRA, GCR, NR5A, ESRR) across 7 PDBs. This is superfamily transfer, not on-target.
+ets1	1k79	A	4	0,1	100	MA0098|ETS1	ETS1	yes	5	MA0098.2.jaspar	ETS. Largest positive own-family effect in the study, but it does not survive FDR across pilots (q=0.14).
+foxa	1vtn	C	2	0,1	100	FOXO|FOXA|MA1683	Forkhead (family transfer)	yes	5	MA1683.1.jaspar	Filter corrected 2026-10-15: the old MA1683|FOXA matched 0 entries. The 5 Forkhead anchors are all FOXO1 across only 2 PDBs (6lbi x4, 3coa x1).
+hsf	5d5u	B	2	0,1	100	MA0486|HSF	HSF	yes	3	MA0486.2.jaspar	n=3 across only 2 PDBs (7dcj x2 chains, 5hdn x1).
+lef1	2lef	A	2	0,1	100	LEF1	LEF1	no	0		HMG-box. The ONLY HMG-box in the benchmark, so no on-target AND no family fallback. General-130 only.
+ndt80	2euv	A	2	0,1	99	MA0343	NDT80	yes	5		Created to replace the mislabelled TBP pilot. 2euv IS NDT80, so structure, label and the 5 anchors finally agree. 2euv is in no fold, so augmenting cannot double-count a baseline entry.
+nfat	1a66	A	2	0,1	100	NFAC|NFKB|REL_|TF65|MA0105|MA0107|MA0152|MA0778|MA0518	Rel/NF-kB (family transfer)	yes	15		WARNING: 13 of the 15 matched entries are NF-kB (TF65/RelA, NFKB1, NFKB2), not NFAT. Family transfer at best; do not report as on-target.
+runx	1hjc	A	0	1,2	100	RUNX	RUNX	yes	5		Runt. Note the unusual chain layout: protein on 0, DNA on 1,2.
+tbp	1tgh	A	2	0,1	99	MA0386|TBP_	TBP	no	1		Label corrected 2026-10-15 from NDT80's MA0343.1 to TBP_HUMAN. No usable on-target test: n=1, and that entry (7oh9_K) is a histone chain. All pre-2026-10-15 tbp artifacts are invalid; see docs/tbp_label_error_downstream.md.

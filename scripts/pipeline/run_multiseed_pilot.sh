@@ -36,6 +36,24 @@ if [ -n "${BENCH_PARTITION:-}" ]; then
     PART_ARG=( --partition="${BENCH_PARTITION}" )
 fi
 
+# ---------------------------------------------------------------------------
+# Pre-flight gates — same as run_pilot.sh. This launcher is what actually drives
+# the production multi-seed runs, so it needs the checks more than run_pilot.sh
+# does: a label error here is baked into N seeds x 2 arms at once.
+# Set PILOT_SKIP_VALIDATE=1 to bypass (debugging only).
+# ---------------------------------------------------------------------------
+if [ "${PILOT_SKIP_VALIDATE:-0}" != "1" ]; then
+    echo "[multiseed] pre-flight: configs match config/pilots.tsv"
+    python3 "${TFCONF_DIR}/scripts/pipeline/gen_pilot_configs.py" --check || {
+        echo "ERROR: pilot configs are stale. Run gen_pilot_configs.py." >&2; exit 1; }
+    echo "[multiseed] pre-flight: validating ${TF_NAME}"
+    python3 "${TFCONF_DIR}/scripts/pipeline/validate_pilot.py" "${TF_NAME}" --quiet || {
+        echo "ERROR: ${TF_NAME} failed validation. Refusing to submit ${N_SEEDS} seeds x 2 arms." >&2
+        echo "       Override with PILOT_SKIP_VALIDATE=1 only if you know why." >&2; exit 1; }
+else
+    echo "[multiseed] WARNING: PILOT_SKIP_VALIDATE=1 — pre-flight skipped" >&2
+fi
+
 load_pilot_config "${TF_NAME}"
 require_var TF_NAME
 require_var FOLD
@@ -57,10 +75,16 @@ if [ ! -f "${AUG_TRAIN}" ]; then
     exit 1
 fi
 
+# One timestamp for this whole multi-seed submission so all 2N+1 jobs sort
+# together. See lib/common.sh:log_args for why this cannot be a #SBATCH token.
+export SUBMIT_STAMP="${SUBMIT_STAMP:-$(log_stamp)}"
+
 echo "[multiseed/${TF_NAME}] Setup looks good"
+echo "  arm:           ${ARM:-frozen}${COND:+  (suffix ${COND})}"
 echo "  combined dir:  ${COMBINED_ASSEMBLY_DIR}  ($(ls "${COMBINED_ASSEMBLY_DIR}" | wc -l) entries)"
 echo "  aug train:     ${AUG_TRAIN}  ($(wc -l < "${AUG_TRAIN}") entries)"
 echo "  n_seeds:       ${N_SEEDS}"
+echo "  log prefix:    ${SUBMIT_STAMP}_train_${TF_NAME}_s<N>_<jobid>"
 
 # -------------------- Step 1: Build N paired-seed configs --------------------
 conda activate "${DEEPPBS_ENV:-deeppbs}"
@@ -83,9 +107,9 @@ declare -a TRAIN_JOB_IDS=()
 for s in $(seq 1 "${N_SEEDS}"); do
     JOB_ID=$(sbatch --parsable \
         --job-name="train_${TF_NAME}_s${s}" \
-        --output="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.out" \
-        --error="${LOGS_DIR}/train_${TF_NAME}_s${s}_%A_%a.err" \
-        --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}" \
+        --output="${LOGS_DIR}/${SUBMIT_STAMP}_train_${TF_NAME}${COND}_s${s}_%A_%a.out" \
+        --error="${LOGS_DIR}/${SUBMIT_STAMP}_train_${TF_NAME}${COND}_s${s}_%A_%a.err" \
+        --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}",ARM="${ARM:-frozen}" \
         "${PART_ARG[@]}" \
         "${WRAPPERS_DIR}/train_compare.sh")
     TRAIN_JOB_IDS+=( "${JOB_ID}" )
@@ -96,7 +120,9 @@ done
 DEPEND_STR=$(IFS=':'; echo "${TRAIN_JOB_IDS[*]}")
 EVAL_JOB=$(sbatch --parsable \
     --dependency="afterok:${DEPEND_STR}" \
-    --export=ALL,TF_NAME="${TF_NAME}" \
+    --export=ALL,TF_NAME="${TF_NAME}",ARM="${ARM:-frozen}" \
+    --output="${LOGS_DIR}/${SUBMIT_STAMP}_eval_${TF_NAME}${COND}_%j.out" \
+    --error="${LOGS_DIR}/${SUBMIT_STAMP}_eval_${TF_NAME}${COND}_%j.err" \
     "${PART_ARG[@]}" \
     "${WRAPPERS_DIR}/eval_benchmark.sh")
 echo "[multiseed/${TF_NAME}] eval job ${EVAL_JOB} depends on training jobs"
