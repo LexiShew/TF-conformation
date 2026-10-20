@@ -40,7 +40,6 @@ in the CSV. Nothing here survives BH correction — the figure states this.
 
 EXCLUSIONS
 ----------
-  dux4  0 fnat survivors -> no eval JSON, no benchmark row at all.
   lef1  only HMG-box in the 130-entry benchmark -> no same-family entries to test.
 Both are named in the caption rather than silently dropped.
 
@@ -70,6 +69,8 @@ from matplotlib.patches import Patch
 from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "analysis" / "common"))
+from stats import bh_fdr  # noqa: E402
 sys.path.insert(0, str(ROOT))
 from palette import GREY, TEAL, GREEN, ALARM, apply_style  # noqa: E402
 
@@ -137,13 +138,19 @@ def summarize(w):
             contrast_lo=clo, contrast_hi=chi, contrast_p=cp))
 
     out = pd.DataFrame(rows)
+    # BH-FDR across pilots within each DNA condition.
+    #
+    # F12 FIX (2026-10-15): the hand-rolled version here omitted BH's step-up
+    # cumulative minimum, so q could be non-monotonic in p. bh_fdr() enforces it.
+    #
+    # NOTE (F13): these q columns have existed all along; what the write-up in
+    # FINDINGS.md reported was the RAW own_p. ETS1's headline own-family
+    # p=0.013 becomes q~0.14 once corrected across the 11 pilots in the same
+    # table, which is the honest number to quote.
     for dna, idx in out.groupby("dna").groups.items():
         for col in ("own_p", "contrast_p"):
-            pv = out.loc[idx, col]
-            ok = pv.notna()
-            if ok.sum():
-                out.loc[pv[ok].index, col.replace("_p", "_q")] = (
-                    pv[ok] * ok.sum() / pv[ok].rank(method="first")).clip(upper=1)
+            out.loc[idx, col.replace("_p", "_q")] = bh_fdr(
+                out.loc[idx, col].to_numpy())
     return out
 
 
@@ -234,7 +241,7 @@ def main():
     fig.text(0.005, -0.10,
              "Seed-paired effects; seed is the unit of replication (n = 4–6 seeds per "
              "pilot × arm). Error bars are 95% t intervals over seeds.\n"
-             "n = 11 pilots: dux4 excluded (0 fnat survivors, no eval), lef1 excluded "
+             "n = 11 pilots: lef1 excluded "
              "(only HMG-box in the benchmark, no same-family entries).\n"
              "Raw p < 0.05 for ets1 (both arms), csl and runx (relaxed only); no effect "
              "survives BH correction across pilots. Treat as a trend.",

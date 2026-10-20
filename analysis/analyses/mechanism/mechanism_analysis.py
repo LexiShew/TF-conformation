@@ -66,6 +66,13 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = Path(__file__).resolve().parent
+
+# The project's one correct BH-FDR / paired-delta implementation. This file and
+# stage7_eval/evaluate_id_benchmark.py used to carry separate implementations
+# with separate bugs (findings F9 and F12).
+import sys as _sys
+_sys.path.insert(0, str(ROOT / "analysis" / "common"))
+from stats import bh_fdr, paired_delta  # noqa: E402
 (OUT / "data").mkdir(parents=True, exist_ok=True)
 
 # Canonical B-DNA reference values (Curves+ convention), used to express how far a
@@ -247,9 +254,23 @@ def correlate_axes(t, outcome="froz_dP_mean"):
                          n=len(sub), spearman_rho=rho, spearman_p=p,
                          pearson_r=r_p, pearson_p=p_p,
                          sign_matches_hypothesis=(rho < 0) == (pred == "neg")))
-    return (pd.DataFrame(rows)
-            .sort_values("spearman_rho", key=abs, ascending=False)
-            .reset_index(drop=True))
+    out = (pd.DataFrame(rows)
+           .sort_values("spearman_rho", key=abs, ascending=False)
+           .reset_index(drop=True))
+    # F14 FIX (2026-10-15): these correlations were written straight to CSV with
+    # no multiplicity correction. correlate_axes() is called once per DNA
+    # condition over AXES (17 axes), and each call reports both a Spearman and a
+    # Pearson test -- so the two files together hold ~68 hypothesis tests at
+    # n=11-12 pilots, where ~3 spurious p<0.05 are expected by chance.
+    #
+    # This was latent rather than active: at the time of the fix, 0 of 34
+    # Spearman tests reached p<0.05 even uncorrected, so nothing was being
+    # over-claimed. The correction is here so that the first axis that does come
+    # in at p=0.04 is not mistaken for a result.
+    if len(out):
+        out["spearman_q"] = bh_fdr(out["spearman_p"].to_numpy())
+        out["pearson_q"] = bh_fdr(out["pearson_p"].to_numpy())
+    return out
 
 
 # ---------------------------------------------------------------- family analysis
@@ -295,13 +316,18 @@ def family_effects_seedlevel():
                          dP_mean=d.mean(), dP_lo=lo, dP_hi=hi, dP_p=p,
                          dMAE_mean=sub.groupby("seed")["dMAE"].mean().mean()))
     out = pd.DataFrame(rows)
-    # BH-FDR within each DNA condition
+    # BH-FDR within each DNA condition.
+    #
+    # F12 FIX (2026-10-15). This used to be hand-rolled as
+    #     ranked = p[ok].rank(method="first")
+    #     q = (p[ok] * ok.sum() / ranked).clip(upper=1)
+    # which omits BH's step-up cumulative minimum, so q could be NON-MONOTONIC
+    # in p: with p = [.001, .030, .040, .20, .50] it gave q=.0750 for p=.030 but
+    # q=.0667 for p=.040, i.e. a more-significant test got a worse q and could
+    # be rejected while a weaker one passed. bh_fdr() enforces monotonicity.
     for dna, idx in out.groupby("dna").groups.items():
         p = out.loc[idx, "dP_p"]
-        ok = p.notna()
-        if ok.sum():
-            ranked = p[ok].rank(method="first")
-            out.loc[p[ok].index, "dP_q"] = (p[ok] * ok.sum() / ranked).clip(upper=1)
+        out.loc[idx, "dP_q"] = bh_fdr(p.to_numpy())
     return out.sort_values(["dna", "dP_mean"], ascending=[True, False]).reset_index(drop=True)
 
 

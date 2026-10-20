@@ -26,6 +26,11 @@ from torch_geometric.data import DataLoader
 _TFCONF = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_TFCONF, "stage6_train"))  # models.model_v2
 sys.path.insert(0, os.path.join(_TFCONF, "lib"))           # deeppbs package
+# The project's one correct implementation of paired stats + BH-FDR. This module
+# exists because this file and mechanism_analysis.py used to carry two separate
+# implementations with two different bugs (findings F9 and F12).
+sys.path.insert(0, os.path.join(_TFCONF, "analysis", "common"))
+from stats import paired_delta, bh_fdr, effective_n
 
 from deeppbs.nn.utils import loadDataset
 from deeppbs.nn import Evaluator
@@ -155,63 +160,90 @@ def aggregate(results_dict, entry_subset, common_set):
 def compute_paired_stats(baseline_res, augmented_res, subset, common_set, bootstrap_iters):
     """Per-entry paired Δ-metric stats, returned as a dict per metric.
 
-    For each metric, computes:
-      - paired Δ (augmented - baseline) per entry
-      - mean and bootstrap 95% CI of the Δ
-      - paired-sample t-test p-value (small-n; treat with appropriate skepticism)
+    F9 FIX (2026-10-15). This used to convert its t-statistic through the NORMAL
+    CDF:
+
+        p = 2 * (1 - 0.5 * (1 + erf(abs(t) / sqrt(2))))
+
+    At the n=5 most on-target subsets run, that understates p by 2.6x (t=2.0) to
+    14.8x (t=3.0), so every "significant" subset p-value this script ever
+    printed was overstated. It now delegates to analysis/common/stats.py, which
+    uses the t-distribution with df = n-1.
+
+    Two further fixes in the same pass:
+      * The bootstrap RNG was re-seeded to 42 INSIDE the per-metric loop, so all
+        six metrics resampled on identical indices and their CIs were perfectly
+        correlated. Each metric now gets its own deterministic-but-distinct seed.
+      * Entries are per-CHAIN, so N chains of one crystal are not N independent
+        observations. n_structures is now reported alongside n_pairs; when they
+        differ the paired test is pseudoreplicated.
+
+    The output schema is a superset of the old one -- nothing downstream that
+    read n_pairs/mean_delta/ci95_lo/ci95_hi/t_stat/p_value/deltas breaks.
     """
     keys_use = [e for e in subset if e in common_set
                 and e in baseline_res and e in augmented_res]
     if len(keys_use) < 2:
         return None
 
+    n_entries, n_struct = effective_n(keys_use)
+
     out = {}
     sample = baseline_res[keys_use[0]]
-    for k in sample.keys():
-        b_vals, a_vals = [], []
+    for m_i, k in enumerate(sorted(sample.keys())):
+        b_vals, a_vals, used = [], [], []
         for e in keys_use:
             try:
                 bv = float(baseline_res[e].get(k, float("nan")))
                 av = float(augmented_res[e].get(k, float("nan")))
                 if not (np.isnan(bv) or np.isnan(av)):
-                    b_vals.append(bv); a_vals.append(av)
+                    b_vals.append(bv); a_vals.append(av); used.append(e)
             except (TypeError, ValueError):
                 continue
         if len(b_vals) < 2:
             continue
-        b_arr = np.array(b_vals)
-        a_arr = np.array(a_vals)
-        deltas = a_arr - b_arr
-        mean_delta = float(deltas.mean())
 
-        # Bootstrap CI of mean Δ
-        rng = np.random.default_rng(seed=42)
-        n = len(deltas)
-        boot_means = np.empty(bootstrap_iters)
-        for i in range(bootstrap_iters):
-            sample_idx = rng.integers(0, n, n)
-            boot_means[i] = deltas[sample_idx].mean()
-        ci_lo, ci_hi = np.percentile(boot_means, [2.5, 97.5])
-
-        # Paired t-test (one-sample t on deltas, against H0: delta=0)
-        sd = deltas.std(ddof=1)
-        if sd > 0:
-            t_stat = mean_delta / (sd / np.sqrt(n))
-            # Two-sided p; approximate via normal for simplicity (small n is unfortunate
-            # but bootstrap CI is the more reliable signal here)
-            from math import erf, sqrt
-            p_two_sided = 2 * (1 - 0.5 * (1 + erf(abs(t_stat) / sqrt(2))))
-        else:
-            t_stat = float('nan'); p_two_sided = 1.0
+        # Distinct per-metric seed so the six bootstrap CIs are independent
+        # rather than sharing one resample draw.
+        res = paired_delta(b_vals, a_vals, n_boot=bootstrap_iters,
+                           seed=42 + 1000 * m_i)
+        _, k_struct = effective_n(used)
 
         out[k] = {
-            "n_pairs": n,
-            "mean_delta": mean_delta,
-            "ci95_lo": float(ci_lo),
-            "ci95_hi": float(ci_hi),
-            "t_stat": float(t_stat),
-            "p_value": float(p_two_sided),
-            "deltas": deltas.tolist(),
+            # original schema, preserved
+            "n_pairs": res["n_pairs"],
+            "mean_delta": res["mean_delta"],
+            "ci95_lo": res["ci_lo"],
+            "ci95_hi": res["ci_hi"],
+            "t_stat": res["t_stat"],
+            "p_value": res["p_value"],
+            "deltas": (np.asarray(a_vals) - np.asarray(b_vals)).tolist(),
+            # added
+            "median_delta": res["median_delta"],
+            "sd": res["sd"],
+            "cohens_dz": res["cohens_dz"],
+            "n_structures": k_struct,
+            "pseudoreplicated": bool(k_struct < res["n_pairs"]),
+            "p_method": "two-sided one-sample t on paired deltas, df=n-1",
+        }
+
+    # BH-FDR across the metrics tested for this pair. Reported separately from
+    # p_value and deliberately labelled: these metrics are strongly correlated
+    # (pearson/spearman/ic_weighted_pcc all measure the same agreement), so this
+    # is a floor on the multiplicity problem, not a complete treatment. The
+    # multiplicity that matters more -- across pilots -- has to be applied by
+    # whoever aggregates these JSONs.
+    if out:
+        mkeys = sorted(out)
+        qs = bh_fdr([out[k]["p_value"] for k in mkeys])
+        for k, q in zip(mkeys, qs):
+            out[k]["q_value_across_metrics"] = (None if np.isnan(q) else float(q))
+        out["_meta"] = {
+            "n_entries": n_entries,
+            "n_structures": n_struct,
+            "pseudoreplicated": bool(n_struct < n_entries),
+            "fdr_scope": "BH across the metrics in this pair only; NOT across "
+                         "pilots or seeds",
         }
     return out
 
@@ -358,14 +390,33 @@ def main():
             # Use a key that distinguishes which augmented variant this is
             pair_key = f"{aug_kind}:{suffix}"
             paired_stats_all[pair_key] = stats
-            print(f"\n  Pair: {b_name} vs {a_name} ({args.filter_name} subset)")
+            meta = stats.get("_meta", {})
+            ps_note = ""
+            if meta.get("pseudoreplicated"):
+                ps_note = (f"  [PSEUDOREPLICATED: {meta['n_entries']} entries span "
+                           f"only {meta['n_structures']} structure(s) — effective "
+                           f"n is {meta['n_structures']}]")
+            print(f"\n  Pair: {b_name} vs {a_name} ({args.filter_name} subset){ps_note}")
+            # F8 FIX (2026-10-15): this print used to sit OUTSIDE the `for k in
+            # KEYS` loop (dedented one level), so only the last key in KEYS was
+            # ever printed — every stage-7 log in slurm_output/ shows a single
+            # Δbrier_multi line per pair and nothing else. The JSON always held
+            # all six metrics; only the console report was truncated.
             for k in KEYS:
-                if k not in stats: continue
+                if k not in stats:
+                    continue
                 s = stats[k]
-                sig = "*" if s['p_value'] < 0.05 else " "
-            print(f"    Δ{k:18s}  mean={s['mean_delta']:+.4f}  "
-                  f"95% CI [{s['ci95_lo']:+.4f}, {s['ci95_hi']:+.4f}]  "
-                  f"p={s['p_value']:.3f}{sig}  (n={s['n_pairs']})")
+                sig = "*" if s["p_value"] < 0.05 else " "
+                q = s.get("q_value_across_metrics")
+                qtxt = f"  q={q:.3f}" if q is not None else ""
+                print(f"    Δ{k:18s}  mean={s['mean_delta']:+.4f}  "
+                      f"95% CI [{s['ci95_lo']:+.4f}, {s['ci95_hi']:+.4f}]  "
+                      f"p={s['p_value']:.3f}{sig}{qtxt}  "
+                      f"dz={s.get('cohens_dz', float('nan')):+.2f}  "
+                      f"(n={s['n_pairs']})")
+            print("    p: two-sided t on paired deltas (df=n-1). "
+                  "q: BH across these metrics only, which are correlated — "
+                  "NOT across pilots.")
 
     # Cross-seed aggregate, grouped by augmented variant
     # (keys in paired_stats_all are "augmented:<suffix>" or "augmented_legacy:<suffix>")

@@ -56,6 +56,9 @@ from scipy import stats
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 ROOT = Path(__file__).resolve().parents[3]
+import sys as _sys
+_sys.path.insert(0, str(ROOT / "analysis" / "common"))
+from stats import bh_fdr  # noqa: E402
 OUT = Path(__file__).resolve().parent / "data"
 RNG = np.random.default_rng(0)
 
@@ -184,8 +187,15 @@ def dose_response():
                          contrast=diff.mean(), t=t, p=p,
                          n_neg_seeds=int((diff < 0).sum())))
     out = pd.DataFrame(rows).sort_values("contrast", ascending=False).reset_index(drop=True)
-    ranked = out.p.rank(method="first")
-    out["q_bh"] = (out.p * len(out) / ranked).clip(upper=1)
+    # F12 FIX (2026-10-15). This is the function that wrote the q_bh column of
+    # data/same_vs_other_contrast.csv, i.e. the "q (BH)" column published in the
+    # contrast table of FINDINGS.md. The hand-rolled form here,
+    #     out["q_bh"] = (out.p * len(out) / out.p.rank(method="first")).clip(upper=1)
+    # omits BH's step-up cumulative minimum, so q came out non-monotonic in p.
+    # The published table shows the symptom directly: csl had the SMALLER p
+    # (0.008) but the LARGER q (0.092) than ets1 (p=0.011, q=0.058), which BH
+    # cannot produce. Corrected, both are ~0.061 at m=11.
+    out["q_bh"] = bh_fdr(out.p.to_numpy())
     return out
 
 

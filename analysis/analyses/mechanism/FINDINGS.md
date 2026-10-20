@@ -15,6 +15,10 @@ computed from pipeline outputs; nothing is carried forward from prose.
 1. The 130-entry cross-benchmark ΔPearson averages the effect away. The signal lives in
    each pilot's **own family**: ETS1 own-family ΔPearson = **+0.111** (p = 0.013,
    0 of 6 seeds negative) against a cross-benchmark value of **−0.002**.
+   **[2026-10-15] That p is raw.** Corrected across the 11 pilots in the own-family
+   table below it becomes **q ≈ 0.14** — this headline number does not survive
+   multiplicity on its own. The statistic that comes closest is the own-vs-other
+   *contrast* (see the correction box in "The within-pilot contrast"), not this one.
 2. It is **not** explained by baseline headroom (ρ = −0.27, p = 0.42) or by own-family
    subset size (ρ = −0.32, p = 0.34).
 3. The discriminating DNA variable is **dynamic, not static**. Ensemble DNA-bend IQR
@@ -88,9 +92,47 @@ each pilot:
 | engrailed | −0.015 | −0.003 | −0.012 | 0.509 | 0.622 |
 | tbp | −0.031 | −0.015 | **−0.017** | 0.681 | 0.749 |
 
-8 of 11 pilots show a positive contrast. csl and ets1 reach raw p < 0.05; **nothing
-survives BH correction across 11 tests.** The direction is consistent; the significance
-is not established.
+8 of 11 pilots show a positive contrast. csl and ets1 reach raw p < 0.05.
+
+> ### Correction, 2026-10-15 — the q column above was computed with a buggy BH
+>
+> The BH implementation in `make_samefamily.py` omitted the step-up cumulative
+> minimum, so its q-values were non-monotonic in p and some were inflated. Note the
+> symptom in the table above: **csl has the smaller p (0.008) but the larger q (0.092)
+> than ets1 (p=0.011, q=0.058)** — which BH cannot produce. Fixed; see finding F12 of
+> `docs/codebase_review_2026-10-15.md`.
+>
+> Recomputed with correct BH, and with the two disqualified pilots removed — `irf`
+> (retired: 1if1's duplex resolves as two helices, so stage 4 kept only 5 of 78 states)
+> and `tbp` (its arm was trained against NDT80's motif and its own-family subset *is*
+> NDT80):
+>
+> | m | which pilots | csl q | ets1 q | verdict |
+> |---|---|---|---|---|
+> | 11 | as published | 0.061 | 0.061 | nothing < 0.05 |
+> | 10 | − irf | 0.055 | 0.055 | nothing < 0.05 |
+> | **9** | **− irf, − tbp** | **0.0495** | **0.0495** | **both reach q < 0.05** |
+>
+> So the original sentence ("nothing survives BH correction") was right for the table as
+> published, and stays right at m=10 — but at m=9 the own-vs-other contrast for csl and
+> ets1 **does** cross q < 0.05. That is a more favourable result than this document
+> previously claimed, and it has to be stated with its caveats rather than promoted:
+>
+> 1. **q = 0.0495 is at the threshold, not past it.** It is one pilot's worth of
+>    multiplicity away from failing, which is not a stable place to put a headline.
+> 2. **Dropping tbp helps the result.** The exclusion is independently justified, but it
+>    must be declared up front rather than applied quietly — otherwise it is selection.
+> 3. **The unit of replication is still a "seed" that was never seeded.** Every run in
+>    this table came from an unseeded replicate (finding F6: `random_seed` was written
+>    into all 264 training configs and never read), so n=6 measures run-to-run noise on
+>    a single structure per pilot, not independent biological replicates. FDR does not
+>    address that.
+>
+> **The claim this supports is "consistent direction, borderline after correction, not
+> established."** The decisive test is a re-run now that seeding is fixed: if csl and
+> ets1 hold at q < 0.05 across genuinely paired seeds, the result is real.
+
+The direction is consistent; the significance is borderline and not established.
 
 ### Confounds excluded
 
