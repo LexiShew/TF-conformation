@@ -19,7 +19,7 @@ Panels
      and vs crystal bend (static), same y-axis.
 
 Unit of replication is the SEED throughout; CIs are seed-level t intervals.
-n = 11 pilots (dux4 has no eval; lef1 has no same-family benchmark entries).
+n = 11 pilots (lef1 has no same-family benchmark entries).
 
 Usage
 -----
@@ -179,7 +179,7 @@ def main():
     fig.suptitle("Where the conformational-augmentation signal lives",
                  fontsize=9.5, x=0.01, ha="left", fontweight="bold")
     fig.text(0.01, 0.005,
-             "n = 11 pilots (dux4: no eval; lef1: no same-family benchmark entries). "
+             "n = 11 pilots (lef1: no same-family benchmark entries). "
              "Seed-paired effects, frozen-DNA pipeline; seed is the unit of replication.",
              fontsize=6, color=GREY_TXT, ha="left")
     fig.tight_layout(rect=[0, 0.02, 1, 0.96])

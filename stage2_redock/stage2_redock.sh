@@ -6,7 +6,7 @@
 #                      'fail' (default, safe), 'warn' (proceed with risk),
 #                      'trim' (slice both to longest common-sequence run).
 #                      Use 'trim' when a reference crystal has disordered loops
-#                      that BioEmu modeled across (e.g. DUX4 5z6z).
+#                      that BioEmu modeled across (first hit on 5z6z, a since-retired pilot).
 #   MAX_MISMATCHES   — tolerance threshold before mismatch-action triggers
 #                      (default 0; raise to e.g. 5 to allow occasional HIS-variant
 #                      label noise).

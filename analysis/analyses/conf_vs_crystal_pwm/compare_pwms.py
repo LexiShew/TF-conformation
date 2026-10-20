@@ -22,7 +22,7 @@ OUT = os.path.join(R, "analysis/analyses/conf_vs_crystal_pwm")
 os.makedirs(OUT, exist_ok=True)
 MIN_OVERLAP = 4   # PWM columns required for a comparison to be reported
 
-PILOTS = ["csl","egr1","engrailed","err","ets1","foxa","hsf","irf","lef1","nfat","runx","tbp"]
+PILOTS = ["csl","egr1","engrailed","err","ets1","foxa","hsf","lef1","nfat","runx","tbp"]
 
 def pilot_meta(tf):
     txt = open(os.path.join(R, "config/pilots", tf + ".sh")).read()

@@ -8,7 +8,7 @@
 # Usage:
 #   scripts/structure_viz/render_state_stages.sh <tf_name> [state_number] [out_dir]
 #
-#   tf_name       one of the pilot configs (tbp, egr1, foxa, lef1, engrailed, ets1, dux4)
+#   tf_name       one of the pilot configs (tbp, egr1, foxa, lef1, engrailed, ets1)
 #   state_number  1-based state index (default 1). state N == Stage-1 frame N-1.
 #   out_dir       output directory (default: output/viz/<tf>)
 #

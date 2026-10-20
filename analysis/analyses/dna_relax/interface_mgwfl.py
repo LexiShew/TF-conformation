@@ -15,7 +15,7 @@ ROOT="/project2/rohs_102/shewchuk/TF-conformation"
 os.chdir(ROOT)
 DNA={'DA':'A','DC':'C','DG':'G','DT':'T'}
 PILOTS={"egr1":"1aay","engrailed":"3hdd","ets1":"1k79","foxa":"1vtn","lef1":"2lef",
-        "tbp":"1tgh","csl":"3brg","err":"1lo1","nfat":"1a66","runx":"1hjc","hsf":"5d5u","irf":"1if1"}
+        "tbp":"1tgh","csl":"3brg","err":"1lo1","nfat":"1a66","runx":"1hjc","hsf":"5d5u"}
 CONTACT_CUT, IFACE_CUT, GAP = 4.5, 5.0, 4
 p=MMCIFParser(QUIET=True)
 

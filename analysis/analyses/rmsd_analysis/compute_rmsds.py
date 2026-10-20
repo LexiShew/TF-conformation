@@ -39,7 +39,7 @@ Outputs:
   - Both written to --output-dir (default: cwd)
 
 Usage:
-    python compute_rmsds.py --tfs egr1 dux4 tbp --output-dir ./rmsd_analysis
+    python compute_rmsds.py --tfs egr1 tbp --output-dir ./rmsd_analysis
     python compute_rmsds.py --variants metal_cage          # only metal_cage
 """
 import argparse
@@ -556,8 +556,8 @@ def main():
     global BIOEMU_ROOT, STAGE1_OUT, CONF_ROOT, PILOTS_DIR
     parser = argparse.ArgumentParser(description=__doc__,
                                       formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--tfs", nargs="+", default=["egr1", "dux4", "tbp"],
-                        help="TF names to analyze (default: egr1 dux4 tbp)")
+    parser.add_argument("--tfs", nargs="+", default=["egr1", "tbp"],
+                        help="TF names to analyze (default: egr1 tbp)")
     parser.add_argument("--variants", nargs="+",
                         default=list(VARIANTS),
                         choices=list(VARIANTS),

@@ -15,11 +15,11 @@ BASE = "/project2/rohs_102/shewchuk/TF-conformation"
 PDIR = os.path.join(BASE, "analysis", "figures", "pymol")
 
 # fnat pass-rate order (README)
-ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "dux4", "hsf"]
+ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "hsf"]
 LABELS = {"ets1": "ETS1", "tbp": "TBP", "egr1": "EGR1",
           "engrailed": "engrailed", "foxa": "FOXA", "lef1": "LEF1",
           "csl": "CSL", "err": "ERR", "nfat": "NFAT",
-          "runx": "RUNX", "dux4": "DUX4", "hsf": "HSF"}
+          "runx": "RUNX", "hsf": "HSF"}
 
 PANEL = 460       # scaled panel side (px)
 PAD = 16          # gap between panels

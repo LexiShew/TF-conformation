@@ -38,14 +38,14 @@ def import_matplotlib():
 
 
 # TF display config: stable color and order
-TF_ORDER = ["egr1", "tbp", "dux4"]
+TF_ORDER = ["egr1", "tbp"]
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", "..")))
 from palette import TF_PALETTE as _TFP, VARIANT_COLOR as _VC
-TF_COLORS = {"egr1": _TFP["egr1"], "tbp": _TFP["tbp"], "dux4": _TFP["dux4"]}
+TF_COLORS = {"egr1": _TFP["egr1"], "tbp": _TFP["tbp"]}
 TF_LABELS = {"egr1": "EGR1 (1aay, zinc finger)",
              "tbp": "TBP (1tgh, β-saddle)",
-             "dux4": "DUX4 (5z6z, homeodomain)"}
+             }
 
 # Variant display config — same palette as the EGR1 augmentation plots.
 VARIANT_ORDER = ["legacy", "metal_cage"]

@@ -21,7 +21,7 @@ TRAIN = f"{R}/output/stage6_train"
 IDD = f"{R}/stage7_eval/confcmp_idfiles"
 OUT = f"{R}/analysis/analyses/conf_vs_crystal_pwm"
 MIN_OVERLAP = 4
-PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","irf","lef1","nfat","runx","tbp"]
+PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","lef1","nfat","runx","tbp"]
 
 # condition -> (run-dir glob fold token, feature dir template, id-file template)
 COND = {

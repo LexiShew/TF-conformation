@@ -1,6 +1,6 @@
 #!/bin/bash
 R=/project2/rohs_102/shewchuk/TF-conformation
-PILOTS="csl egr1 engrailed err ets1 foxa lef1 nfat runx tbp hsf irf"
+PILOTS="csl egr1 engrailed err ets1 foxa lef1 nfat runx tbp hsf ndt80"
 
 echo "Submitting attribution jobs for all 12 pilots..."
 for P in $PILOTS; do

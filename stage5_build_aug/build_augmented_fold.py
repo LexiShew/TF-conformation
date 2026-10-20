@@ -9,9 +9,9 @@ augmentation matches the test set's PWM convention.
 Example:
   python build_augmented_fold.py \\
       --orig-train /project2/.../folds/train0.txt \\
-      --stage4-dir /project2/.../conformations/dux4/stage4_npz/output \\
+      --stage4-dir /project2/.../conformations/ndt80/stage4_npz/output \\
       --pwm-filter DUX4_HUMAN.H11MO.0.A \\
-      --out-train  /project2/.../folds_aug/train0_aug_dux4.txt
+      --out-train  /project2/.../folds_aug/train0_aug_ndt80.txt
 """
 import argparse
 import os

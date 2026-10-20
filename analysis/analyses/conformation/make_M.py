@@ -70,7 +70,7 @@ def fig_M1(mech):
         if not np.isfinite(d):
             return GREY          # no benchmark (aug_dP NaN)
         return TEAL if d >= 0 else ALARM
-    # Off-scale handling: a far-unreachable pilot (e.g. the dux4 dimer at
+    # Off-scale handling: a far-unreachable pilot (e.g. a dimeric pilot at
     # d_min≈10 Å) would compress the informative 0.5–4.5 Å range. Cap the axis
     # and draw such points at the cap with an arrow + value, so the resolved
     # cluster stays legible without hiding the outlier.

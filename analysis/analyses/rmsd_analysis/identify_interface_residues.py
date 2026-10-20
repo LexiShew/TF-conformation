@@ -20,7 +20,7 @@ Three methods:
 
 Usage (pilot-aware, batch — matches compute_rmsds.py UX):
     python identify_interface_residues.py \\
-        --pilots egr1 dux4 tbp \\
+        --pilots egr1 tbp \\
         --output-dir ./interface_residues \\
         --method distance --cutoff 4.5
 
@@ -281,7 +281,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--pilots", nargs="+",
-                   help="Pilot names (egr1, dux4, tbp); each must have a "
+                   help="Pilot names (egr1, tbp); each must have a "
                         "<tf>.sh in --pilots-dir.")
     g.add_argument("--reference-cif",
                    help="Path to a single reference structure (with DNA). "

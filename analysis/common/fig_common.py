@@ -51,11 +51,18 @@ PILOT_META = {
     "nfat":     ("Rel / NFAT",                     "Rel/NFAT",   "modest"),
     "runx":     ("Runt",                           "Runt",       "modest"),
     "hsf":      ("HSF",                            "HSF",        "modest"),
-    "irf":      ("IRF",                            "IRF",        "minimal"),
-    "dux4":     ("Homeodomain (dimer)",           "Homeodom.²", "modest"),
+    "ndt80":    ("NDT80",                          "NDT80",      "modest"),
 }
-# pilots excluded from the benchmark but still valid structural pilots (dux4 = dimer)
-NONMONOMER = {"dux4"}
+# Retired pilots (2026-10-15). Kept here ONLY so old CSVs that still carry these
+# rows render with a label instead of a KeyError; they must not appear in any new
+# figure. See docs/retired_pilots.md for why each was withdrawn.
+#   dux4 — homodimer on DNA, violating the pipeline's monomer assumption; and it
+#          produced 0 fnat survivors, so it never yielded an eval at all.
+#   irf  — 1if1's duplex resolves as 2 helical segments in 3DNA, so stage 4 lost
+#          91-94% of states; the pilot trained on 5 conformers.
+RETIRED = {"dux4", "irf"}
+# Previously: NONMONOMER = {"dux4"} — folded into RETIRED above.
+NONMONOMER = set()
 
 
 def parse_pilot_config(tf):

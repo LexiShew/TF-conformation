@@ -59,16 +59,17 @@ STRUCT_COLOR = {"crystal": GREY, "frozen": TEAL, "relaxed": GREEN}  # structural
 # confusion arises.
 # ---------------------------------------------------------------------------
 # per-TF qualitative palette (12 pilots) — used by rmsd_analysis TF-keyed figures.
+# dux4 and irf were retired 2026-10-15 (see docs/retired_pilots.md); their hues
+# are freed. ndt80 takes the charcoal slot dux4 vacated.
 TF_PALETTE = {
     "ets1":"#2E7FA8", "tbp":"#4CA83C", "egr1":"#E1812C", "engrailed":"#8E6FB5",
     "foxa":"#D1495B", "lef1":"#C6A015", "csl":"#5AA6A0", "err":"#B5651D",
-    "nfat":"#5B6FB0", "runx":"#C55FA8", "hsf":"#7A8B3A", "dux4":"#4A4A4A",
+    "nfat":"#5B6FB0", "runx":"#C55FA8", "hsf":"#7A8B3A", "ndt80":"#4A4A4A",
 }
-# NOTE: dux4 (the excluded dimer) uses a dark charcoal, deliberately distinct
-# from the baseline/crystal GREY (#7C8698) — an earlier version reused GREY here,
-# which collided with the baseline entity color. All 3 pilots ever drawn together
-# in one figure (egr1/tbp/dux4, rmsd_analysis) are mutually distinct; the full
-# 12-way set is NOT guaranteed CVD-distinct if all appear in one figure at once.
+# NOTE: ndt80 uses a dark charcoal, deliberately distinct from the
+# baseline/crystal GREY (#7C8698) — an earlier version reused GREY here, which
+# collided with the baseline entity color. The full 12-way set is NOT guaranteed
+# CVD-distinct if all appear in one figure at once.
 # minimization-variant axis (cage story): cage ON is the default/good arm (teal
 # thread), cage OFF ("legacy") a muted warm contrast; never red (reserved alarm).
 VARIANT_COLOR = {"metal_cage": TEAL, "legacy": "#C98A3A"}

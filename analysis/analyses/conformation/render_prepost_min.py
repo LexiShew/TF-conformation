@@ -51,8 +51,8 @@ C_CRYS = "0x3A3A3A"   # dark grey  (crystal reference)
 # set by main(): if True, never overwrite an existing PNG
 SKIP_EXISTING = True
 
-ALL_PILOTS = ["csl", "dux4", "egr1", "engrailed", "err", "ets1", "foxa",
-              "hsf", "irf", "lef1", "nfat", "runx", "tbp"]
+ALL_PILOTS = ["csl", "egr1", "engrailed", "err", "ets1", "foxa",
+              "hsf", "lef1", "ndt80", "nfat", "runx", "tbp"]
 
 
 # ---- helpers (mirrors make_S.py) -------------------------------------------

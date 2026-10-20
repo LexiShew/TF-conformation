@@ -13,7 +13,7 @@ export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
 cd /project2/rohs_102/shewchuk/TF-conformation/rmsd_analysis
 echo "host=$(hostname) start=$(date)"
 python compute_rmsds.py \
-    --tfs csl dux4 egr1 engrailed err ets1 foxa hsf irf lef1 nfat runx tbp \
+    --tfs csl egr1 engrailed err ets1 foxa hsf lef1 ndt80 nfat runx tbp \
     --interface-dir interface_residues \
     --output-dir . 2>&1
 echo "exit_pipe=${PIPESTATUS[0]} end=$(date)"

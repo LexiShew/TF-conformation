@@ -18,7 +18,7 @@ cd $R/stage7_eval
 nvidia-smi --query-gpu=name --format=csv,noheader || true
 
 # Arm 1: augmented / frozen-DNA. Native inputs = stage5_aug features.
-for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 irf; do
+for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 ndt80; do
   echo "===== AUG-FROZEN: $tf ====="
   python predict_ab_pwms.py --tf $tf \
     --id-file $R/stage7_eval/confcmp_idfiles/id_${tf}_confcmp.txt \
@@ -30,7 +30,7 @@ done
 # Arm 2: augmented / relaxed-DNA. Run dirs are ..._fold0_dnarelax_s*, which
 # predict_ab_pwms.py reaches by treating the fold as "0_dnarelax". Native
 # inputs = stage5_aug_dnarelax features (same entry names, relaxed geometry).
-for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 irf; do
+for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 ndt80; do
   echo "===== AUG-RELAX: $tf ====="
   python predict_ab_pwms.py --tf $tf \
     --id-file $R/stage7_eval/confcmp_idfiles/id_${tf}_confcmp_relax.txt \

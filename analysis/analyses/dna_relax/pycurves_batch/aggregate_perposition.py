@@ -20,7 +20,7 @@ import statistics as st
 BASE = "/project2/rohs_102/shewchuk/TF-conformation"
 PYC  = f"{BASE}/analysis/analyses/dna_relax/pycurves"
 OUT  = f"{BASE}/analysis/analyses/dna_relax/data/pycurves_perposition.csv"
-TFS  = ["tbp","lef1","engrailed","egr1","ets1","foxa","dux4"]
+TFS  = ["tbp","lef1","engrailed","egr1","ets1","foxa"]
 
 def legacy_minorwidth_by_level(js):
     """Return {level_index(int): minor_width} from legacy groove data (sub_level 0)."""

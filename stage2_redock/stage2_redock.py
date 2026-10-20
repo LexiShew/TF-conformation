@@ -31,7 +31,7 @@ sees them.
 
 Validates that BioEmu's protein and the reference crystal's protein are the
 same residue sequence (not just the same Cα count); a mere count-match misses
-crystal gaps BioEmu modeled across (the DUX4 5z6z case).
+crystal gaps BioEmu modeled across (first hit on 5z6z, a since-retired pilot).
 """
 import argparse
 import os

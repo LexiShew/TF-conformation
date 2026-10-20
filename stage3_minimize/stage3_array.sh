@@ -18,7 +18,7 @@ STAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TASK_ID="${SLURM_ARRAY_TASK_ID:-${1:-}}"
 if [ -z "${TASK_ID}" ]; then
     echo "ERROR: SLURM_ARRAY_TASK_ID not set and no task ID arg given." >&2
-    echo "Usage (local test): TF_NAME=dux4 bash stage3_array.sh <task_id>" >&2
+    echo "Usage (local test): TF_NAME=ndt80 bash stage3_array.sh <task_id>" >&2
     exit 1
 fi
 

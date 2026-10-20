@@ -6,7 +6,7 @@
 """
 import os, re, json
 R = "/project2/rohs_102/shewchuk/TF-conformation"
-PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","irf","lef1","nfat","runx","tbp"]
+PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","lef1","nfat","runx","tbp"]
 def meta(tf):
     t = open(f"{R}/config/pilots/{tf}.sh").read()
     g = lambda k: re.search(k+r'="([^"]+)"', t).group(1)

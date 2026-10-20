@@ -35,9 +35,7 @@ figure says so.
 
 EXCLUSIONS
 ----------
-  dux4  no eval JSON (0 fnat survivors).
   lef1  no same-family benchmark entries (only HMG-box in the 130-entry set).
-  irf   absent from the whole-molecule MGW-FL table (groove-parse artifact); it retains
         an interface MGW-FL value and a bend value, so it appears in panels a-c.
 
 COLOR
@@ -160,7 +158,7 @@ def main():
                  x=0.005, ha="left", fontsize=9.5)
     fig.text(0.005, -0.05,
              "Own-family seed-level ΔPearson (n = 4–6 seeds per pilot × arm) vs measured "
-             "DNA geometry. n = 10–11 pilots (dux4: no eval; lef1: no same-family "
+             "DNA geometry. n = 10–11 pilots (lef1: no same-family "
              "entries).\nρ is Spearman with a bootstrap 95% CI over pilots "
              "(data/dnaflex_correlations.csv). Only panel b / relaxed excludes zero "
              "(ρ = −0.76, CI [−0.96, −0.28], same sign in 99.6% of resamples);\nevery "

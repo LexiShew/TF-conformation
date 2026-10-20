@@ -12,7 +12,7 @@
 #SBATCH --output=/project2/rohs_102/shewchuk/TF-conformation/af3/slurm_output/slurm-%A_%a.out
 #SBATCH --error=/project2/rohs_102/shewchuk/TF-conformation/af3/slurm_output/slurm-%A_%a.err
 # AF3 for the 7 remaining TF-conformation pilots. 10 structures/pilot (seeds[1,2] x 5 samples).
-# array 1-based: 1=csl 2=dux4 3=err 4=nfat 5=runx 6=hsf 7=irf
+# array 1-based: 1=csl 2=err 3=nfat 4=runx 5=hsf
 set -eo pipefail
 module load apptainer
 module load gcc/13.3.0
@@ -26,7 +26,7 @@ export AF3_DATABASES_DIR=${AF3_RESOURCES_DIR}/databases
 export RUN_DIR=/project2/rohs_102/shewchuk/TF-conformation/af3
 export AF3_INPUT_DIR=${RUN_DIR}/input
 export AF3_OUTPUT_DIR=${RUN_DIR}/output
-INPUTS=(csl_3brg.json dux4_5z6z.json err_1lo1.json nfat_1a66.json runx_1hjc.json hsf_5d5u.json irf_1if1.json)
+INPUTS=(csl_3brg.json err_1lo1.json nfat_1a66.json runx_1hjc.json hsf_5d5u.json)
 JSON_FILE=${INPUTS[$((SLURM_ARRAY_TASK_ID - 1))]}
 echo "[af3] task ${SLURM_ARRAY_TASK_ID} -> ${JSON_FILE}"
 apptainer exec --nv \

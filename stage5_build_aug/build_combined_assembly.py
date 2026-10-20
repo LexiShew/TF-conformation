@@ -8,9 +8,9 @@ Each pilot gets its own combined dir so they don't interfere with each other.
 Example:
   python build_combined_assembly.py \\
       --orig-dir /project2/.../assembly2024 \\
-      --stage4-dir /project2/.../conformations/dux4/stage4_npz/output \\
+      --stage4-dir /project2/.../conformations/ndt80/stage4_npz/output \\
       --pwm-filter DUX4_HUMAN.H11MO.0.A \\
-      --out-dir /project2/.../combined_assembly_dux4
+      --out-dir /project2/.../combined_assembly_ndt80
 """
 import argparse
 import os

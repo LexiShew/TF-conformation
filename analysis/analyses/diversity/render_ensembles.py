@@ -30,11 +30,10 @@ PILOTS = {   # pilot -> (pdb, af3 subdir, docked subdir)
     "err":       ("1lo1", "err_1lo1",       "err"),
     "nfat":      ("1a66", "nfat_1a66",      "nfat"),
     "runx":      ("1hjc", "runx_1hjc",      "runx"),
-    "dux4":      ("5z6z", "dux4_5z6z",      "dux4"),
     "hsf":       ("5d5u", "hsf_5d5u",       "hsf"),
 }
 ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1",
-         "csl", "err", "nfat", "runx", "dux4", "hsf"]
+         "csl", "err", "nfat", "runx", "hsf"]
 
 C_CRYST = "0x404040"   # dark grey
 C_DNA   = "0xcbb994"   # muted warm sand (soft context, not competing)

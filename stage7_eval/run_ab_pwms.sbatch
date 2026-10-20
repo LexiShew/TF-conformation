@@ -14,7 +14,7 @@ source /apps/conda/miniforge3/24.11.3/etc/profile.d/conda.sh
 conda activate /project2/rohs_102/shewchuk/conda/envs/deeppbs
 export OUTPUTS_DIR="/project2/rohs_102/shewchuk/TF-conformation/output/stage6_train"
 cd /project2/rohs_102/shewchuk/TF-conformation/stage7_eval
-for tf in csl engrailed err egr1 foxa hsf irf nfat runx; do
+for tf in csl engrailed err egr1 foxa hsf ndt80 nfat runx; do
   echo "===== PWM regen: $tf ====="
   python predict_ab_pwms.py \
     --tf $tf \

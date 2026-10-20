@@ -60,7 +60,7 @@ def parse_args():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--tf", required=True,
-                   help="Pilot name (tbp / dux4 / egr1); used for defaults.")
+                   help="Pilot name (tbp / egr1 / ndt80); used for defaults.")
     p.add_argument("--id-file", required=True,
                    help="Pinned AB entry list (one entry per line, .npz kept).")
     p.add_argument("--combined-dir",

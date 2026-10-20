@@ -20,11 +20,11 @@ DATA = os.path.join(BASE, "analysis", "data")
 FIGS = os.path.join(BASE, "analysis", "figures")
 
 # fnat pass-rate order (README): ETS1 100, TBP 100, EGR1 91, engrailed 91, FOXA 75, LEF1 19
-ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "dux4", "hsf"]
+ORDER = ["ets1", "tbp", "egr1", "engrailed", "foxa", "lef1", "csl", "err", "nfat", "runx", "hsf"]
 LABELS = {"ets1": "ETS1", "tbp": "TBP", "egr1": "EGR1",
           "engrailed": "engrailed", "foxa": "FOXA", "lef1": "LEF1",
           "csl": "CSL", "err": "ERR", "nfat": "NFAT",
-          "runx": "RUNX", "dux4": "DUX4", "hsf": "HSF"}
+          "runx": "RUNX", "hsf": "HSF"}
 # cool-pastel: BioEmu = teal (focal, the diverse one), AF3 = slate/lavender
 import sys as _sys, os as _os
 _sys.path.insert(0, _os.path.join(BASE))

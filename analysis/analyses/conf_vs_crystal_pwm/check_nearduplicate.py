@@ -16,7 +16,7 @@ import os, re, glob, json
 import numpy as np
 
 R = "/project2/rohs_102/shewchuk/TF-conformation"
-PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","irf","lef1","nfat","runx","tbp"]
+PIL = ["csl","egr1","engrailed","err","ets1","foxa","hsf","lef1","nfat","runx","tbp"]
 leak = json.load(open(f"{R}/analysis/analyses/conf_vs_crystal_pwm/crystal_leakage.json"))
 ASSEMBLY = f"{R}/data/assembly2024"
 

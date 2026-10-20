@@ -16,7 +16,7 @@ R=/project2/rohs_102/shewchuk/TF-conformation
 export OUTPUTS_DIR="$R/output/stage6_train"
 cd $R/stage7_eval
 nvidia-smi --query-gpu=name --format=csv,noheader || true
-for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 irf; do
+for tf in ets1 tbp hsf egr1 engrailed foxa csl err runx nfat lef1 ndt80; do
   echo "===== baseline PWM prediction: $tf ====="
   python predict_ab_pwms.py \
     --tf $tf \

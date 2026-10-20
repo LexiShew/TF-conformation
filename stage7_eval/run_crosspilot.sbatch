@@ -17,7 +17,7 @@ export OUTPUTS_DIR="$R/output/stage6_train"
 cd $R/stage7_eval
 nvidia-smi --query-gpu=name --format=csv,noheader || true
 
-PILOTS="csl egr1 engrailed err ets1 foxa hsf irf lef1 nfat runx tbp"
+PILOTS="csl egr1 engrailed err ets1 foxa hsf lef1 ndt80 nfat runx tbp"
 
 # Cross-pilot test: score TARGET pilot X's conformations + crystal under DONOR
 # pilot Y's checkpoints (Y != X). Y's augmented arm was trained on Y's states,
