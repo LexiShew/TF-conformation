@@ -46,12 +46,12 @@ from palette import GREY, GREY_R, TEAL, TEAL_R, ALARM, apply_style   # noqa: E40
 
 
 def load_best(path):
-    """{(pdb, chain) -> array of per-frame d_min}"""
-    out = defaultdict(list)
-    with open(path) as fh:
-        for r in csv.DictReader(fh):
-            out[(r["pdb_id"], r["chain"])].append(float(r["rmsd_A"]))
-    return {k: np.array(v) for k, v in out.items()}
+    """{(pdb, chain) -> array of per-frame d_min}
+
+    Thin adapter over pair_core.load_best_records(), which replaced three
+    divergent parsers of this same CSV.
+    """
+    return {k: v["dmin"] for k, v in pair_core.load_best_records(path).items()}
 
 
 def load_all_pairs(path):

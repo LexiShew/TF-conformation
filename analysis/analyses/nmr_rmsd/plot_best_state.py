@@ -39,16 +39,15 @@ from palette import TEAL, GREY, apply_style   # project-canonical colors
 
 
 def load_best(path):
-    """OrderedDict {(pdb_id, chain): {'counts': Counter, 'n_states', 'n_conf'}}."""
-    entries = OrderedDict()
-    with open(path) as fh:
-        for row in csv.DictReader(fh):
-            key = (row["pdb_id"], row["chain"])
-            e = entries.setdefault(key, {"counts": Counter(), "n_states": 0, "n_conf": 0})
-            e["counts"][int(row["best_state"])] += 1
-            e["n_states"] = int(row["n_states"])
-            e["n_conf"] += 1
-    return entries
+    """OrderedDict {(pdb_id, chain): {'counts': Counter, 'n_states', 'n_conf'}}.
+
+    Thin adapter over pair_core.load_best_records(), which replaced three
+    divergent parsers of this same CSV. dict preserves insertion order, which
+    is the file order this script's panel layout depends on.
+    """
+    return OrderedDict(
+        (k, {"counts": v["best"], "n_states": v["n_states"], "n_conf": v["n_conf"]})
+        for k, v in pair_core.load_best_records(path).items())
 
 
 def draw_panel(ax, pdb_id, chain, entry, label_axes=True):

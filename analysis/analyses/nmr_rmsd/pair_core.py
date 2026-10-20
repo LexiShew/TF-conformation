@@ -279,3 +279,73 @@ def rmsd_matrix(mobile, reference, mob_idx, ref_idx):
         m[f] = md.rmsd(mobile, reference, frame=f,
                        atom_indices=mob_idx, ref_atom_indices=ref_idx) * 10.0
     return m
+
+
+# ---------------------------------------------------------------------------
+# Shared reader for nmr_state_rmsd_best_<atoms>.csv
+#
+# This file was parsed by three separate load_best() implementations — in
+# plot_rmsd_distributions.py, plot_best_state.py and plot_pair_side_by_side.py —
+# each pulling a different subset of the same columns. One superset reader
+# replaces all three; the callers keep thin adapters so their own downstream
+# shapes are unchanged.
+# ---------------------------------------------------------------------------
+def load_best_records(path):
+    """Read nmr_state_rmsd_best_<atoms>.csv.
+
+    Returns {(pdb_id, chain): {"dmin": np.ndarray,   # per-conformation d_min
+                               "best": Counter,      # best_state -> count
+                               "n_states": int,      # states in the bundle
+                               "n_conf": int}}       # conformations scored
+    Insertion-ordered (file order), which plot_best_state.py relies on for its
+    panel ordering.
+    """
+    import csv as _csv
+    from collections import Counter as _Counter
+    import numpy as _np
+
+    out = {}
+    with open(path) as fh:
+        for row in _csv.DictReader(fh):
+            key = (row["pdb_id"], row["chain"])
+            e = out.setdefault(key, {"dmin": [], "best": _Counter(),
+                                     "n_states": 0, "n_conf": 0})
+            e["dmin"].append(float(row["rmsd_A"]))
+            e["best"][int(row["best_state"])] += 1
+            e["n_states"] = int(row["n_states"])
+            e["n_conf"] += 1
+    for e in out.values():
+        e["dmin"] = _np.asarray(e["dmin"], dtype=float)
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Moved here from fnat_on_pairs.py / fnat_on_pilots.py, where it existed
+# byte-identically in both. Public name (no leading underscore) since it is
+# now a shared entry point.
+# ---------------------------------------------------------------------------
+def fnat_values(path):
+    """fnat column as floats, plus whether EVERY state was unscorable.
+
+    The gate writes "NA" when fnat is nan, and interface_rmsd.score returns nan
+    only when the REFERENCE has no native protein-DNA contacts at all
+    (`fnat = rec/len(nat) if nat else nan`). So NA is a property of the
+    reference, not of the docked state: if one state is NA they all are, and it
+    means the reference protein/DNA chain selection is wrong -- not that the
+    ensemble scored zero. Silently dropping those rows hides a broken reference,
+    so the caller is told.
+    """
+    out, total = [], 0
+    for r in csv.DictReader(open(path)):
+        total += 1
+        try:
+            v = float(r["fnat"])
+        except (TypeError, ValueError):
+            continue
+        if v == v:
+            out.append(v)
+    if total and not out:
+        raise BrokenReference(
+            f"{Path(path).name}: all {total} states scored NA -- the reference has no "
+            f"protein-DNA contacts, so its chain selection is wrong")
+    return np.array(out)

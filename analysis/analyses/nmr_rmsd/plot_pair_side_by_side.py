@@ -52,18 +52,13 @@ def _tag(args):
 
 
 def load_best(path):
-    """{(pdb, chain) -> dict(dmin=array, best=Counter, n_states=int)}"""
-    out = {}
-    with open(path) as fh:
-        for r in csv.DictReader(fh):
-            k = (r["pdb_id"], r["chain"])
-            e = out.setdefault(k, {"dmin": [], "best": Counter(), "n_states": 0})
-            e["dmin"].append(float(r["rmsd_A"]))
-            e["best"][int(r["best_state"])] += 1
-            e["n_states"] = int(r["n_states"])
-    for e in out.values():
-        e["dmin"] = np.array(e["dmin"])
-    return out
+    """{(pdb, chain) -> dict(dmin=array, best=Counter, n_states=int)}
+
+    Thin adapter over pair_core.load_best_records(), which replaced three
+    divergent parsers of this same CSV.
+    """
+    return {k: {"dmin": v["dmin"], "best": v["best"], "n_states": v["n_states"]}
+            for k, v in pair_core.load_best_records(path).items()}
 
 
 def draw_counts(ax, e, color, title):

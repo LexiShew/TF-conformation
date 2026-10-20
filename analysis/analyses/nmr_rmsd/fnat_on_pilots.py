@@ -90,32 +90,6 @@ class BrokenReference(RuntimeError):
     """The scoring reference has no interface, so nothing can be scored against it."""
 
 
-def _fnat_values(path):
-    """fnat column as floats, plus whether EVERY state was unscorable.
-
-    The gate writes "NA" when fnat is nan, and interface_rmsd.score returns nan
-    only when the REFERENCE has no native protein-DNA contacts at all
-    (`fnat = rec/len(nat) if nat else nan`). So NA is a property of the
-    reference, not of the docked state: if one state is NA they all are, and it
-    means the reference protein/DNA chain selection is wrong -- not that the
-    ensemble scored zero. Silently dropping those rows hides a broken reference,
-    so the caller is told.
-    """
-    out, total = [], 0
-    for r in csv.DictReader(open(path)):
-        total += 1
-        try:
-            v = float(r["fnat"])
-        except (TypeError, ValueError):
-            continue
-        if v == v:
-            out.append(v)
-    if total and not out:
-        raise BrokenReference(
-            f"{Path(path).name}: all {total} states scored NA -- the reference has no "
-            f"protein-DNA contacts, so its chain selection is wrong")
-    return np.array(out)
-
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
@@ -255,7 +229,7 @@ def main():
                 print(f"  {tag}: SKIP score -- logs/{pilot}_{tag}_fnat.log", file=sys.stderr)
                 continue
             try:
-                f = _fnat_values(csv_path)
+                f = pair_core.fnat_values(csv_path)
             except BrokenReference as exc:
                 print(f"  BROKEN REFERENCE: {exc}", file=sys.stderr)
                 continue
