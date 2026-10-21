@@ -1,0 +1,29 @@
+# BioEmu2 environment. SEPARATE from config/bioemu.yml, which pins Python
+# 3.11.14 — BioEmu2 requires 3.12, 3.13 or 3.14, so this cannot be an in-place
+# upgrade of the existing env.
+#
+#   conda env create -f bioemu2/environment.yml
+#   conda activate bioemu2
+#   git clone https://github.com/microsoft/bioemu2 ~/src/bioemu2
+#   cd ~/src/bioemu2 && python -m pip install ".[cuda]"
+#
+# Pick the extra by compute capability (nvidia-smi --query-gpu=compute_cap --format=csv):
+#   cc >= 7.5   ->  pip install ".[cuda]"
+#   cc == 7.0   ->  pip install ".[cuda12]" --extra-index-url https://download.pytorch.org/whl/cu126
+#
+# Deliberately minimal: BioEmu2's own pip extras pull torch and the CUDA stack,
+# so pinning them here would just fight it. Only the few things the comparison
+# script needs on top are listed — and scipy/numpy are already present in the
+# deeppbs env, which is where compare_to_pipeline.py is meant to run.
+name: bioemu2
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - git
+  # sample_complex.py writes topology.pdb and the per-frame states via mdtraj.
+  # BioEmu2 depends on mdtraj itself, so this mainly guarantees it is present
+  # if you ever run the script's I/O paths without a full BioEmu2 install.
+  - mdtraj
+  - numpy
