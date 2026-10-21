@@ -195,7 +195,10 @@ def main():
 
     t1 = time.time()
     emu = EmuSession(system, model=model, mode="equilibrium")
-    samples = emu.sample(num_samples=a.num_samples)
+    # EmuSession.sample() takes the seed itself (bioemu2 0.1 preview); pass it
+    # there as well as to torch above, so the RNG that actually drives the
+    # reverse diffusion is the seeded one.
+    samples = emu.sample(num_samples=a.num_samples, seed=a.seed)
     t_sample = time.time() - t1
     print(f"[bioemu2/{label}] sampled {a.num_samples} in {t_sample/60:.1f} min "
           f"(model load {t_load:.0f}s)")
@@ -205,8 +208,11 @@ def main():
     try:
         from bioemu2 import check_physicality
         report = check_physicality(samples)
-        n_pass = int(sum(getattr(report, "passed", []) or []))
-        print(f"[bioemu2/{label}] physicality: {n_pass}/{a.num_samples} frames passed")
+        # PhysicalityReport.passed is a numpy bool array, so `x or []` on it
+        # raises "truth value of an array ... is ambiguous" — iterate instead.
+        n_pass = int(sum(bool(x) for x in report.passed))
+        print(f"[bioemu2/{label}] physicality: {n_pass}/{a.num_samples} frames passed "
+              f"(mode={report.mode}, checked={report.checked})")
     except Exception as e:                                  # noqa: BLE001
         print(f"[bioemu2/{label}] physicality check unavailable ({e}); continuing",
               file=sys.stderr)
