@@ -157,8 +157,11 @@ solution-NMR entries in the same 95% sequence cluster — plus 22 more already i
 
 - Filters: ≥10 models both sides, ≥84% coverage of the shorter sequence, DNA-binding regulators.
 - Families span HMG-box, homeodomain, forkhead, HTH, MYB/SANT, ARID, MBD, WRKY, THAP, cold-shock,
-  MarR/winged-helix, Telobox — four of them map onto existing pilots (c09↔foxa, c12↔lef1, c32↔nfat,
-  c08↔trf1), which is what ties this back to the benchmark.
+  MarR/winged-helix and Telobox.
+- Five pairs overlap existing pilots (`overlaps_existing` in `pairs.csv`): c09 forkhead/foxa, c02 ETS/ets1,
+  c08 Telobox/trf1, c12 HMG-box/lef1 (also the NHP6A pair), c32 Rel-NFAT/nfat — but only **c09 is among the
+  16 analysed**; the other four are staged, which is part of the argument for running them. That overlap is
+  what ties this measurement back to the benchmark.
 - "apo" means no nucleic acid in the entry — it does **not** mean vetted: some carry peptides or ligands,
   differ in oligomeric state, or cover different domain boundaries. Say this out loud once.
 

@@ -42,6 +42,7 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PWM = os.path.normpath(os.path.join(HERE, "..", "conf_vs_crystal_pwm"))
+RELAX = os.path.normpath(os.path.join(HERE, "..", "dna_relax"))
 TFCONF = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 
 import sys
@@ -104,6 +105,7 @@ def load():
     d["pwm_state"] = pd.read_csv(os.path.join(PWM, "per_state_all_conditions.csv"))
     d["pwm_tf"] = pd.read_csv(os.path.join(PWM, "per_tf_all_conditions.csv"))
     d["crosspilot"] = pd.read_csv(os.path.join(PWM, "crosspilot_deltas.csv"))
+    d["mgwfl"] = pd.read_csv(os.path.join(RELAX, "data", "af3_vs_ensemble_mgwfl.csv"))
 
     rows = []
     for f in sorted(glob.glob(os.path.join(HERE, "fnat", "*_fnat_*.csv"))):
@@ -615,6 +617,91 @@ def fig_N10(d, out):
     plt.close(fig)
 
 
+def fig_N11(d, out, tabdir):
+    """Are the two protein-side axes the same axis?
+
+    x = how much of the interface the free state already carries (median apo
+    fnat). y = how far the protein actually moves between bundles (apo-holo
+    separation on the shared core). If these were one axis, apo fnat would just
+    be an RMSD proxy. Spearman is computed here, not quoted.
+    """
+    ok = set(d["three_way"].query("ok").pair)
+    F = d["fnat_states"]
+    apo = (F[(F.source == "apo_states") & F.pair.isin(ok)]
+           .groupby("pair").fnat.median().rename("apo_fnat"))
+    B = d["bundle"].set_index("pair_id")
+    T = pd.concat([apo, B.separation_A, B.informative], axis=1).dropna()
+    T = T[T.informative == 1]
+    T["label"] = [SHORT.get(i, i) for i in T.index]
+    rho, pv = stats.spearmanr(T.apo_fnat, T.separation_A)
+
+    fig, ax = plt.subplots(figsize=(5.9, 4.0))
+    ax.scatter(T.apo_fnat, T.separation_A, s=46, color=HOLO, alpha=.85, zorder=3)
+    for _, r in T.iterrows():
+        ax.annotate(r.label, (r.apo_fnat, r.separation_A), textcoords="offset points",
+                    xytext=(6, 3), fontsize=5.8, color=MG)
+    ax.axvline(.5, color=MG, lw=.9, ls="--", zorder=1)
+    ax.text(.505, ax.get_ylim()[1], "fnat gate", fontsize=5.6, color=MG, va="top", ha="left")
+    ax.set_xlabel("median apo fnat — how much of the interface\nthe free state already carries")
+    ax.set_ylabel("apo–holo separation on the shared core (Å)\nhow far the protein actually moves")
+    ax.set_title("Interface preformation and conformational change\nare not the same axis")
+    ax.text(.98, .97, "Spearman ρ = %+.2f, p = %.2f  (n = %d pairs)\nno detectable relationship — but at n = %d\nthis is a weak-power null, not proof of independence"
+            % (rho, pv, len(T), len(T)), transform=ax.transAxes, ha="right", va="top",
+            fontsize=5.8, color=MG, linespacing=1.45)
+    fig.savefig(os.path.join(out, "N11_fnat_vs_separation.png"), bbox_inches="tight")
+    plt.close(fig)
+    T.drop(columns="informative").round(4).to_csv(
+        os.path.join(tabdir, "v5_S22b_fnat_vs_separation.csv"))
+
+
+def fig_N12(d, out, tabdir):
+    """The protein axis against the DNA axis, on the pilots that have both.
+
+    x = median apo fnat (is the PROTEIN preformed?). y = frozen-ensemble MGW
+    fluctuation (is the DNA reshaped?). n = 5, so this is a direction, not a
+    result -- the figure says so on its face.
+    """
+    ps = d["pilots_summary"]
+    apo = (ps[ps.source != "bioemu"].groupby("pilot").fnat_median.median()
+           .rename("apo_fnat"))
+    mg = d["mgwfl"].set_index("pilot").frozen.rename("mgwfl")
+    T = pd.concat([apo, mg], axis=1).dropna()
+    rho, pv = stats.spearmanr(T.apo_fnat, T.mgwfl)
+
+    fig, ax = plt.subplots(figsize=(6.1, 4.0))
+    ax.scatter(T.apo_fnat, T.mgwfl, s=58, color=BIO, alpha=.9, zorder=3)
+    for pilot, r in T.iterrows():
+        ax.annotate(pilot, (r.apo_fnat, r.mgwfl), textcoords="offset points",
+                    xytext=(7, 3), fontsize=6.4, color=HOLO)
+    xm, ym = T.apo_fnat.median(), T.mgwfl.median()
+    ax.axvline(xm, color=MG, lw=.9, ls=":", zorder=1)
+    ax.axhline(ym, color=MG, lw=.9, ls=":", zorder=1)
+    # Pad the limits so the four corner quadrant labels never sit on a point --
+    # at n = 5 the data occupies only part of the frame, but nfat and engrailed
+    # land in exactly the corners the labels want.
+    dx = T.apo_fnat.max() - T.apo_fnat.min()
+    dy = T.mgwfl.max() - T.mgwfl.min()
+    ax.set_xlim(T.apo_fnat.min() - .18 * dx, T.apo_fnat.max() + .30 * dx)
+    ax.set_ylim(T.mgwfl.min() - .26 * dy, T.mgwfl.max() + .26 * dy)
+    for x, y, ha, va, txt in [
+            (.02, .97, "left", "top", "DNA reshaped,\nprotein not preformed\n→ induced fit both sides"),
+            (.98, .97, "right", "top", "DNA reshaped,\nprotein preformed"),
+            (.02, .03, "left", "bottom", "DNA intrinsic,\nprotein not preformed"),
+            (.98, .03, "right", "bottom", "DNA intrinsic,\nprotein preformed\n→ selection both sides")]:
+        ax.text(x, y, txt, transform=ax.transAxes, ha=ha, va=va,
+                fontsize=5.4, color=MG, style="italic", linespacing=1.35)
+    ax.set_xlabel("median apo fnat  —  is the PROTEIN preformed? →")
+    ax.set_ylabel("frozen-ensemble MGW fluctuation (Å)\nis the DNA reshaped? →")
+    ax.set_title("The 2×2 nobody has plotted: protein axis × DNA axis")
+    ax.text(.5, -.30, "n = %d pilots · Spearman ρ = %+.2f, p = %.2f — leans the way the mechanism picture predicts, and proves nothing. "
+                      "This is the plot direction 4 would scale."
+            % (len(T), rho, pv), transform=ax.transAxes, ha="center", va="top",
+            fontsize=5.8, color=ALARM, linespacing=1.4, wrap=True)
+    fig.savefig(os.path.join(out, "N12_protein_x_dna.png"), bbox_inches="tight")
+    plt.close(fig)
+    T.round(4).to_csv(os.path.join(tabdir, "v5_S31b_protein_x_dna.csv"))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "plots", "talk"))
@@ -628,8 +715,9 @@ def main():
     fig_N1(d, a.out); fig_N2(d, AC, a.out); fig_N3(d, a.out); fig_N4(AC, a.out)
     fig_N5(AC, a.out); fig_N6(AC, a.out); fig_N7(d, a.out); fig_N8(d, a.out, a.tables)
     fig_N9(d, a.out); fig_N10(d, a.out)
+    fig_N11(d, a.out, a.tables); fig_N12(d, a.out, a.tables)
     tables(d, AC, a.tables)
-    print("wrote 10 figures to %s and 4 tables to %s" % (a.out, a.tables))
+    print("wrote 12 figures to %s and 6 tables to %s" % (a.out, a.tables))
 
 
 if __name__ == "__main__":
