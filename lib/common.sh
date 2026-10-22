@@ -176,6 +176,39 @@ load_pilot_config() {
         echo "[common] DNA relaxation ON (STAGE3_DNA_RESTRAINT_K=${STAGE3_DNA_RESTRAINT_K}${STAGE3_DNA_RELEASE_STAGE:+, release stage ${STAGE3_DNA_RELEASE_STAGE}}): writing Stage 3+ to *${suffix}/ paths"
     fi
 
+
+    # Conformation SOURCE (B8). A third, composable suffix dimension alongside
+    # LEGACY and DNA relaxation, for ensembles that did NOT come from the
+    # Stage 1-2 BioEmu+HPacker+redock path. BioEmu2 samples the protein-DNA
+    # COMPLEX directly, so its frames enter at the gate rather than at Stage 1.
+    #
+    #   CONF_SRC=bioemu1  (default) the Stage 1-2 path; suffix unchanged, so every
+    #                     existing run and every committed output path is
+    #                     byte-identical to before this block existed.
+    #   CONF_SRC=bioemu2  appends "_be2", so Stage 3+ outputs land in
+    #                     stage3_min_be2/, stage4_npz_be2/, stage5_aug_be2/,
+    #                     train*_aug_be2_*.txt, and (via CONDITION_NAME_SUFFIX)
+    #                     baseline/augmented_<tf>_fold<N>_be2* run dirs and
+    #                     id_benchmark_<tf>_be2.json. Nothing overwrites the
+    #                     BioEmu1 results the 5-seed benchmark depends on.
+    #
+    # Like LEGACY and dnarelax this only moves PATHS; it does not change what any
+    # stage computes. The BioEmu2 frames are staged into STAGE3_DIR by
+    # bioemu2/stage_as_stage3.sh, after which the fnat gate and Stages 4-7 run
+    # completely unmodified.
+    export CONF_SRC="${CONF_SRC:-bioemu1}"
+    case "${CONF_SRC}" in
+        bioemu1) : ;;
+        bioemu2)
+            suffix="${suffix}_be2"
+            echo "[common] conformation source: BioEmu2 complex sampling; writing Stage 3+ to *${suffix}/ paths"
+            ;;
+        *)
+            echo "ERROR: CONF_SRC=${CONF_SRC} is not valid. Use 'bioemu1' or 'bioemu2'." >&2
+            return 1
+            ;;
+    esac
+
     # Stage 1 output = the binding chain's conformation dir in the new per-chain
     # library (B1). stage1_bioemu writes samples_sidechain_rec.{pdb,xtc} here;
     # Stage 2 reads them. BIOEMU_DIR is the same dir (raw BioEmu output lives

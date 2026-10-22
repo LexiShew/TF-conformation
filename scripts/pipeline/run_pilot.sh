@@ -12,6 +12,10 @@
 #   ./scripts/pipeline/run_pilot.sh ndt80 4 7         # skip Stages 1-3 (already done)
 #   ./scripts/pipeline/run_pilot.sh ndt80 6 7         # just retrain + reeval
 #   ARM=dnarelax ./scripts/pipeline/run_pilot.sh ndt80   # DNA-relaxation arm
+#   CONF_SRC=bioemu2 ./scripts/pipeline/run_pilot.sh ets1 4 7
+#                                                     # BioEmu2 complex frames;
+#                                                     # stage them first with
+#                                                     # bioemu2/stage_as_stage3.sh
 #
 # Dependency policy:
 #   afterany — Stage 3 array → 3r only. Partial failure on minimization is
@@ -72,6 +76,7 @@ require_var N_FRAMES
 require_var COMBINED_ASSEMBLY_DIR
 
 echo "[run_pilot] arm=${ARM} (ARM=dnarelax for the DNA-relaxation variant)"
+echo "[run_pilot] conformation source=${CONF_SRC:-bioemu1}"
 
 # One timestamp for this whole submission, so every stage of this pilot run
 # shares a log prefix and the files sort together:
@@ -123,7 +128,7 @@ submit_stage() {
     # anyway, but naming it makes the arm selection visible at the submit site
     # and survives a future change to a narrower --export list.
     jobid=$(sbatch --parsable \
-        --export=ALL,TF_NAME="${TF_NAME}",ARM="${ARM}" \
+        --export=ALL,TF_NAME="${TF_NAME}",ARM="${ARM}",CONF_SRC="${CONF_SRC}" \
         "${logargs[@]}" \
         "${depend[@]}" \
         "$@" \
@@ -193,4 +198,4 @@ echo ""
 echo "[run_pilot] Pipeline submitted. Monitor with:"
 echo "  squeue -u \$USER"
 echo "[run_pilot] Final results will be at:"
-echo "  ${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}.json"
+echo "  ${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}${CONDITION_NAME_SUFFIX}.json"
