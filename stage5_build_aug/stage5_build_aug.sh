@@ -34,10 +34,18 @@ python "${STAGE_DIR}/build_combined_assembly.py" \
     --out-dir "${COMBINED_ASSEMBLY_DIR}"
 
 # 5c: build default-seed training configs (multiseed runs generate their own)
+# --seed-suffix carries CONDITION_NAME_SUFFIX so a conditioned run (legacy /
+# dnarelax / CONF_SRC=bioemu2) writes config_*_fold<N><cond>.json instead of
+# OVERWRITING the unconditioned configs. Without it this step ignored the
+# condition entirely and clobbered config_{baseline,augmented}_<tf>_fold<N>.json,
+# including pointing the baseline-named augmented config at the conditioned
+# combined_assembly dir. The dnarelax arm never hit this because multiseed runs
+# pass their own --seed-suffix; run_pilot.sh at default seed did not.
 python "${STAGE_DIR}/build_training_configs.py" \
     --tf-name "${TF_NAME}" \
     --combined-dir "${COMBINED_ASSEMBLY_DIR}" \
     --fold "${FOLD}" \
+    --seed-suffix "${CONDITION_NAME_SUFFIX:-}" \
     --output-dir "${OUTPUTS_DIR}"
 
 echo "[stage5/${TF_NAME}] DONE"
