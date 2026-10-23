@@ -15,6 +15,11 @@
 # Examples:
 #   ./scripts/pipeline/run_multiseed_pilot.sh egr1 5      # 5 paired seeds for EGR1
 #   ./scripts/pipeline/run_multiseed_pilot.sh tbp 5       # 5 paired seeds for TBP
+#   CONF_SRC=bioemu2 ./scripts/pipeline/run_multiseed_pilot.sh ets1 5
+#                                                         # BioEmu2-sourced arm; writes
+#                                                         # *_fold0_be2_s1..s5 and
+#                                                         # id_benchmark_<tf>_be2.json
+#   BENCH_PARTITION=qcbgpu CONF_SRC=bioemu2 ./scripts/pipeline/run_multiseed_pilot.sh ets1 5
 
 set -eo pipefail
 # TF-conformation repo root (this orchestrator's own dir); export so wrappers
@@ -109,7 +114,7 @@ for s in $(seq 1 "${N_SEEDS}"); do
         --job-name="train_${TF_NAME}_s${s}" \
         --output="${LOGS_DIR}/${SUBMIT_STAMP}_train_${TF_NAME}${COND}_s${s}_%A_%a.out" \
         --error="${LOGS_DIR}/${SUBMIT_STAMP}_train_${TF_NAME}${COND}_s${s}_%A_%a.err" \
-        --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}",ARM="${ARM:-frozen}" \
+        --export=ALL,TF_NAME="${TF_NAME}",SEED="${s}",ARM="${ARM:-frozen}",CONF_SRC="${CONF_SRC:-bioemu1}" \
         "${PART_ARG[@]}" \
         "${WRAPPERS_DIR}/train_compare.sh")
     TRAIN_JOB_IDS+=( "${JOB_ID}" )
@@ -120,7 +125,7 @@ done
 DEPEND_STR=$(IFS=':'; echo "${TRAIN_JOB_IDS[*]}")
 EVAL_JOB=$(sbatch --parsable \
     --dependency="afterok:${DEPEND_STR}" \
-    --export=ALL,TF_NAME="${TF_NAME}",ARM="${ARM:-frozen}" \
+    --export=ALL,TF_NAME="${TF_NAME}",ARM="${ARM:-frozen}",CONF_SRC="${CONF_SRC:-bioemu1}" \
     --output="${LOGS_DIR}/${SUBMIT_STAMP}_eval_${TF_NAME}${COND}_%j.out" \
     --error="${LOGS_DIR}/${SUBMIT_STAMP}_eval_${TF_NAME}${COND}_%j.err" \
     "${PART_ARG[@]}" \
@@ -132,5 +137,5 @@ echo "[multiseed/${TF_NAME}] Pipeline submitted:"
 echo "  ${N_SEEDS} paired training jobs: ${TRAIN_JOB_IDS[*]}"
 echo "  1 eval job (auto-discovers all 2*${N_SEEDS} checkpoints): ${EVAL_JOB}"
 echo ""
-echo "Final results: ${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}.json"
+echo "Final results: ${EVAL_OUT_DIR}/id_benchmark_${TF_NAME}${COND}.json"
 echo "Monitor with: squeue -u \$USER"
